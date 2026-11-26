@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eeeaff"/><stop offset="0.6" stop-color="#f6f1ff"/><stop offset="1" stop-color="#ffe9d6"/></linearGradient>
+<radialGradient id="glow" cx="0.5" cy="0.42" r="0.55"><stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+<linearGradient id="scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(280,70%,18%)"/><stop offset="0.5" stop-color="hsl(310,75%,45%)"/><stop offset="0.8" stop-color="hsl(80,90%,62%)"/><stop offset="1" stop-color="#ffd166"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b9bfc8"/><stop offset="0.45" stop-color="#f4f6f9"/><stop offset="1" stop-color="#a7adb7"/></linearGradient>
+<linearGradient id="white" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3e7ed"/><stop offset="0.5" stop-color="#ffffff"/><stop offset="1" stop-color="#d6dbe2"/></linearGradient>
+<linearGradient id="black" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34343b"/><stop offset="1" stop-color="#0e0e12"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c2533"/><stop offset="1" stop-color="#3d4b63"/></linearGradient>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1a1240" flood-opacity="0.28"/></filter>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/><rect width="800" height="800" fill="url(#glow)"/>
+<ellipse cx="400" cy="690" rx="230" ry="26" fill="#1a1240" opacity="0.10"/>
+<g filter="url(#sh)">
+<rect x="240" y="287" width="320" height="186" rx="16" fill="url(#black)"/>
+<rect x="252" y="299" width="296" height="156" rx="4" fill="url(#scr)"/>
+<circle cx="457.6" cy="353.96" r="26.040000000000003" fill="#ffd166" opacity="0.92"/>
+<path d="M252 420.91999999999996 C 320 394.88, 384 417.2, 438.4 398.6 S 528 391.16, 548 406.04 L548 455 L252 455 Z" fill="#1a1240" opacity="0.85"/>
+<text x="270" y="331" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#ffffff" letter-spacing="1">HD</text>
+<text x="400" y="471" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#c9ccd4" letter-spacing="3">NASCO</text>
+<rect x="329.6" y="473" width="10" height="203" fill="#1b1b20" transform="rotate(14 329.6 473)"/>
+<rect x="460.4" y="473" width="10" height="203" fill="#1b1b20" transform="rotate(-14 470.4 473)"/>
+</g></svg>

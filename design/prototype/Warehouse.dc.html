@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS warehouse</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="warehouse" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="inventory" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Warehouse &amp; transfers</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{scopeLine}}</p>
+</div>
+<div role="tablist" aria-label="Warehouse views" style="display: flex; gap: 4px; padding: 4px; border-radius: 9999px; background: #ffffff; flex-wrap: wrap; box-shadow: rgba(0, 0, 0, 0.06) 0 2px 8px 0">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="6"><button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; font-size: 14px; padding: 10px 14px; min-height: 42px; border-radius: 9999px; border: 0; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}">{{t.label}}</button></sc-for>
+</div>
+</header>
+
+<sc-if value="{{hasMsg}}" hint-placeholder-val="{{false}}"><div role="status" style="display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 16px; background: {{msgBg}}; color: #ffffff; font-size: 14px; font-weight: 500"><span style="flex: 1">{{msg}}</span><button type="button" onClick="{{hideMsg}}" aria-label="Dismiss" style="width: 28px; height: 28px; border-radius: 9999px; border: 0; background: rgba(255, 255, 255, 0.25); color: #ffffff; cursor: pointer">×</button></div></sc-if>
+
+<section aria-label="Key figures" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="5"><div style="background: #ffffff; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 4px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px"><span style="font-size: 12px; color: #5f5c5a">{{k.label}}</span><strong style="font-size: 24px; font-weight: 600; letter-spacing: -0.04em; color: {{k.c}}">{{k.value}}</strong><span style="font-size: 12px; color: #3d3a38">{{k.note}}</span></div></sc-for>
+</section>
+
+<sc-if value="{{tabOverview}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="ai-h" style="flex: 3 1 520px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center"><h2 id="ai-h" style="margin: 0; font-size: 17px; font-weight: 600">✨ Smart stock suggestions</h2><span style="font-size: 12px; color: #5f5c5a">Worked out from live stock, reorder levels and what is already on the way</span></div>
+<sc-if value="{{noSugg}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a; padding: 10px 0">Every branch is above its reorder level. Nothing needs moving right now.</span></sc-if>
+<sc-for list="{{sugg}}" as="s" hint-placeholder-count="4"><div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 12px 14px; border-radius: 16px; border: 1px solid #ebebeb">
+<span style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: {{s.tagBg}}; color: {{s.tagFg}}; white-space: nowrap">{{s.tag}}</span>
+<span style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 14px; font-weight: 600">{{s.title}}</strong><span style="font-size: 12px; color: #5f5c5a">{{s.why}}</span></span>
+<span style="display: flex; gap: 6px"><button type="button" onClick="{{s.edit}}" style="font-family: inherit; font-size: 13px; padding: 8px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Review</button><button type="button" onClick="{{s.go}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">{{s.btn}}</button></span>
+</div></sc-for>
+</section>
+<section aria-labelledby="tr-h" style="flex: 2 1 340px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="tr-h" style="margin: 0; font-size: 17px; font-weight: 600">On the move &amp; waiting</h2>
+<sc-if value="{{noOpen}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">No open movements.</span></sc-if>
+<sc-for list="{{openDocs}}" as="d" hint-placeholder-count="3"><button type="button" onClick="{{d.open}}" style="font-family: inherit; text-align: left; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 14px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer"><span style="display: flex; justify-content: space-between; gap: 8px"><strong style="font-size: 13px">{{d.id}} · {{d.route}}</strong><span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: {{d.sbg}}; color: #ffffff">{{d.stTxt}}</span></span><span style="font-size: 12px; color: #5f5c5a">{{d.itemsTxt}}</span></button></sc-for>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{tabStock}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="ws-h" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px; overflow-x: auto">
+<div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center"><h2 id="ws-h" style="margin: 0; font-size: 17px; font-weight: 600">Stock in the warehouse and every branch</h2><span style="font-size: 12px; color: #5f5c5a">Dark cells are below the reorder level</span></div>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px">
+<thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a"><th scope="col" style="font-weight: 500; padding: 8px">Product</th><th scope="col" style="font-weight: 600; padding: 8px; color: #000000">Warehouse</th><sc-for list="{{brHeads}}" as="h" hint-placeholder-count="3"><th scope="col" style="font-weight: 500; padding: 8px">{{h.t}}</th></sc-for><th scope="col" style="font-weight: 500; padding: 8px">Reorder at</th><th scope="col" style="font-weight: 500; padding: 8px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Actions</span></th></tr></thead>
+<tbody><sc-for list="{{stockRows}}" as="r" hint-placeholder-count="8"><tr style="border-top: 1px solid #ebebeb">
+<td style="padding: 8px; font-weight: 500">{{r.name}}</td>
+<td style="padding: 8px"><span style="display: inline-block; min-width: 44px; text-align: center; padding: 4px 8px; border-radius: 8px; background: #e7f2f2; color: #084848; font-weight: 600">{{r.wh}}</span></td>
+<sc-for list="{{r.cells}}" as="c" hint-placeholder-count="3"><td style="padding: 8px"><span style="display: inline-block; min-width: 44px; text-align: center; padding: 4px 8px; border-radius: 8px; background: {{c.bg}}; color: {{c.fg}}">{{c.v}}</span></td></sc-for>
+<td style="padding: 8px; color: #5f5c5a">{{r.reorder}}</td>
+<td style="padding: 8px; white-space: nowrap"><button type="button" onClick="{{r.send}}" style="font-family: inherit; font-size: 12px; padding: 6px 10px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Send to store</button></td>
+</tr></sc-for></tbody>
+</table>
+</section>
+</sc-if>
+
+<sc-if value="{{tabSup}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="sp-h" style="flex: 2 1 380px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="sp-h" style="margin: 0; font-size: 18px; font-weight: 600">Receive a delivery from a supplier</h2><span style="font-size: 13px; color: #5f5c5a">New stock, replacements for damaged goods and repaired items coming back. What you receive here is added to stock straight away and can be sold.</span></div>
+<sc-if value="{{hasPending}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 16px; background: #eef6f6"><strong style="font-size: 13px; color: #084848">Waiting on suppliers</strong><sc-for list="{{sfm.pending}}" as="p" hint-placeholder-count="2"><span style="font-size: 12px; color: {{p.c}}">· {{p.txt}}</span></sc-for><span style="font-size: 11px; color: #5f5c5a">Items from a damage claim are added back from Damages &amp; suppliers, so the claim closes with them.</span></div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">Supplier</span><div role="radiogroup" aria-label="Supplier" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{sfm.supOpts}}" as="o" hint-placeholder-count="4"><button type="button" role="radio" aria-checked="{{o.pressed}}" onClick="{{o.pick}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; border-radius: 9999px; cursor: pointer; background: {{o.bg}}; color: {{o.fg}}; border: 1px solid {{o.bd}}">{{o.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">Receive into</span><div role="radiogroup" aria-label="Receive into" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{sfm.toOpts}}" as="o" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{o.pressed}}" onClick="{{o.pick}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; cursor: pointer; background: {{o.bg}}; color: {{o.fg}}; border: 1px solid {{o.bd}}">{{o.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">What kind of delivery</span><div role="radiogroup" aria-label="Delivery kind" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{sfm.reasons}}" as="r" hint-placeholder-count="4"><button type="button" role="radio" aria-checked="{{r.pressed}}" onClick="{{r.pick}}" style="font-family: inherit; font-size: 12px; padding: 6px 12px; border-radius: 9999px; cursor: pointer; background: {{r.bg}}; color: {{r.fg}}; border: 1px solid {{r.bd}}">{{r.label}}</button></sc-for></div></div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: #3d3a38">Delivery or invoice number (optional)<input type="text" value="{{sfm.ref}}" onInput="{{sfm.refIn}}" placeholder="e.g. INV-88214 or waybill 3391" style="font: inherit; font-size: 14px; font-weight: 400; padding: 10px 14px; border-radius: 9999px; border: 1px solid rgba(0, 0, 0, 0.18)"></label>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="sp-q" style="font-size: 12px; font-weight: 600; color: #3d3a38">Add what arrived</label><input id="sp-q" type="search" autocomplete="off" value="{{sfm.q}}" onInput="{{sfm.qIn}}" placeholder="Search products · leave empty to see this supplier’s items" style="font: inherit; font-size: 15px; padding: 11px 14px; border-radius: 9999px; border: 1px solid rgba(0, 0, 0, 0.18)"><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{sfm.res}}" as="p" hint-placeholder-count="5"><button type="button" onClick="{{p.add}}" disabled="{{p.off}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: {{p.bg}}; color: {{p.fg}}; cursor: pointer">+ {{p.name}} · {{p.have}}</button></sc-for></div></div>
+<sc-if value="{{sfm.hasLines}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 16px; background: #f6f7f8"><sc-for list="{{sfm.lines}}" as="l" hint-placeholder-count="2"><div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px"><span style="flex: 1 1 170px; display: flex; flex-direction: column"><strong style="font-weight: 600">{{l.name}}</strong><span style="font-size: 11px; color: #1f7a2a">{{l.nowTxt}}</span></span><button type="button" onClick="{{l.dec}}" aria-label="Fewer" style="width: 30px; height: 30px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">−</button><strong style="min-width: 34px; text-align: center">{{l.qty}}</strong><button type="button" onClick="{{l.inc}}" aria-label="More" style="width: 30px; height: 30px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">+</button><button type="button" onClick="{{l.inc10}}" style="font-family: inherit; font-size: 12px; padding: 6px 9px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">+10</button><button type="button" onClick="{{l.rm}}" aria-label="Remove" style="width: 30px; height: 30px; border-radius: 9999px; border: 0; background: #fbeaea; color: #c62828; cursor: pointer">×</button></div></sc-for></div></sc-if>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: #3d3a38">Note (optional)<input type="text" value="{{sfm.note}}" onInput="{{sfm.noteIn}}" placeholder="e.g. 2 cartons short, supplier to send the rest" style="font: inherit; font-size: 14px; font-weight: 400; padding: 10px 14px; border-radius: 9999px; border: 1px solid rgba(0, 0, 0, 0.18)"></label>
+<sc-if value="{{sfm.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{sfm.err}}</span></sc-if>
+<button type="button" onClick="{{sfm.go}}" style="font-family: inherit; align-self: flex-start; font-size: 14px; font-weight: 600; padding: 12px 20px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Receive &amp; add to stock</button>
+</section>
+<section aria-labelledby="sl-h" style="flex: 3 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+<h2 id="sl-h" style="margin: 0; font-size: 17px; font-weight: 600">Deliveries received</h2>
+<sc-if value="{{noSupDocs}}" hint-placeholder-val="{{false}}"><div style="background: #ffffff; border-radius: 20px; padding: 18px; font-size: 14px; color: #5f5c5a">No supplier deliveries recorded yet.</div></sc-if>
+<sc-for list="{{supDocs}}" as="d" hint-placeholder-count="3"><article style="background: #ffffff; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 8px; border: 2px solid {{d.ring}}; box-shadow: rgba(0, 0, 0, 0.08) 0 2px 6px 0">
+<div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center"><strong style="font-size: 15px; font-weight: 600">{{d.id}} · {{d.route}}</strong><span style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; background: {{d.sbg}}; color: #ffffff">{{d.stTxt}}</span></div>
+<span style="font-size: 13px">{{d.itemsTxt}}</span><span style="font-size: 12px; color: #5f5c5a">{{d.meta}}</span>
+<div style="display: flex; flex-direction: column; gap: 2px; padding-left: 10px; border-left: 2px solid #ebebeb"><sc-for list="{{d.track}}" as="t" hint-placeholder-count="1"><span style="font-size: 12px; color: #3d3a38">{{t.t}}</span></sc-for></div>
+</article></sc-for>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{tabForm}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="nf-h" style="flex: 2 1 380px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="nf-h" style="margin: 0; font-size: 18px; font-weight: 600">{{fm.title}}</h2><span style="font-size: 13px; color: #5f5c5a">{{fm.sub}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">From</span><div role="radiogroup" aria-label="From" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{fm.fromOpts}}" as="o" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{o.pressed}}" onClick="{{o.pick}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; cursor: pointer; background: {{o.bg}}; color: {{o.fg}}; border: 1px solid {{o.bd}}">{{o.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">To</span><div role="radiogroup" aria-label="To" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{fm.toOpts}}" as="o" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{o.pressed}}" onClick="{{o.pick}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; cursor: pointer; background: {{o.bg}}; color: {{o.fg}}; border: 1px solid {{o.bd}}">{{o.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="wh-q" style="font-size: 12px; font-weight: 600; color: #3d3a38">Add products · stock shown is what {{fm.fromName}} has now</label><input id="wh-q" type="search" autocomplete="off" value="{{fm.q}}" onInput="{{fm.qIn}}" placeholder="Search products" style="font: inherit; font-size: 15px; padding: 11px 14px; border-radius: 9999px; border: 1px solid rgba(0, 0, 0, 0.18)">
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{fm.res}}" as="p" hint-placeholder-count="6"><button type="button" onClick="{{p.add}}" disabled="{{p.off}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: {{p.bg}}; color: {{p.fg}}; cursor: pointer">+ {{p.name}} · {{p.avail}}</button></sc-for></div></div>
+<sc-if value="{{fm.hasLines}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 16px; background: #f6f7f8">
+<sc-for list="{{fm.lines}}" as="l" hint-placeholder-count="2"><div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px"><span style="flex: 1 1 160px; display: flex; flex-direction: column"><strong style="font-weight: 600">{{l.name}}</strong><span style="font-size: 11px; color: {{l.availC}}">{{l.availTxt}}</span></span><button type="button" onClick="{{l.dec}}" aria-label="Fewer" style="width: 30px; height: 30px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">−</button><strong style="min-width: 34px; text-align: center">{{l.qty}}</strong><button type="button" onClick="{{l.inc}}" aria-label="More" style="width: 30px; height: 30px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">+</button><button type="button" onClick="{{l.inc10}}" style="font-family: inherit; font-size: 12px; padding: 6px 9px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">+10</button><button type="button" onClick="{{l.rm}}" aria-label="Remove" style="width: 30px; height: 30px; border-radius: 9999px; border: 0; background: #fbeaea; color: #c62828; cursor: pointer">×</button></div></sc-for>
+</div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">Reason</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{fm.reasons}}" as="r" hint-placeholder-count="4"><button type="button" onClick="{{r.pick}}" aria-pressed="{{r.pressed}}" style="font-family: inherit; font-size: 12px; padding: 6px 12px; border-radius: 9999px; cursor: pointer; background: {{r.bg}}; color: {{r.fg}}; border: 1px solid {{r.bd}}">{{r.label}}</button></sc-for></div></div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: #3d3a38">Note (optional)<input type="text" value="{{fm.note}}" onInput="{{fm.noteIn}}" placeholder="e.g. Use the blue van · call Ama on arrival" style="font: inherit; font-size: 14px; font-weight: 400; padding: 10px 14px; border-radius: 9999px; border: 1px solid rgba(0, 0, 0, 0.18)"></label>
+<sc-if value="{{fm.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{fm.err}}</span></sc-if>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{fm.request}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 18px; border-radius: 9999px; border: 1px solid #000000; background: #ffffff; cursor: pointer">Send request</button><sc-if value="{{canDispatch}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{fm.dispatchNow}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 18px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Dispatch now</button></sc-if></div>
+<span style="font-size: 12px; color: #5f5c5a">{{fm.help}}</span>
+</section>
+<section aria-labelledby="dl-h" style="flex: 3 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+<h2 id="dl-h" style="margin: 0; font-size: 17px; font-weight: 600">{{fm.listTitle}}</h2>
+<sc-if value="{{noDocs}}" hint-placeholder-val="{{false}}"><div style="background: #ffffff; border-radius: 20px; padding: 18px; font-size: 14px; color: #5f5c5a">Nothing here yet.</div></sc-if>
+<sc-for list="{{docs}}" as="d" hint-placeholder-count="3"><article style="background: #ffffff; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 8px; border: 2px solid {{d.ring}}; box-shadow: rgba(0, 0, 0, 0.08) 0 2px 6px 0">
+<div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center"><strong style="font-size: 15px; font-weight: 600">{{d.id}} · {{d.route}}</strong><span style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; background: {{d.sbg}}; color: #ffffff">{{d.stTxt}}</span></div>
+<span style="font-size: 13px">{{d.itemsTxt}}</span>
+<span style="font-size: 12px; color: #5f5c5a">{{d.meta}}</span>
+<div style="display: flex; flex-direction: column; gap: 2px; padding-left: 10px; border-left: 2px solid #ebebeb"><sc-for list="{{d.track}}" as="t" hint-placeholder-count="2"><span style="font-size: 12px; color: #3d3a38">{{t.t}}</span></sc-for></div>
+<sc-if value="{{d.rcvOpen}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 14px; background: #f6f7f8"><strong style="font-size: 13px">Check what arrived · mark anything damaged</strong><sc-for list="{{d.rcvLines}}" as="l" hint-placeholder-count="2"><div style="display: flex; gap: 8px; align-items: center; font-size: 13px; flex-wrap: wrap"><span style="flex: 1 1 160px">{{l.qty}} × {{l.name}}</span><span style="font-size: 12px; color: #a8492a">Damaged</span><button type="button" onClick="{{l.dec}}" aria-label="Fewer damaged" style="width: 28px; height: 28px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">−</button><strong style="min-width: 24px; text-align: center">{{l.dmg}}</strong><button type="button" onClick="{{l.inc}}" aria-label="More damaged" style="width: 28px; height: 28px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">+</button></div></sc-for><span style="font-size: 12px; color: #5f5c5a">Damaged items are not added to stock. They go to Damages &amp; suppliers so the supplier can repair or replace them.</span><div style="display: flex; gap: 6px"><button type="button" onClick="{{d.rcvCancel}}" style="font-family: inherit; font-size: 13px; padding: 8px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Back</button><button type="button" onClick="{{d.rcvGo}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Confirm received</button></div></div></sc-if>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-if value="{{d.canDispatch}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{d.dispatch}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Approve &amp; dispatch</button></sc-if><sc-if value="{{d.canReceive}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{d.receive}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Receive at {{d.toName}}</button></sc-if><sc-if value="{{d.canCancel}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{d.cancel}}" style="font-family: inherit; font-size: 13px; padding: 8px 12px; border-radius: 9999px; border: 1px solid #c62828; background: #ffffff; color: #c62828; cursor: pointer">{{d.cancelTxt}}</button></sc-if></div>
+</article></sc-for>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{tabHistory}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="hi-h" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px; overflow-x: auto">
+<h2 id="hi-h" style="margin: 0; font-size: 17px; font-weight: 600">All movements · {{histCount}}</h2>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px"><thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a"><th scope="col" style="font-weight: 500; padding: 8px">Ref</th><th scope="col" style="font-weight: 500; padding: 8px">Type</th><th scope="col" style="font-weight: 500; padding: 8px">Route</th><th scope="col" style="font-weight: 500; padding: 8px">Items</th><th scope="col" style="font-weight: 500; padding: 8px">By</th><th scope="col" style="font-weight: 500; padding: 8px">When</th><th scope="col" style="font-weight: 500; padding: 8px">Status</th></tr></thead>
+<tbody><sc-for list="{{hist}}" as="h" hint-placeholder-count="6"><tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px; font-weight: 600">{{h.id}}</td><td style="padding: 8px">{{h.kindTxt}}</td><td style="padding: 8px">{{h.route}}</td><td style="padding: 8px">{{h.itemsTxt}}</td><td style="padding: 8px">{{h.by}}</td><td style="padding: 8px; white-space: nowrap">{{h.at}}</td><td style="padding: 8px"><span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: {{h.sbg}}; color: #ffffff">{{h.stTxt}}</span></td></tr></sc-for></tbody></table>
+</section>
+</sc-if>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let role = 'superuser'; try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {}
+    let tab = 'overview'; try { const t = window.localStorage.getItem('ecompos.whTab'); if (t) { tab = t; window.localStorage.removeItem('ecompos.whTab'); } } catch (e) {}
+    this.state = { role, tab, f: {}, lines: [], q: '', msg: '', msgBad: false, rcv: '', rcvD: {}, focus: '' };
+    this.onAny = () => this.setState({ tick: Date.now() });
+    this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' });
+  }
+  componentDidMount() { try { ['ecompos:stock', 'ecompos:whMoves', 'ecompos:branches', 'ecompos:damages', 'storage'].forEach(n => window.addEventListener(n, this.onAny)); window.addEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  componentWillUnmount() { try { ['ecompos:stock', 'ecompos:whMoves', 'ecompos:branches', 'ecompos:damages', 'storage'].forEach(n => window.removeEventListener(n, this.onAny)); window.removeEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Warehouse'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const LS = window.localStorage;
+    const rd = (k, d) => { try { const v = JSON.parse(LS.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+    const wr = (k, v, ev) => { try { LS.setItem(k, JSON.stringify(v)); if (ev) window.dispatchEvent(new CustomEvent(ev, { detail: v })); } catch (e) {} };
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const money = n => 'GHS ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const nowTxt = () => { const d = new Date(); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toTimeString().slice(0, 5); };
+    const ses = rd('ecompos.session', null);
+    const ME = ses && ses.name ? ses.name : ({ superuser: 'Kofi Adom', manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei', developer: 'eComPOS Support' })[S.role] || 'Staff';
+    const LOCK = ({ manager: 'osu', supervisor: 'osu', staff: 'osu' })[S.role] || '';
+    const CAN_D = S.role !== 'staff';
+
+    const BX = rd('ecompos.branches', null);
+    const BR = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })((Array.isArray(BX) && BX.length ? BX : [{ id: 'osu', name: 'Osu branch', city: 'Accra' }, { id: 'legon', name: 'East Legon branch', city: 'Accra' }, { id: 'adum', name: 'Adum branch', city: 'Kumasi' }]));
+    const short = b => String(b.name || '').replace(/\s*branch$/i, '');
+    const LN = { wh: 'Warehouse' }; BR.forEach(b => { LN[b.id] = short(b); });
+    const lockOk = LOCK && BR.some(b => b.id === LOCK) ? LOCK : '';
+    const BSTK = rd('ecompos.branchStock', {});
+    const P = [
+      ['Jasmine rice 5kg', 22, 4, 19, 2, 8, 120, 118], ['Vegetable oil 1L', 6, 31, 18, 1, 12, 240, 31], ['Instant noodles 70g', 310, 220, 80, 0, 120, 1600, 3.4],
+      ['Evaporated milk 410g', 11, 64, 40, 4, 24, 480, 11], ['Sardines 125g', 96, 50, 75, 0, 30, 600, 9.5], ['Malt drink 330ml', 140, 96, 60, 12, 48, 720, 7.2],
+      ['Bottled water 1.5L', 210, 180, 120, 6, 60, 900, 4.4], ['Laundry detergent 1kg', 27, 12, 20, 0, 10, 150, 25],
+      ['Gari 1kg', 54, 30, 25, 0, 15, 300, 13], ['Tomato paste 400g', 70, 40, 35, 0, 24, 360, 8.2], ['Sugar cubes 500g', 38, 20, 18, 0, 20, 200, 12.5], ['Bar soap 200g', 120, 60, 45, 0, 36, 540, 4.8]
+    ];
+    const REG = (rd('ecompos.newProducts', []) || []).filter(n => n && n.name && n.status !== 'rejected' && n.status !== 'pending');
+    const PX = P.map(p => ({ name: p[0], base: { osu: p[1], legon: p[2], adum: p[3], wh: p[6] }, reorder: p[5], cost: p[7], std: true })).concat(REG.map(n => ({ name: n.name, base: n.scope === 'branch' ? { [n.branchId]: parseInt(n.stock, 10) || 0 } : { osu: parseInt(n.stock, 10) || 0 }, reorder: 5, cost: Number(n.cost) || 0, std: false })));
+    const PBY = {}; PX.forEach(p => { PBY[p.name] = p; });
+    let SMV = rd('ecompos.stockMoves', {});
+    const baseAt = (p, loc) => { if (p.base[loc] !== undefined) return p.base[loc]; if (loc === 'wh') return 0; return p.std && BSTK[loc] === 'received' ? Math.round((p.base.osu || 0) * 0.3) : 0; };
+    const qty = (p, loc) => Math.max(0, baseAt(p, loc) - Number(((SMV[p.name] || {})[loc]) || 0));
+    const qn = (name, loc) => PBY[name] ? qty(PBY[name], loc) : 0;
+    const smvAdd = moves => { const cur = rd('ecompos.stockMoves', {}); moves.forEach(m => { if (!m[0] || !m[2]) return; cur[m[0]] = cur[m[0]] || {}; cur[m[0]][m[1]] = Number(cur[m[0]][m[1]] || 0) + m[2]; }); wr('ecompos.stockMoves', cur, 'ecompos:stock'); SMV = cur; };
+    const slog = es => { const L = rd('ecompos.stockLog', []) || []; const at = nowTxt(); wr('ecompos.stockLog', es.map(e => Object.assign({ ts: Date.now(), at }, e)).concat(L).slice(0, 800)); };
+
+    // seed a few movements once (main company only)
+    let DOCS = rd('ecompos.whMoves', null);
+    if (!Array.isArray(DOCS)) {
+      DOCS = [];
+      let main = true; try { main = (LS.getItem('ecompos.activeCompany') || 'main') === 'main' && !LS.getItem('ecompos.cleared'); } catch (e) {}
+      if (main) {
+        const t0 = Date.now();
+        DOCS = [
+          { id: 'WD-2041', kind: 'wh2br', from: 'wh', to: 'osu', lines: [{ name: 'Vegetable oil 1L', qty: 24 }, { name: 'Jasmine rice 5kg', qty: 10 }], reason: 'Low stock', note: 'Blue van · Kwesi', status: 'in_transit', by: 'Kofi Adom', at: 'Today, 08:40', ts: t0 - 3 * 3600000, track: [{ t: 'Requested by Ama Darko · Today, 07:55' }, { t: 'Approved & dispatched by Kofi Adom · Today, 08:40' }] },
+          { id: 'TR-1188', kind: 'br2br', from: 'legon', to: 'adum', lines: [{ name: 'Evaporated milk 410g', qty: 12 }], reason: 'Rebalance', note: '', status: 'requested', by: 'Yaw Boakye', at: 'Today, 09:15', ts: t0 - 2 * 3600000, track: [{ t: 'Requested by Yaw Boakye · Today, 09:15' }] },
+          { id: 'WR-0311', kind: 'br2wh', from: 'osu', to: 'wh', lines: [{ name: 'Instant noodles 70g', qty: 80 }], reason: 'Overstock', note: '', status: 'received', by: 'Ama Darko', at: '28 Oct, 16:10', ts: t0 - 2 * 86400000, track: [{ t: 'Dispatched by Ama Darko · 28 Oct, 16:10' }, { t: 'Received at the warehouse by Kofi Adom · 29 Oct, 10:02' }] }
+        ];
+        smvAdd([['Vegetable oil 1L', 'wh', 24], ['Jasmine rice 5kg', 'wh', 10], ['Instant noodles 70g', 'osu', 80], ['Instant noodles 70g', 'wh', -80]]);
+      }
+      wr('ecompos.whMoves', DOCS);
+    }
+    const saveDocs = (L, msg, bad, extra) => { wr('ecompos.whMoves', L, 'ecompos:whMoves'); set(Object.assign({ msg: msg || '', msgBad: !!bad, tick: Date.now() }, extra || {})); };
+    const KIND = { wh2br: 'Warehouse → store', br2wh: 'Store → warehouse', br2br: 'Branch → branch', sup: 'Supplier delivery' };
+    const PFX = { wh2br: 'WD', br2wh: 'WR', br2br: 'TR', sup: 'GR' };
+    const ST = { requested: ['Waiting for approval', '#b26a00'], in_transit: ['In transit', '#0b5c5c'], received: ['Received', '#1f7a2a'], cancelled: ['Cancelled', '#6b6866'] };
+    const mine = d => !lockOk || d.from === lockOk || d.to === lockOk || d.from === 'wh' && d.to === lockOk;
+    const newId = kind => { let id = ''; do { id = PFX[kind] + '-' + String(1000 + Math.floor(Math.random() * 9000)); } while (DOCS.some(d => d.id === id)); return id; };
+    const shortOf = (d) => d.lines.map(l => ({ l, have: qn(l.name, d.from) })).filter(x => x.have < x.l.qty);
+
+    const dispatchDoc = d => {
+      const sh = shortOf(d);
+      if (sh.length) { set({ msg: 'Not enough stock at ' + LN[d.from] + ': ' + sh.map(x => x.l.name + ' (has ' + x.have + ', needs ' + x.l.qty + ')').join(', ') + '.', msgBad: true }); return false; }
+      smvAdd(d.lines.map(l => [l.name, d.from, l.qty]));
+      slog(d.lines.map(l => ({ name: l.name, br: d.from, qty: -l.qty, kind: 'Sent · ' + KIND[d.kind] + ' to ' + LN[d.to], ref: d.id, by: ME })));
+      return true;
+    };
+    const createDoc = (kind, f, lines, dispatch) => {
+      const L0 = lines.filter(l => l.qty > 0);
+      if (!f.from || !f.to) return 'Choose where the stock comes from and where it goes.';
+      if (f.from === f.to) return 'From and To must be different places.';
+      if (lockOk && f.from !== lockOk && f.to !== lockOk) return 'You can only move stock in or out of ' + LN[lockOk] + '.';
+      if (!L0.length) return 'Add at least one product with a quantity.';
+      const d = { id: newId(kind), kind, from: f.from, to: f.to, lines: L0.map(l => ({ name: l.name, qty: l.qty })), reason: f.reason || '', note: String(f.note || '').trim(), status: 'requested', by: ME, at: nowTxt(), ts: Date.now(), track: [{ t: 'Requested by ' + ME + ' · ' + nowTxt() }] };
+      if (dispatch) { const sh = shortOf(d); if (sh.length) return 'Not enough stock at ' + LN[d.from] + ': ' + sh.map(x => x.l.name + ' has ' + x.have).join(', ') + '.'; if (!dispatchDoc(d)) return 'Could not dispatch.'; d.status = 'in_transit'; d.track.push({ t: 'Approved & dispatched by ' + ME + ' · ' + nowTxt() }); }
+      const L = [d].concat(DOCS); saveDocs(L, (dispatch ? d.id + ' dispatched: ' : d.id + ' sent for approval: ') + d.lines.map(l => l.qty + ' × ' + l.name).join(', ') + ' · ' + LN[d.from] + ' → ' + LN[d.to] + '.', false, { lines: [], q: '', f: Object.assign({}, f, { note: '' }), focus: d.id });
+      return '';
+    };
+    const receiveDoc = (d, dmg) => {
+      const now = nowTxt();
+      const good = d.lines.map((l, i) => [l.name, d.to, -(l.qty - Math.min(l.qty, dmg[i] || 0))]);
+      smvAdd(good);
+      slog(d.lines.map((l, i) => ({ name: l.name, br: d.to, qty: l.qty - Math.min(l.qty, dmg[i] || 0), dmg: Math.min(l.qty, dmg[i] || 0) || undefined, kind: 'Received · ' + KIND[d.kind] + ' from ' + LN[d.from], ref: d.id, by: ME })));
+      const dl = d.lines.map((l, i) => ({ l, n: Math.min(l.qty, dmg[i] || 0) })).filter(x => x.n > 0);
+      if (dl.length) { const DM = rd('ecompos.damages', []) || []; const add = dl.map(x => ({ id: 'DM-' + String(1000 + Math.floor(Math.random() * 9000)), src: 'transit', loc: d.to, name: x.l.name, qty: x.n, cause: 'Damaged in transit', note: 'Found damaged when ' + d.id + ' arrived from ' + LN[d.from], status: 'reported', by: ME, at: now, ts: Date.now(), ref: d.id, track: [{ t: 'Reported on arrival of ' + d.id + ' by ' + ME + ' · ' + now }] })); wr('ecompos.damages', add.concat(DM), 'ecompos:damages'); }
+      const L = DOCS.map(x => x.id === d.id ? Object.assign({}, x, { status: 'received', track: (x.track || []).concat([{ t: 'Received at ' + LN[d.to] + ' by ' + ME + ' · ' + now + (dl.length ? ' · ' + dl.reduce((a, y) => a + y.n, 0) + ' damaged sent to Damages' : '') }]) }) : x);
+      saveDocs(L, d.id + ' received at ' + LN[d.to] + '. Stock updated' + (dl.length ? '; damaged items logged in Damages & suppliers.' : '.'), false, { rcv: '', rcvD: {} });
+    };
+
+    const SUPP = { 'Golden Grains Ltd': ['Jasmine rice 5kg', 'Gari 1kg'], 'Sunrise Oils Ltd': ['Vegetable oil 1L'], 'Noodle House Distributors': ['Instant noodles 70g'], 'Dairy Gold Ltd': ['Evaporated milk 410g'], 'Coastline Foods': ['Sardines 125g', 'Tomato paste 400g'], 'Akwaaba Beverages': ['Malt drink 330ml', 'Bottled water 1.5L'], 'SweetCane Ltd': ['Sugar cubes 500g'], 'CleanHome Ghana': ['Laundry detergent 1kg', 'Bar soap 200g'] };
+    const supOf = nm => Object.keys(SUPP).find(k => SUPP[k].some(p => String(nm || '').indexOf(p) === 0)) || 'Other supplier';
+    const receiveSupplier = (f, lines, note) => {
+      const L0 = lines.filter(l => l.qty > 0);
+      if (!f.sup) return 'Choose which supplier the delivery came from.';
+      if (!f.to) return 'Choose where the goods are being received.';
+      if (!L0.length) return 'Add at least one product with a quantity.';
+      const now = nowTxt();
+      const d = { id: newId('sup'), kind: 'sup', from: 'sup', supplier: f.sup, ref: String(f.ref || '').trim(), to: f.to, lines: L0.map(l => ({ name: l.name, qty: l.qty })), reason: f.reason || 'New stock', note: String(note || '').trim(), status: 'received', by: ME, at: now, ts: Date.now(), track: [{ t: 'Delivery from ' + f.sup + (f.ref ? ' · ' + f.ref : '') + ' received at ' + (LN[f.to] || f.to) + ' by ' + ME + ' · ' + now }] };
+      smvAdd(L0.map(l => [l.name, f.to, -l.qty]));
+      slog(L0.map(l => ({ name: l.name, br: f.to, qty: l.qty, kind: 'Received from supplier · ' + f.sup + ' · ' + (f.reason || 'New stock'), ref: d.id + (f.ref ? ' · ' + f.ref : ''), by: ME })));
+      saveDocs([d].concat(DOCS), d.id + ': ' + L0.reduce((a, l) => a + l.qty, 0) + ' items from ' + f.sup + ' added to stock at ' + (LN[f.to] || f.to) + '.', false, { lines: [], q: '', f: Object.assign({}, f, { ref: '' }), note: '', focus: d.id });
+      return '';
+    };
+    // tabs
+    const TABS = [['overview', 'Overview'], ['stock', 'Warehouse stock'], ['sup', 'Supplier deliveries'], ['wh2br', 'Warehouse → store'], ['br2wh', 'Store → warehouse'], ['br2br', 'Branch → branch'], ['history', 'History']];
+    const TAB = TABS.some(t => t[0] === S.tab) ? S.tab : 'overview';
+    const tabs = TABS.map(t => Object.assign({ label: t[1], pick: () => set({ tab: t[0], lines: [], q: '', f: {}, msg: '', rcv: '' }) }, pill(TAB === t[0])));
+
+    // smart suggestions
+    const open = DOCS.filter(d => d.status === 'requested' || d.status === 'in_transit');
+    const pendingTo = (name, to) => open.some(d => d.to === to && d.lines.some(l => l.name === name));
+    let SG = [];
+    PX.forEach(p => {
+      const bq = BR.map(b => ({ b, q: qty(p, b.id) }));
+      const whq = qty(p, 'wh');
+      bq.forEach(x => {
+        if (x.q >= p.reorder || pendingTo(p.name, x.b.id)) return;
+        const need = Math.max(1, p.reorder * 2 - x.q);
+        const donors = bq.filter(y => y.b.id !== x.b.id && y.q - need >= p.reorder * 2).sort((a, b) => b.q - a.q);
+        const urg = Math.round((1 - x.q / Math.max(1, p.reorder)) * 100);
+        if (whq >= need) SG.push({ kind: 'wh2br', from: 'wh', to: x.b.id, name: p.name, qty: need, tag: 'Low stock', tagBg: '#fbeaea', tagFg: '#c62828', score: 2 + urg / 100, why: LN[x.b.id] + ' has ' + x.q + ' left (reorder at ' + p.reorder + '). The warehouse has ' + whq + ', so a top-up of ' + need + ' brings it to twice the reorder level.' });
+        else if (donors[0]) SG.push({ kind: 'br2br', from: donors[0].b.id, to: x.b.id, name: p.name, qty: need, tag: 'Rebalance', tagBg: '#e7f2f2', tagFg: '#084848', score: 1.5 + urg / 100, why: LN[x.b.id] + ' has ' + x.q + '; ' + LN[donors[0].b.id] + ' has ' + donors[0].q + ' and still stays well above its reorder level after sending ' + need + '. The warehouse is short (' + whq + ').' });
+      });
+      bq.forEach(x => { if (p.reorder > 0 && x.q > p.reorder * 10 && !open.some(d => d.from === x.b.id && d.lines.some(l => l.name === p.name))) SG.push({ kind: 'br2wh', from: x.b.id, to: 'wh', name: p.name, qty: x.q - p.reorder * 5, tag: 'Overstock', tagBg: '#fff4e5', tagFg: '#8a4b00', score: 0.5 + x.q / (p.reorder * 100), why: LN[x.b.id] + ' holds ' + x.q + ', more than ten times its reorder level. Sending ' + (x.q - p.reorder * 5) + ' back frees shelf space and keeps cash stock in one place.' }); });
+    });
+    if (lockOk) SG = SG.filter(s => s.from === lockOk || s.to === lockOk);
+    SG.sort((a, b) => b.score - a.score);
+    const sugg = SG.slice(0, 8).map(s => ({ tag: s.tag, tagBg: s.tagBg, tagFg: s.tagFg, title: 'Move ' + s.qty + ' × ' + s.name + ' · ' + LN[s.from] + ' → ' + LN[s.to], why: s.why, btn: CAN_D ? 'Dispatch now' : 'Send request', edit: () => set({ tab: s.kind, f: { from: s.from, to: s.to, reason: s.tag, note: '' }, lines: [{ name: s.name, qty: s.qty }], q: '', msg: '' }), go: () => { const err = createDoc(s.kind, { from: s.from, to: s.to, reason: s.tag, note: 'Smart suggestion' }, [{ name: s.name, qty: s.qty }], CAN_D); if (err) set({ msg: err, msgBad: true }); } }));
+
+    const DMGL = (() => { try { return JSON.parse(LS.getItem('ecompos.damages') || '[]') || []; } catch (e) { return []; } })();
+    const DMGBACK = DMGL.filter(d => ['claimed', 'at_supplier', 'returned'].indexOf(d.status) >= 0 && (!lockOk || d.loc === lockOk || d.loc === 'wh')).slice(0, 8).map(d => ({ txt: d.qty + ' × ' + d.name + ' · ' + (d.supplier || 'supplier') + ' · ' + (d.status === 'returned' ? 'back, waiting to be added to stock' : 'with the supplier'), c: d.status === 'returned' ? '#1f7a2a' : '#0b5c5c' }));
+    // doc views
+    const docView = d => {
+      const st = ST[d.status] || ST.requested;
+      const isTo = !lockOk || d.to === lockOk; const isFrom = !lockOk || d.from === lockOk || d.from === 'wh';
+      const rcvOpen = S.rcv === d.id;
+      return {
+        id: d.id, route: (d.kind === 'sup' ? (d.supplier || 'Supplier') : LN[d.from]) + ' → ' + LN[d.to], toName: LN[d.to] || d.to, kindTxt: KIND[d.kind], stTxt: st[0], sbg: st[1], ring: S.focus === d.id ? '#0b5c5c' : '#ffffff',
+        itemsTxt: d.lines.map(l => l.qty + ' × ' + l.name).join(', '), meta: 'By ' + d.by + ' · ' + d.at + (d.reason ? ' · ' + d.reason : '') + (d.ref ? ' · ' + d.ref : '') + (d.note ? ' · ' + d.note : ''), by: d.by, at: d.at,
+        track: (d.track || []).map(t => ({ t: t.t })),
+        canDispatch: d.status === 'requested' && CAN_D && isFrom, canReceive: d.status === 'in_transit' && isTo && !rcvOpen, canCancel: (d.status === 'requested' || d.status === 'in_transit') && (CAN_D || d.by === ME), cancelTxt: d.status === 'in_transit' ? 'Recall (put stock back)' : 'Cancel request',
+        dispatch: () => { if (!dispatchDoc(d)) return; saveDocs(DOCS.map(x => x.id === d.id ? Object.assign({}, x, { status: 'in_transit', track: (x.track || []).concat([{ t: 'Approved & dispatched by ' + ME + ' · ' + nowTxt() }]) }) : x), d.id + ' dispatched from ' + LN[d.from] + '.'); },
+        receive: () => set({ rcv: d.id, rcvD: {}, focus: d.id }),
+        rcvOpen, rcvLines: d.lines.map((l, i) => ({ name: l.name, qty: l.qty, dmg: String(S.rcvD[i] || 0), inc: () => set({ rcvD: Object.assign({}, S.rcvD, { [i]: Math.min(l.qty, (S.rcvD[i] || 0) + 1) }) }), dec: () => set({ rcvD: Object.assign({}, S.rcvD, { [i]: Math.max(0, (S.rcvD[i] || 0) - 1) }) }) })),
+        rcvCancel: () => set({ rcv: '', rcvD: {} }), rcvGo: () => receiveDoc(d, S.rcvD || {}),
+        cancel: () => { if (d.status === 'in_transit') { smvAdd(d.lines.map(l => [l.name, d.from, -l.qty])); slog(d.lines.map(l => ({ name: l.name, br: d.from, qty: l.qty, kind: 'Recalled · ' + d.id, ref: d.id, by: ME }))); } saveDocs(DOCS.map(x => x.id === d.id ? Object.assign({}, x, { status: 'cancelled', track: (x.track || []).concat([{ t: (d.status === 'in_transit' ? 'Recalled, stock put back at ' + LN[d.from] : 'Cancelled') + ' by ' + ME + ' · ' + nowTxt() }]) }) : x), d.id + (d.status === 'in_transit' ? ' recalled. Stock is back at ' + LN[d.from] + '.' : ' cancelled.')); },
+        open: () => set({ tab: d.kind, focus: d.id, f: {}, lines: [] })
+      };
+    };
+    const VIS = DOCS.filter(mine).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+
+    // form
+    const isSup = TAB === 'sup';
+    const isForm = TAB === 'wh2br' || TAB === 'br2wh' || TAB === 'br2br';
+    const brIds = BR.map(b => b.id);
+    const firstOther = ex => brIds.find(i => i !== ex) || '';
+    const DEF = { wh2br: { from: 'wh', to: lockOk || brIds[0] || '' }, br2wh: { from: lockOk || brIds[0] || '', to: 'wh' }, br2br: { from: lockOk ? firstOther(lockOk) : brIds[0] || '', to: lockOk || firstOther(brIds[0]) } };
+    const F = Object.assign({ reason: '', note: '' }, isForm ? DEF[TAB] : {}, S.f || {});
+    const fromList = TAB === 'wh2br' ? ['wh'] : TAB === 'br2wh' ? (lockOk ? [lockOk] : brIds) : brIds;
+    const toList = TAB === 'wh2br' ? (lockOk ? [lockOk] : brIds) : TAB === 'br2wh' ? ['wh'] : brIds.filter(i => i !== F.from && (!lockOk || F.from === lockOk || i === lockOk));
+    if (isForm && fromList.indexOf(F.from) < 0) F.from = fromList[0] || '';
+    if (isForm && toList.indexOf(F.to) < 0) F.to = toList[0] || '';
+    const setF = o => set({ f: Object.assign({}, F, o) });
+    const LINES = (S.lines || []).filter(l => PBY[l.name]);
+    const setLines = L => set({ lines: L, f: F });
+    const q = String(S.q || '').trim().toLowerCase();
+    const REASONS = { wh2br: ['Low stock', 'New stock in', 'Promotion', 'Customer order'], br2wh: ['Overstock', 'Slow moving', 'Seasonal', 'Branch closing'], br2br: ['Rebalance', 'Low stock', 'Customer order', 'Promotion'] }[TAB] || [];
+    const SF = Object.assign({ sup: Object.keys(SUPP)[0], to: lockOk || 'wh', ref: '', reason: 'New stock' }, S.sf || {});
+    const setSF = o => set({ sf: Object.assign({}, SF, o) });
+    const supDest = (lockOk ? [lockOk, 'wh'] : ['wh'].concat(brIds));
+    if (supDest.indexOf(SF.to) < 0) SF.to = supDest[0];
+    const sq = String(S.q || '').trim().toLowerCase();
+    const supPool = PX.filter(p => !sq ? (SUPP[SF.sup] || []).some(n => p.name.indexOf(n) === 0) : p.name.toLowerCase().indexOf(sq) >= 0);
+    const sfm = isSup ? {
+      supOpts: Object.keys(SUPP).map(k => Object.assign({ label: k, pick: () => set({ sf: Object.assign({}, SF, { sup: k }) }) }, pill(SF.sup === k))),
+      toOpts: supDest.map(i => Object.assign({ label: LN[i] || i, pick: () => setSF({ to: i }) }, pill(SF.to === i))),
+      reasons: ['New stock', 'Replacement for damages', 'Repaired items back', 'Back order'].map(r => Object.assign({ label: r, pick: () => setSF({ reason: r }) }, pill(SF.reason === r))),
+      ref: SF.ref, refIn: e => setSF({ ref: e.target.value }),
+      q: S.q || '', qIn: e => set({ q: e.target.value, sf: SF }),
+      res: supPool.slice(0, 12).map(p => { const inL = LINES.some(l => l.name === p.name); return { name: p.name, have: qty(p, SF.to) + ' at ' + (LN[SF.to] || SF.to), off: inL ? 'true' : null, bg: inL ? '#e7f2f2' : '#ffffff', fg: '#000000', add: () => { if (inL) return; setLines(LINES.concat([{ name: p.name, qty: Math.max(1, p.reorder) }])); } }; }),
+      hasLines: LINES.length > 0,
+      lines: LINES.map((l, i) => { const upd = n => setLines(LINES.map((x, j) => j === i ? Object.assign({}, x, { qty: Math.max(0, n) }) : x)); return { name: l.name, qty: String(l.qty), nowTxt: 'Now ' + qn(l.name, SF.to) + ' at ' + (LN[SF.to] || SF.to) + ' → ' + (qn(l.name, SF.to) + l.qty) + ' after this delivery', inc: () => upd(l.qty + 1), inc10: () => upd(l.qty + 10), dec: () => upd(l.qty - 1), rm: () => setLines(LINES.filter((x, j) => j !== i)) }; }),
+      note: S.note || '', noteIn: e => set({ note: e.target.value, sf: SF }),
+      hasErr: !!S.serr, err: S.serr || '',
+      go: () => { const err = receiveSupplier(SF, LINES, S.note); set({ serr: err }); },
+      pending: DMGBACK
+    } : { supOpts: [], toOpts: [], reasons: [], res: [], lines: [], pending: [] };
+    const fm = isForm ? {
+      title: { wh2br: 'Send stock from the warehouse to a store', br2wh: 'Return stock from a store to the warehouse', br2br: 'Move stock between branches' }[TAB],
+      sub: { wh2br: 'Stock leaves the warehouse when dispatched and is added to the store when it is received.', br2wh: 'Stock leaves the store when dispatched and is added to the warehouse when it is received.', br2br: 'Any branch can send to any other branch in this company: A → B, B → A, C → A or B, and so on.' }[TAB],
+      fromName: LN[F.from] || '—',
+      fromOpts: fromList.map(i => Object.assign({ label: LN[i] || i, pick: () => setF({ from: i }) }, pill(F.from === i))),
+      toOpts: toList.map(i => Object.assign({ label: LN[i] || i, pick: () => setF({ to: i }) }, pill(F.to === i))),
+      q: S.q || '', qIn: e => set({ q: e.target.value, f: F }),
+      res: PX.filter(p => !q || p.name.toLowerCase().indexOf(q) >= 0).slice(0, q ? 12 : 8).map(p => { const a = qty(p, F.from); const inL = LINES.some(l => l.name === p.name); return { name: p.name, avail: a + ' at ' + (LN[F.from] || ''), off: a <= 0 || inL ? 'true' : null, bg: inL ? '#e7f2f2' : a <= 0 ? '#f6f7f8' : '#ffffff', fg: a <= 0 ? '#9a9794' : '#000000', add: () => { if (a <= 0 || inL) return; setLines(LINES.concat([{ name: p.name, qty: Math.min(a, Math.max(1, p.reorder)) }])); } }; }),
+      hasLines: LINES.length > 0,
+      lines: LINES.map((l, i) => { const a = qn(l.name, F.from); const upd = n => setLines(LINES.map((x, j) => j === i ? Object.assign({}, x, { qty: Math.max(0, n) }) : x)); return { name: l.name, qty: String(l.qty), availTxt: a >= l.qty ? a + ' available at ' + LN[F.from] : 'Only ' + a + ' at ' + LN[F.from], availC: a >= l.qty ? '#5f5c5a' : '#c62828', inc: () => upd(l.qty + 1), inc10: () => upd(l.qty + 10), dec: () => upd(l.qty - 1), rm: () => setLines(LINES.filter((x, j) => j !== i)) }; }),
+      reasons: REASONS.map(r => Object.assign({ label: r, pick: () => setF({ reason: F.reason === r ? '' : r }) }, pill(F.reason === r))),
+      note: F.note || '', noteIn: e => setF({ note: e.target.value }),
+      hasErr: !!S.ferr, err: S.ferr || '',
+      request: () => { const err = createDoc(TAB, F, LINES, false); set({ ferr: err }); },
+      dispatchNow: () => { const err = createDoc(TAB, F, LINES, true); set({ ferr: err }); },
+      help: CAN_D ? 'Send request asks the sending side to approve and dispatch. Dispatch now takes the stock off ' + (LN[F.from] || 'the sender') + ' straight away.' : 'Your request goes to a Supervisor or Manager to approve and dispatch.',
+      listTitle: KIND[TAB] + ' · requests and deliveries'
+    } : { fromOpts: [], toOpts: [], res: [], lines: [], reasons: [] };
+    const docs = isForm ? VIS.filter(d => d.kind === TAB).map(docView) : [];
+
+    // stock tab
+    const stockRows = PX.map(p => ({ name: p.name, wh: String(qty(p, 'wh')), reorder: String(p.reorder), cells: BR.map(b => { const v = qty(p, b.id); return { v: String(v), bg: v < p.reorder ? '#000000' : '#f2f4f5', fg: v < p.reorder ? '#ffffff' : '#000000' }; }), send: () => set({ tab: 'wh2br', f: { from: 'wh', to: lockOk || brIds[0], reason: 'Low stock', note: '' }, lines: [{ name: p.name, qty: Math.max(1, p.reorder) }], q: '' }) }));
+
+    // KPIs
+    const whUnits = PX.reduce((a, p) => a + qty(p, 'wh'), 0);
+    const whVal = PX.reduce((a, p) => a + qty(p, 'wh') * (p.cost || 0), 0);
+    const lowN = PX.reduce((a, p) => a + BR.filter(b => (!lockOk || b.id === lockOk) && qty(p, b.id) < p.reorder).length, 0);
+    const kpis = [
+      ['Warehouse stock', whUnits.toLocaleString('en-GB') + ' units', 'Worth ' + money(whVal) + ' at cost', '#000000'],
+      ['In transit', String(VIS.filter(d => d.status === 'in_transit').length), 'Dispatched, not yet received', '#0b5c5c'],
+      ['Waiting for approval', String(VIS.filter(d => d.status === 'requested').length), 'Requests to dispatch', '#b26a00'],
+      ['Below reorder level', String(lowN), lockOk ? 'Products at ' + LN[lockOk] : 'Product × branch pairs', lowN ? '#c62828' : '#1f7a2a'],
+      ['Smart suggestions', String(SG.length), 'Ready to act on', '#084848']
+    ].map(k => ({ label: k[0], value: k[1], note: k[2], c: k[3] }));
+
+    return {
+      scopeLine: (lockOk ? LN[lockOk] + ' · ' : 'All branches · ') + 'move goods warehouse ↔ store and between branches, with approval, tracking and receiving',
+      tabs, kpis,
+      tabOverview: TAB === 'overview', tabStock: TAB === 'stock', tabForm: isForm, tabHistory: TAB === 'history',
+      hasMsg: !!S.msg, msg: S.msg || '', msgBg: S.msgBad ? '#c62828' : '#1f7a2a', hideMsg: () => set({ msg: '' }),
+      sugg, noSugg: !sugg.length,
+      openDocs: VIS.filter(d => d.status === 'requested' || d.status === 'in_transit').slice(0, 8).map(docView), noOpen: !VIS.some(d => d.status === 'requested' || d.status === 'in_transit'),
+      brHeads: BR.map(b => ({ t: short(b) })), stockRows,
+      fm, docs, noDocs: isForm && !docs.length, canDispatch: CAN_D,
+      tabSup: isSup, sfm, supDocs: VIS.filter(d => d.kind === 'sup').map(docView), noSupDocs: isSup && !VIS.some(d => d.kind === 'sup'), hasPending: isSup && DMGBACK.length > 0,
+      hist: VIS.map(docView), histCount: String(VIS.length),
+      ids: ['Warehouse stock', 'Warehouse → store', 'Store → warehouse', 'Branch ↔ branch transfers', 'Approve & dispatch', 'Receive & report damage', 'Smart suggestions', 'Recall in transit'].map(t => ({ t }))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { min-height: 100%; }
+body { margin: 0; background: #f2f4f5; color: #000; font-family: Inter, system-ui, sans-serif; letter-spacing: -0.01em; overflow-wrap: break-word; }
+:focus-visible { outline: 3px solid #0b5c5c; outline-offset: 2px; border-radius: 6px; }
+@media (max-width: 640px) { input, select, textarea { font-size: 16px !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+@layer components {
+  .card { @apply bg-white rounded-3xl shadow-card; }
+  .btn { @apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-full min-h-[44px] px-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-primary { @apply btn bg-brand text-white hover:bg-brand-700; }
+  .btn-dark { @apply btn bg-black text-white hover:bg-neutral-800; }
+  .btn-ghost { @apply btn bg-white text-black border border-line hover:bg-canvas; }
+  .pill { @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full; }
+  .field { @apply w-full font-[inherit] text-[15px] px-4 py-3 rounded-full border border-[#cccccc] bg-white focus:border-brand outline-none; }
+  .label { @apply text-[13px] font-bold; }
+}
+
+/* Printing: only the open document prints */
+@media print {
+  body * { visibility: hidden !important; }
+  .print-doc, .print-doc * { visibility: visible !important; }
+  .print-doc { position: absolute !important; left: 0; top: 0; width: 100%; box-shadow: none !important; margin: 0 !important; }
+  .no-print { display: none !important; }
+  /* HR time clock (pages/team/TimeClock.tsx): only the gate poster / badge card prints. While it prints, body has
+     .print-hr, so any other printable document on the page stays hidden. The QR prints 6 cm wide in pure black on
+     white with a quiet zone of 4 modules (padding = 4 × module width; --n is the QR size in modules). */
+  body.print-hr .print-doc, body.print-hr .print-doc * { visibility: hidden !important; }
+  .hr-print, .hr-print * { visibility: visible !important; }
+  .hr-print { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; box-shadow: none !important; }
+  .hr-print .hr-qr { width: 6cm !important; height: 6cm !important; padding: calc(24cm / (var(--n) + 8)) !important; border: 0 !important; }
+  .id-card { box-shadow: none !important; border: 0.2mm solid #999 !important; page-break-inside: avoid; }
+  /* A4 gate poster / staff badge (TimeClock.tsx): shown only while printing that kind; the on-screen card is hidden. */
+  body.print-poster .hr-poster, body.print-badge .hr-badge-print { display: flex !important; }
+  body.print-poster .hr-print, body.print-poster .hr-print *, body.print-badge .hr-print, body.print-badge .hr-print * { visibility: hidden !important; }
+}
+.hr-poster, .hr-badge-print { display: none; }
+
+/* Staff ID cards (pages/team/IdCards.tsx, IDCard.md §6.3). The printable copies sit straight under <body> in
+   .id-prints (hidden on screen). While one prints, body has .print-id plus the layout, and the app itself (#root) is
+   hidden, so the page holds only the cards at true size, with no blank pages and no shrink-to-fit:
+   print-id-both  → front and back on A4, with a thin cut line round each card;
+   print-id-cr80  → one side per 85.6 × 54 mm page for a PVC card printer (or Save as PDF);
+   print-id-sheet → up to 10 cards per A4 (2 × 5), fronts page then backs page with the columns swapped so the backs
+                    line up when printed double-sided. */
+.id-prints { display: none; }
+@media print {
+  body.print-id { background: #fff !important; }
+  body.print-id > #root { display: none !important; }
+  body.print-id .id-prints { display: block !important; }
+  body.print-id .id-prints, body.print-id .id-prints * { visibility: visible !important; }
+  .id-prints .id-both, .id-prints .id-cr80, .id-prints .id-sheet { display: none; }
+  body.print-id-both .id-prints .id-both { display: flex !important; flex-wrap: wrap; gap: 6mm; }
+  body.print-id-cr80 .id-prints .id-cr80, body.print-id-sheet .id-prints .id-sheet { display: block !important; }
+  .id-cr80 .id-page { width: 85.6mm; height: 54mm; overflow: hidden; break-after: page; page-break-after: always; }
+  .id-cr80 .id-page:last-child { break-after: auto; page-break-after: auto; }
+  .id-cr80 .id-card { border: 0 !important; border-radius: 0 !important; }
+  .id-sheet .id-grid { display: grid; grid-template-columns: repeat(2, 85.6mm); grid-auto-rows: 54mm; gap: 0; break-after: page; page-break-after: always; }
+  .id-sheet .id-grid:last-child { break-after: auto; page-break-after: auto; }
+  .id-sheet .id-backs { direction: rtl; }
+  .id-sheet .id-backs > * { direction: ltr; }
+  .id-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Online store skeleton shimmer */
+.sk{background:linear-gradient(90deg,#e4e6e8 25%,#f4f5f6 37%,#e4e6e8 63%);background-size:400% 100%;animation:skmove 1.4s ease infinite;border-radius:12px}
+@keyframes skmove{0%{background-position:100% 50%}100%{background-position:0 50%}}
+@media print{.no-print{display:none !important}}
+
+@keyframes livein{0%{opacity:0;transform:translateY(-8px)}100%{opacity:1;transform:none}}
+.live-in{animation:livein .5s ease-out}
+.no-scrollbar{scrollbar-width:none}.no-scrollbar::-webkit-scrollbar{display:none}
+
+/* Search bars: no inner focus ring on the input; the outer rounded bar shows the active border instead. */
+:is(input[type="search"], input[placeholder^="Search" i], input[aria-label^="Search" i], input[placeholder^="Filter" i], input[placeholder^="Find" i], input[placeholder^="What are you shopping" i], #global-search, #pos-q, #shop-q, #mod-q):is(:focus, :focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: #0b5c5c;
+}
+:is(div, span, label).rounded-full:has(> :is(input[type="search"], input[placeholder^="Search" i], input[aria-label^="Search" i], input[placeholder^="Filter" i], input[placeholder^="Find" i], input[placeholder^="What are you shopping" i], #pos-q, #shop-q)):focus-within {
+  border-color: #0b5c5c;
+}
+
+/* Online store top banner marquee (store/Shell.tsx TopStrip): the track holds the message twice and slides left
+   by exactly one copy (-50%), so the loop is seamless. Pauses on hover/focus; static when reduced motion is asked. */
+.marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+.marquee-track { display: flex; width: max-content; animation: marquee-move 28s linear infinite; }
+.marquee:hover .marquee-track, .marquee:focus-within .marquee-track, .marquee:focus .marquee-track { animation-play-state: paused; }
+@keyframes marquee-move { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } .marquee-track > [aria-hidden] { display: none; } }

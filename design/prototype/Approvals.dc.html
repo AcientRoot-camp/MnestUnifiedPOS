@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS approvals</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="approvals" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="approvals" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Approvals &amp; issues</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">Requests that need a Supervisor or Manager, problems staff report, and the notification bell</p>
+</header>
+
+<div role="tablist" aria-label="Views" style="display: flex; gap: 4px; padding: 4px; border-radius: 9999px; background: #ffffff; align-self: flex-start; box-shadow: rgba(0, 0, 0, 0.06) 0 2px 8px 0">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3"><button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 42px; border-radius: 9999px; border: 0; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}">{{t.label}}</button></sc-for>
+</div>
+
+<sc-if value="{{isApprovals}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<sc-if value="{{cqShow}}" hint-placeholder-val="{{true}}"><section aria-labelledby="cq-h" style="background: #ffffff; border-radius: 24px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; border: 2px solid {{cqRing}}; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="cq-h" style="margin: 0; font-size: 17px; font-weight: 600">Credit sale approvals</h2><span style="font-size: 13px; color: #5f5c5a">{{cqSub}}</span></div><div style="display: flex; gap: 6px"><sc-for list="{{cqTabs}}" as="t" hint-placeholder-count="2"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for></div></div>
+<sc-if value="{{cqNone}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a; padding: 8px 0">{{cqNoneTxt}}</span></sc-if>
+<sc-for list="{{cqList}}" as="q" hint-placeholder-count="1"><article style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 18px; background: #f6f7f8">
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: {{q.sbg}}; color: #ffffff">{{q.status}}</span>
+<div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 15px; font-weight: 600">{{q.title}}</strong><span style="font-size: 13px; color: #5f5c5a">{{q.meta}}</span><span style="font-size: 13px; color: #3d3a38">{{q.items}}</span><sc-if value="{{q.hasOld}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #b26a00; font-weight: 600">{{q.old}}</span></sc-if><sc-if value="{{q.hasResult}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #3d3a38">{{q.result}}</span></sc-if></div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 1px; font-variant-numeric: tabular-nums"><strong style="font-size: 16px; font-weight: 700">{{q.owed}} on credit</strong><span style="font-size: 12px; color: #5f5c5a">goods {{q.total}} · paid now {{q.paid}}</span><span style="font-size: 12px; color: #5f5c5a">due {{q.due}}</span></div>
+</div>
+<sc-if value="{{q.can}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{q.approve}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Approve credit sale</button><button type="button" onClick="{{q.toggle}}" style="font-family: inherit; font-size: 14px; padding: 10px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #c62828; background: #ffffff; color: #c62828; cursor: pointer">Reject…</button></div>
+<sc-if value="{{q.open}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: #ffffff; border: 1px solid #ebebeb"><span style="font-size: 13px; color: #5f5c5a">Why are you rejecting it?</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{q.reasons}}" as="r" hint-placeholder-count="5"><button type="button" onClick="{{r.pick}}" aria-pressed="{{r.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 12px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: {{r.bg}}; color: {{r.fg}}; border: 1px solid {{r.bd}}">{{r.label}}</button></sc-for></div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">Note to the seller (optional)<input type="text" value="{{q.note}}" onInput="{{q.noteIn}}" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9"></label>
+<sc-if value="{{q.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{q.err}}</span></sc-if>
+<button type="button" onClick="{{q.reject}}" style="align-self: flex-start; font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">Reject credit sale</button></div></sc-if>
+</div></sc-if>
+</article></sc-for>
+</section></sc-if>
+<sc-if value="{{drShow}}" hint-placeholder-val="{{true}}"><section aria-labelledby="dr-h" style="background: #ffffff; border-radius: 24px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; border: 2px solid {{drRing}}; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="dr-h" style="margin: 0; font-size: 17px; font-weight: 600">Discount requests from the tills</h2><span style="font-size: 13px; color: #5f5c5a">{{drSub}}</span></div><div style="display: flex; gap: 6px"><sc-for list="{{drTabs}}" as="t" hint-placeholder-count="2"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for></div></div>
+<sc-if value="{{drNone}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a; padding: 8px 0">{{drNoneTxt}}</span></sc-if>
+<sc-for list="{{drList}}" as="d" hint-placeholder-count="1"><article style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 18px; background: #f6f7f8">
+<span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: {{d.sbg}}; color: #ffffff">{{d.status}}</span>
+<div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 15px; font-weight: 600">{{d.title}}</strong><span style="font-size: 13px; color: #5f5c5a">{{d.meta}}</span><sc-if value="{{d.hasResult}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #3d3a38">{{d.result}}</span></sc-if></div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 1px"><strong style="font-size: 16px; font-weight: 700">− {{d.amount}}</strong><span style="font-size: 12px; color: #5f5c5a">on {{d.sub}} · {{d.pct}}</span></div>
+<button type="button" onClick="{{d.open}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 44px; border-radius: 9999px; cursor: pointer; border: 0; background: {{d.btnBg}}; color: #ffffff; font-weight: 600">{{d.btn}}</button>
+</article></sc-for>
+</section></sc-if>
+
+<div style="display: flex; gap: 6px; flex-wrap: wrap">
+<sc-for list="{{kinds}}" as="k" hint-placeholder-count="7"><button type="button" onClick="{{k.pick}}" aria-pressed="{{k.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: {{k.bg}}; color: {{k.fg}}; border: 1px solid {{k.bd}}">{{k.label}}</button></sc-for>
+</div>
+<sc-for list="{{reqs}}" as="r" hint-placeholder-count="4">
+<article style="background: #ffffff; border-radius: 24px; padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 9999px; background: #f2f4f5; min-width: 90px; text-align: center">{{r.kind}}</span>
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 15px; font-weight: 500">{{r.title}}</strong><span style="font-size: 13px; color: #5f5c5a">{{r.by}} · {{r.when}} · {{r.ref}}</span></div>
+<sc-if value="{{r.pending}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap">
+<label for="{{r.noteId}}" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Note for {{r.title}}</label><input id="{{r.noteId}}" placeholder="Note (optional)" style="font: inherit; font-size: 13px; padding: 8px 12px; border-radius: 9999px; border: 1px solid #ebebeb; width: 160px">
+<button type="button" onClick="{{r.reject}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Reject</button>
+<button type="button" onClick="{{r.approve}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Approve</button>
+</div>
+</sc-if>
+<sc-if value="{{r.done}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; padding: 6px 12px; border-radius: 9999px; background: {{r.bg}}; color: {{r.fg}}">{{r.result}}</span></sc-if>
+</article>
+</sc-for>
+<sc-if value="{{noReqs}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a; padding: 16px">Nothing waiting in this group.</span></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isIssues}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<sc-if value="{{canReportIssue}}" hint-placeholder-val="{{true}}"><section aria-labelledby="ri-h" style="flex: 1 1 320px; background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="ri-h" style="margin: 0; font-size: 16px; font-weight: 600">Report an issue</h2>
+<span style="font-size: 12px; color: #5f5c5a">Type</span>
+<div role="group" aria-label="Issue type" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{iTypes}}" as="t" hint-placeholder-count="4"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 12px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for></div>
+<label for="ri-d" style="font-size: 12px; color: #5f5c5a">What happened</label>
+<textarea id="ri-d" rows="3" placeholder="e.g. 4 bottles of oil leaking in the carton on shelf B3" style="font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 14px; border: 1px solid #ebebeb; resize: vertical"></textarea>
+<span style="font-size: 12px; color: #5f5c5a">Send to</span>
+<div role="group" aria-label="Send to" style="display: flex; gap: 6px"><sc-for list="{{iTo}}" as="t" hint-placeholder-count="2"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="font-family: inherit; flex: 1; font-size: 13px; padding: 9px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for></div>
+<button type="button" onClick="{{report}}" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 12px 18px; min-height: 46px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Report issue</button>
+</section></sc-if>
+<section aria-labelledby="il-h" style="flex: 2 1 420px; background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="il-h" style="margin: 0; font-size: 16px; font-weight: 600">Issues</h2>
+<sc-for list="{{issues}}" as="i" hint-placeholder-count="4">
+<div style="display: flex; gap: 12px; align-items: center; padding: 12px 6px; border-top: 1px solid #ebebeb; font-size: 14px; flex-wrap: wrap">
+<span style="font-size: 12px; padding: 3px 10px; border-radius: 9999px; background: #f2f4f5; min-width: 100px; text-align: center">{{i.type}}</span>
+<span style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px"><span>{{i.text}}</span><span style="font-size: 12px; color: #5f5c5a">{{i.by}} → {{i.to}} · {{i.when}}</span></span>
+<span style="font-size: 12px; padding: 3px 10px; border-radius: 9999px; background: {{i.bg}}; color: {{i.fg}}">{{i.status}}</span>
+<sc-if value="{{i.open}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{i.close}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">{{i.action}}</button></sc-if>
+</div>
+</sc-for>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{isNotes}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="nt-h" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 8px; max-width: 760px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; align-items: center"><h2 id="nt-h" style="margin: 0; font-size: 16px; font-weight: 600">Notifications · {{unread}} unread</h2><button type="button" onClick="{{markAll}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Mark all read</button></div>
+<sc-for list="{{notes}}" as="n" hint-placeholder-count="7">
+<button type="button" onClick="{{n.read}}" style="font-family: inherit; text-align: left; display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 16px; border: 0; background: {{n.bg}}; cursor: pointer; font-size: 14px">
+<span aria-hidden="true" style="width: 8px; height: 8px; margin-top: 6px; border-radius: 9999px; background: {{n.dot}}; flex: none"></span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: {{n.weight}}">{{n.text}}</span><span style="font-size: 12px; color: #5f5c5a">{{n.when}} · {{n.state}}</span></span>
+<sc-if value="{{n.hasImg}}" hint-placeholder-val="{{false}}"><img src="{{n.img}}" alt="Proof of delivery" style="width: 56px; height: 42px; object-fit: cover; border-radius: 8px; flex: none"></sc-if></button>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{drOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 120; background: rgba(0, 0, 0, 0.55); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; box-sizing: border-box; overflow-y: auto">
+<div role="dialog" aria-modal="true" aria-labelledby="drm-h" style="width: 100%; max-width: 640px; background: #ffffff; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.25) 0 12px 48px 0">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="drm-h" style="margin: 0; font-size: 20px; font-weight: 600">Review discount request · {{dr.id}}</h2><span style="font-size: 13px; color: #5f5c5a">{{dr.meta}}</span></div><button type="button" onClick="{{drClose}}" aria-label="Close" style="font-family: inherit; flex: none; width: 34px; height: 34px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; font-size: 18px; cursor: pointer">×</button></div>
+<article style="border: 1px solid #e1e4e6; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 13px">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-bottom: 8px; border-bottom: 2px solid #000000"><div style="display: flex; flex-direction: column; gap: 1px"><strong style="font-size: 14px; letter-spacing: 0.06em">SALE FOR APPROVAL</strong><span>Sale #{{dr.saleNo}} · {{dr.till}}</span><span style="color: #5f5c5a">{{dr.at}}</span></div><div style="display: flex; flex-direction: column; gap: 1px; text-align: right"><span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #5f5c5a">Customer</span><strong>{{dr.cust}}</strong><span>Seller · {{dr.by}}</span></div></div>
+<table style="width: 100%; border-collapse: collapse"><thead><tr style="border-bottom: 1px solid #000000; text-align: left"><th scope="col" style="padding: 5px 2px; font-weight: 600">Qty</th><th scope="col" style="padding: 5px 2px; font-weight: 600">Item</th><th scope="col" style="padding: 5px 2px; font-weight: 600; text-align: right">Price</th><th scope="col" style="padding: 5px 2px; font-weight: 600; text-align: right">Amount</th></tr></thead><tbody><sc-for list="{{dr.items}}" as="i" hint-placeholder-count="3"><tr style="border-bottom: 1px dashed #e1e4e6"><td style="padding: 6px 2px">{{i.qty}}</td><td style="padding: 6px 2px"><span style="font-weight: 500">{{i.name}}</span><br><span style="font-size: 11px; color: #5f5c5a">{{i.unit}}</span></td><td style="padding: 6px 2px; text-align: right">{{i.each}}</td><td style="padding: 6px 2px; text-align: right">{{i.total}}</td></tr></sc-for></tbody></table>
+<div style="display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; font-variant-numeric: tabular-nums"><span>Items</span><span style="text-align: right">{{dr.count}}</span><span>Subtotal</span><span style="text-align: right">{{dr.sub}}</span><span style="color: #c62828; font-weight: 600">Discount requested</span><span style="text-align: right; color: #c62828; font-weight: 600">− {{dr.amount}} ({{dr.pct}})</span><strong style="font-size: 15px; border-top: 1px solid #000000; padding-top: 4px">Total if approved</strong><strong style="font-size: 15px; text-align: right; border-top: 1px solid #000000; padding-top: 4px">{{dr.newTotal}}</strong></div>
+<sc-if value="{{dr.hasReason}}" hint-placeholder-val="{{false}}"><span style="color: #3d3a38">Seller's reason · “{{dr.reason}}”</span></sc-if>
+</article>
+<sc-if value="{{dr.canDecide}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 10px">
+<div role="radiogroup" aria-label="Decision" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px"><sc-for list="{{dr.modes}}" as="m" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{m.pressed}}" onClick="{{m.pick}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 8px; min-height: 46px; border-radius: 14px; cursor: pointer; background: {{m.bg}}; color: {{m.fg}}; border: 1.5px solid {{m.bd}}">{{m.label}}</button></sc-for></div>
+<sc-if value="{{dr.isReduce}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"><label for="dr-amt" style="font-size: 13px; color: #5f5c5a">Approve this amount instead</label><div style="display: flex; align-items: center; border: 1px solid rgba(0, 0, 0, 0.18); border-radius: 9999px; overflow: hidden; flex: 1 1 140px"><span style="padding: 0 4px 0 14px; font-weight: 600">GHS</span><input id="dr-amt" inputmode="decimal" value="{{dr.redVal}}" onInput="{{drRedIn}}" placeholder="0.00" style="border: 0; outline: none; font: inherit; font-size: 16px; font-weight: 600; padding: 10px 12px 10px 4px; flex: 1; min-width: 0"></div><span style="font-size: 13px; font-weight: 600">{{dr.redTotal}}</span></div></sc-if>
+<sc-if value="{{dr.isReject}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{dr.reasons}}" as="r" hint-placeholder-count="4"><button type="button" onClick="{{r.pick}}" aria-pressed="{{r.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 12px; border-radius: 9999px; cursor: pointer; background: {{r.bg}}; color: {{r.fg}}; border: 1px solid {{r.bd}}">{{r.label}}</button></sc-for></div></sc-if>
+<label for="dr-note" style="font-size: 13px; color: #5f5c5a">Note to the seller (optional)</label><input id="dr-note" value="{{dr.note}}" onInput="{{drNoteIn}}" placeholder="e.g. Loyal customer, OK this time" style="font: inherit; font-size: 15px; padding: 11px 14px; border-radius: 14px; border: 1px solid rgba(0, 0, 0, 0.18)">
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 16px; background: #f2f4f5"><label for="dr-pin" style="font-size: 13px; font-weight: 600">Confirm with your PIN · {{dr.meLabel}}</label><input id="dr-pin" type="password" inputmode="numeric" autocomplete="off" value="{{dr.pin}}" onInput="{{drPinIn}}" placeholder="••••••" disabled="{{dr.pinLocked}}" style="font: inherit; font-size: 22px; letter-spacing: 0.4em; text-align: center; padding: 10px 14px; border-radius: 14px; border: 2px solid {{dr.pinBd}}; background: #ffffff"><span style="font-size: 12px; color: #5f5c5a">Your decision is signed with your PIN and written to the audit trail. Demo · Ama Darko 111126 · Kofi Adom 100026</span></div>
+<sc-if value="{{drHasErr}}" hint-placeholder-val="{{false}}"><div role="alert" style="padding: 10px 14px; border-radius: 14px; background: #fbeaea; color: #c62828; font-size: 14px">{{drErr}}</div></sc-if>
+<div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap"><button type="button" onClick="{{drClose}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 44px; border-radius: 9999px; cursor: pointer; border: 1px solid #ebebeb; background: #ffffff">Decide later</button><button type="button" onClick="{{drGo}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 44px; border-radius: 9999px; cursor: pointer; font-weight: 600; border: 0; background: {{dr.ctaBg}}; color: #ffffff">{{dr.cta}}</button></div>
+</div></sc-if>
+<sc-if value="{{dr.blocked}}" hint-placeholder-val="{{false}}"><div role="status" style="padding: 12px 14px; border-radius: 14px; background: #fff4e5; color: #8a4b00; font-size: 14px">{{dr.blockTxt}}</div></sc-if>
+</div></div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.onDR = () => this.setState({ drTick: Date.now() });
+    this.onFocus = () => { try { const f = JSON.parse(window.localStorage.getItem('ecompos.focus') || 'null'); if (f && f.type === 'discReq') { window.localStorage.removeItem('ecompos.focus'); this.setState({ tab: 'approvals', drSel: f.id, drTab: 'pending', drMode: 'approve', drRed: '', drReason: '', drNote: '', drErr: '', drPin: '', drPinTries: 0 }); } } catch (e) {} };
+    this.state = { tab: 'approvals', kind: 'all', res: {}, iType: 'damaged', iTo: 'Supervisor', extra: [], closed: {}, read: { 5: true, 6: true } };
+  }
+  componentDidMount() { try { this.onFocus(); window.addEventListener('ecompos:focus', this.onFocus); ['ecompos:discReq', 'ecompos:creditReq', 'ecompos:role', 'ecompos:session'].forEach(ev => window.addEventListener(ev, this.onDR)); } catch (e) {} }
+  componentWillUnmount() { try { ['ecompos:discReq', 'ecompos:creditReq', 'ecompos:role', 'ecompos:session'].forEach(ev => window.removeEventListener(ev, this.onDR)); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Approvals'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const KINDS = [['discount', 'Discount'], ['below_cost', 'Below cost'], ['below_stock', 'Below stock'], ['return', 'Return'], ['refund', 'Refund'], ['price_change', 'Price change']];
+    const REQ = [
+      ['discount', '12% discount on S-2610270122 (limit 5%)', 'Akua Kyei', '14:20', 'Till 1'],
+      ['return', 'Return R-0042 · Jasmine rice 5kg × 2 · GHS 290.00', 'Akua Kyei', '14:16', 'Till 1'],
+      ['below_cost', 'Sell Sardines carton at GHS 540.00 (cost is hidden)', 'Kwame Asante', '13:52', 'Till 2'],
+      ['below_stock', 'Sell 6 × Milo 400g with 4 in stock', 'Kwame Asante', '13:30', 'Till 2'],
+      ['refund', 'MoMo refund GHS 48.00 to 024 555 0142', 'Akua Kyei', '12:05', 'Online order #1093'],
+      ['price_change', 'Vegetable oil 1L retail GHS 38.00 → GHS 41.00', 'Ama Darko', '09:10', 'Products']
+    ];
+    const kname = k => KINDS.find(x => x[0] === k)[1];
+    const reqs = REQ.map((r, k) => ({ r, k })).filter(x => S.kind === 'all' || x.r[0] === S.kind).map(x => {
+      const res = S.res[x.k];
+      return { kind: kname(x.r[0]), title: x.r[1], by: x.r[2], when: x.r[3], ref: x.r[4], noteId: 'note-' + x.k, pending: !res, done: !!res, result: res === 'a' ? 'Approved by you' : 'Rejected by you', bg: res === 'a' ? '#1f7a2a' : '#c62828', fg: '#ffffff', approve: () => set({ res: Object.assign({}, S.res, { [x.k]: 'a' }) }), reject: () => set({ res: Object.assign({}, S.res, { [x.k]: 'r' }) }) };
+    });
+    const ITYPES = [['damaged', 'Damaged stock'], ['pricing', 'Pricing error'], ['shortage', 'Till shortage'], ['other', 'Other']];
+    const ISS = S.extra.concat([
+      ['Till shortage', 'Till 2 short by GHS 25.00 at close', 'System', 'Manager', 'Yesterday 21:02'],
+      ['Pricing error', 'Shelf label for Milo 400g shows GHS 45.00, system says GHS 48.00', 'Kwame Asante', 'Supervisor', 'Yesterday 16:40'],
+      ['Damaged stock', 'Water 1.5L pack crushed on delivery · 6 bottles', 'Akua Kyei', 'Supervisor', '24/10/2026']
+    ]);
+    const issues = ISS.map((i, k) => { const st = S.closed[k] || 0; return { type: i[0], text: i[1], by: i[2], to: i[3], when: i[4], status: ['Open', 'In progress', 'Closed'][st], bg: st === 2 ? '#f2f4f5' : '#000000', fg: st === 2 ? '#000000' : '#ffffff', open: st < 2, action: st === 0 ? 'Start' : 'Close', close: () => set({ closed: Object.assign({}, S.closed, { [k]: st + 1 }) }) }; });
+    let ROLEA = 'superuser'; try { ROLEA = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {}
+    let GBRA = 'all'; try { GBRA = window.localStorage.getItem('ecompos.branch') || 'all'; } catch (e) {}
+    const S2 = { role: ROLEA, gbr: GBRA };
+    const NAMESA = { superuser: 'Kofi Adom', manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei', developer: 'eComPOS Support' };
+    const NAMES = NAMESA;
+    const myName = NAMESA[ROLEA] || 'Kofi Adom';
+    let talertsA = []; try { talertsA = JSON.parse(window.localStorage.getItem('ecompos.ticketAlerts') || '[]') || []; } catch (e) {}
+    const mine = talertsA.filter(a => !a.read && a.from !== myName && (a.to === 'everyone' || String(a.to).split(', ').indexOf(myName) >= 0)).map(a => ['Ticket ' + a.text, a.when]);
+    const RK = ['superuser', 'manager', 'supervisor', 'staff', 'developer'].indexOf(S2.role) >= 0 ? S2.role : 'superuser';
+    const MYBR = ({ manager: 'osu', supervisor: 'osu', staff: 'osu' })[RK] || '';
+    const BRS = { osu: 'Osu', legon: 'East Legon', adum: 'Adum' };
+    const ROLEN = { superuser: 'Superuser', manager: 'Managers', supervisor: 'Supervisors', staff: 'Sales staff', developer: 'eComPOS Support' };
+    const FEED = [];
+    const add = (id, text, when, to, br, href) => FEED.push({ id, text, when, to, br: br || '', href: href || '' });
+    const BIZ = ['superuser', 'manager', 'supervisor', 'staff'];
+    add('s-disc', 'Discount request from Akua Kyei waiting for approval', '2 min ago', ['superuser', 'manager', 'supervisor'], 'osu', 'Approvals.dc.html');
+    add('s-ret', 'Return R-0042 needs approval', '6 min ago', ['superuser', 'manager', 'supervisor'], 'osu', 'SalesReturns.dc.html');
+    add('s-inv', 'Invoice AM-2610260038 is 31 days overdue', '1 h ago', ['superuser', 'manager'], 'osu', 'Invoices.dc.html');
+    add('s-low', 'Low stock: Milo 400g (4 left)', '2 h ago', ['superuser', 'manager', 'supervisor'], 'osu', 'Inventory.dc.html');
+    add('s-low2', 'Low stock: Gari 1kg (3 left)', '2 h ago', ['superuser', 'manager', 'supervisor'], 'legon', 'Inventory.dc.html');
+    add('s-tax', 'Tax return draft ready for October', '3 h ago', ['superuser'], '', 'Tax.dc.html');
+    add('s-shift', 'Shift closed at Till 2 · short GHS 25.00', 'Yesterday', ['superuser', 'manager'], 'osu', 'Staff.dc.html');
+    add('s-count', 'Stock count due today for Aisle 3 (tins)', 'Today', ['supervisor'], 'osu', 'Inventory.dc.html');
+    add('s-mydisc', 'Your discount for Malt drink 330ml was approved by Kwame Asante', '25 min ago', ['staff'], 'osu', 'POS.dc.html');
+    add('s-myshift', 'Your next shift: tomorrow 08:00 · Till 1', 'Today', ['staff'], 'osu', 'Staff.dc.html');
+    mine.forEach((t, k) => add('t-' + k + '-' + t[0].length, t[0], t[1], [RK], '', 'Tickets.dc.html'));
+    try {
+      const WO = JSON.parse(window.localStorage.getItem('ecompos.webOrders') || '[]') || [];
+      WO.filter(o => o.ch === 'Website').forEach(o => {
+        const st = typeof o.stage === 'number' ? o.stage : 0; const bid = o.brId || ({ Osu: 'osu', 'East Legon': 'legon', Adum: 'adum' })[o.br] || '';
+        const kind = o.type === 'D' ? 'delivery' : o.type === 'P' ? 'click & collect' : 'buy in store';
+        (o.msgRead || []).slice(-1).forEach(r => add('wo-rd-' + o.id + '-' + r.at, o.who + ' read the branch message for order ' + o.id + (r.kind === 'code' ? ' · has the collection code' : r.kind === 'cancel' ? ' · knows it was cancelled' : ''), r.at, BIZ, bid, 'Collect.dc.html'));
+        if (o.status === 'Cancelled') { add('wo-cx-' + o.id, 'Order ' + o.id + (o.cancelledBy ? ' was cancelled by ' + o.cancelledBy : ' was cancelled by ' + o.who + ' on the website · stop preparing it') + (o.refund ? ' · ' + o.refund : ''), o.cancelledAt || 'Just now', BIZ, bid, 'Orders.dc.html'); return; }
+        if (o.type === 'D' && o.proof && st >= 5) { add('wo-dl-' + o.id + (o.dc && o.dc.ack ? '-ok' : ''), (o.dc ? 'Delivery confirmation: ' : '') + 'Order ' + o.id + ' received by ' + (o.proof.recv || o.who) + (o.rider ? ' · delivered by ' + o.rider.name : '') + ' · proof photo attached' + (o.dc && o.dc.ack ? ' · confirmed by ' + o.dc.ack.by : ''), o.proof.at || '', ['superuser', 'manager', 'supervisor', 'staff'], bid, 'POS.dc.html'); FEED[FEED.length - 1].img = o.proof.img || ''; }
+        if (st === 0 && o.status !== 'Cancelled') add('wo-new-' + o.id, 'New online order ' + o.id + ' from ' + o.who + ' · ' + kind + ' · confirm and start preparing', o.placedAt || o.time || 'Just now', BIZ, bid, 'POS.dc.html');
+        else if (o.status === 'Ready to collect') add('wo-rdy-' + o.id, 'Order ' + o.id + ' is ready · ' + o.who + ' will collect with a code', (o.track || []).slice(-1).map(t => t.at)[0] || '', ['manager', 'supervisor', 'staff'], bid, 'POS.dc.html');
+      });
+    } catch (e) {}
+    try {
+      const CO = JSON.parse(window.localStorage.getItem('ecompos.collectOrders') || '[]') || []; const seen = FEED.map(n => n.id);
+      CO.filter(c => c.codeRead).forEach(c => { if (seen.some(id => id.indexOf('wo-rd-#' + c.no) === 0)) return; add('co-rd-' + c.no + '-' + c.codeRead.at, c.codeRead.by + ' read the collection code message for order #' + c.no + ' · ready to collect', c.codeRead.at, BIZ, ({ Osu: 'osu', East: 'legon', Adum: 'adum' })[String(c.branch || '').split(/[ ,]/)[0]] || 'osu', 'Collect.dc.html'); });
+    } catch (e) {}
+    try {
+      const DQ = JSON.parse(window.localStorage.getItem('ecompos.discReq') || '[]') || [];
+      DQ.filter(d => d.status === 'pending').forEach(d => { const meNm = myName; if (d.byName === meNm) return; const to = d.amount > 200 || d.byRole === 'manager' ? ['superuser'] : ['manager', 'superuser']; add('dq-' + d.id, 'Discount request ' + d.id + ': ' + d.byName + ' asks for GHS ' + Number(d.amount).toFixed(2) + ' off sale #' + d.saleNo + ' (' + d.count + ' items, GHS ' + Number(d.sub).toFixed(2) + ') · review and decide', d.at, to, d.branch || 'osu', 'Approvals.dc.html'); });
+      DQ.filter(d => d.status !== 'pending' && d.status !== 'cancelled' && d.byName === myName).slice(0, 3).forEach(d => add('dq-r-' + d.id + d.status, 'Your discount request ' + d.id + ' was ' + (d.status === 'reduced' ? 'approved at GHS ' + Number(d.approved).toFixed(2) : d.status) + ' by ' + d.decidedBy, d.decidedAt || '', ['staff', 'supervisor', 'manager'], d.branch || 'osu', 'POS.dc.html'));
+    } catch (e) {}
+    try {
+      const CQN = JSON.parse(window.localStorage.getItem('ecompos.creditReq') || '[]') || [];
+      CQN.filter(q => q.status === 'pending').forEach(q => add('cq-' + q.id, 'Credit sale approval ' + q.id + ': ' + q.byName + ' wants to sell GHS ' + Number(q.total).toFixed(2) + ' on credit to ' + q.cust + ' \u00b7 balance GHS ' + Number(q.owed).toFixed(2) + ' due ' + q.due + ' \u00b7 approve or reject', q.at, ['superuser'], q.branch || 'osu', 'Approvals.dc.html'));
+      CQN.filter(q => (q.status === 'approved' || q.status === 'rejected') && q.byName === myName).slice(0, 3).forEach(q => add('cq-r-' + q.id + q.status, 'Your credit sale request ' + q.id + ' for ' + q.cust + ' was ' + q.status + ' by ' + q.decidedBy + (q.reason ? ' \u00b7 ' + q.reason : ''), q.decidedAt || '', ['staff', 'supervisor', 'manager'], q.branch || 'osu', 'POS.dc.html'));
+    } catch (e) {}
+    try {
+      const AL = JSON.parse(window.localStorage.getItem('ecompos.sysAlerts') || 'null');
+      (Array.isArray(AL) ? AL : [{ id: 'A1', sev: 'critical', title: 'Osu Till 2 stopped syncing', area: 'Tills · Osu' }, { id: 'A2', sev: 'warning', title: 'E-VAT receipts waiting to send to GRA', area: 'Tax · all branches' }]).filter(a => a.state !== 'resolved' && a.state !== 'dismissed').forEach(a => add('al-' + a.id, (a.sev === 'critical' ? 'Critical: ' : a.sev === 'warning' ? 'Warning: ' : '') + a.title + (a.area ? ' · ' + a.area : ''), 'System monitor', ['developer'], '', 'Developer.dc.html'));
+    } catch (e) {}
+    try {
+      const RQ = JSON.parse(window.localStorage.getItem('ecompos.branchRequests') || '[]') || [];
+      RQ.forEach(r => { if (r.status === 'done') add('rq-done-' + r.id, 'Your new branch ' + r.name + ' is set up and ready to open', r.when || '', ['superuser'], '', 'Branches.dc.html'); else add('rq-' + r.id, 'Kofi Adom requested a new branch: ' + r.name + ', ' + (r.city || '') + ' · prepare the purchase agreement', r.when || '', ['developer'], '', 'Developer.dc.html'); });
+    } catch (e) {}
+    try {
+      const GR = (JSON.parse(window.localStorage.getItem('ecompos.grants') || '{}') || {})[myName] || {};
+      if (GR.__off && (RK === 'manager' || RK === 'supervisor')) add('gr-off', 'The Admin turned off your permissions. You can sign in and see Home only.', 'Now', [RK], '', 'Main.dc.html');
+    } catch (e) {}
+
+    const ANN_ME = (function () { try { const ss = JSON.parse(window.localStorage.getItem('ecompos.session') || 'null'); if (ss && ss.id === S2.role) return ss.name; } catch (e) {} return NAMES[S2.role] || 'Kofi Adom'; })(), ANN_ROLE = S2.role === 'developer' ? '' : (S2.role || 'superuser');
+    let ANNS = []; try { ANNS = JSON.parse(window.localStorage.getItem('ecompos.announcements') || '[]') || []; } catch (e) {}
+    const annFmt = iso => { const d = new Date(iso); return isNaN(d) ? String(iso) : d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }) + ' at ' + d.toTimeString().slice(0, 5); };
+    const ANNK = { update: ['System update', '#0b5c5c'], maintenance: ['Scheduled maintenance', '#a8492a'], notice: ['Notice', '#000000'] };
+    const annFor = ANN_ROLE ? ANNS.filter(a => !a.cancelled && (a.audience || []).indexOf(ANN_ROLE) >= 0) : [];
+    const annPending = annFor.filter(a => !(a.ack || {})[ANN_ME] && !((this.state.annLater || {})[a.id]));
+    const annCur = annPending[0];
+    const annVals = {
+      annOpen: !!annCur && (true),
+      ann: annCur ? { title: annCur.title, msg: annCur.msg, when: annFmt(annCur.start), dur: 'Expected to take ' + annCur.dur + (annCur.offline ? ' · tills keep selling offline' : ''), kind: (ANNK[annCur.kind] || ANNK.notice)[0], bg: (ANNK[annCur.kind] || ANNK.notice)[1], count: annPending.length > 1 ? ' · 1 of ' + annPending.length : '' } : { title: '', msg: '', when: '', dur: '', kind: '', bg: '#000000', count: '' },
+      annOk: () => { if (!annCur) return; try { const L = JSON.parse(window.localStorage.getItem('ecompos.announcements') || '[]') || []; const t = new Date(); const at = t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' ' + t.toTimeString().slice(0, 5); const n = L.map(a => a.id === annCur.id ? Object.assign({}, a, { ack: Object.assign({}, a.ack || {}, { [ANN_ME]: at }) }) : a); window.localStorage.setItem('ecompos.announcements', JSON.stringify(n)); window.dispatchEvent(new CustomEvent('ecompos:announcements', { detail: n })); } catch (e) {} this.setState({ annTick: Date.now() }); },
+      annLater: () => { if (annCur) this.setState({ annLater: Object.assign({}, this.state.annLater || {}, { [annCur.id]: true }) }); }
+    };
+    try {
+      const rg = JSON.parse(window.localStorage.getItem('ecompos.newProducts') || '[]') || [];
+      if (RK === 'superuser') { const pend = rg.filter(x => x.status === 'pending'); if (pend.length) FEED.unshift({ id: 'pp-' + pend.length, text: pend.length + ' new product' + (pend.length > 1 ? 's' : '') + ' waiting for your cost price and approval (' + pend.map(x => x.name).slice(0, 2).join(', ') + (pend.length > 2 ? '…' : '') + ')', when: 'Products', to: ['superuser'], br: '', href: 'Products.dc.html' }); }
+      else if (RK !== 'developer') rg.filter(x => x.addedBy === myName && (x.status === 'live' || x.status === 'rejected') && x.decidedAt).slice(-3).reverse().forEach(x => FEED.unshift({ id: 'pd-' + x.name + x.decidedAt, text: x.status === 'live' ? 'Kofi Adom approved ' + x.name + ' · now on Sell Now and the website' : x.name + ' was not approved' + (x.reason ? ': ' + x.reason : ''), when: x.decidedAt, to: [RK], br: '', href: 'Products.dc.html' }));
+    } catch (e) {}
+    const SUBR = RK === 'superuser' && S2.gbr && S2.gbr !== 'all' ? S2.gbr : '';
+    const NOTES0 = FEED.filter(n => n.to.indexOf(RK) >= 0 && (!n.br || (MYBR ? n.br === MYBR : !SUBR || n.br === SUBR)));
+    const NOTES = NOTES0.filter(n => n.id.indexOf('s-') !== 0).concat(NOTES0.filter(n => n.id.indexOf('s-') === 0));
+    const unread = NOTES.filter(n => !S.read[n.id]).length;
+    const money = n => 'GHS ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    let SESA = null; try { SESA = JSON.parse(window.localStorage.getItem('ecompos.session') || 'null'); } catch (e) {}
+    const APV = { superuser: ['Kofi Adom', 'Superuser', Infinity], manager: ['Ama Darko', 'Manager', 200] };
+    const ME = APV[RK] || null;
+    const nowTxt = () => { const d = new Date(); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toTimeString().slice(0, 5); };
+    let DRS = []; try { DRS = JSON.parse(window.localStorage.getItem('ecompos.discReq') || '[]') || []; } catch (e) {}
+    const saveDR = (list, extra) => { try { window.localStorage.setItem('ecompos.discReq', JSON.stringify(list)); window.dispatchEvent(new CustomEvent('ecompos:discReq', { detail: list })); } catch (e) {} set(Object.assign({ drTick: Date.now() }, extra || {})); };
+    const drMine = DRS.filter(d => RK === 'superuser' || (RK === 'manager' && (d.branch || 'osu') === MYBR));
+    const drTab = S.drTab || 'pending';
+    const drShown = drMine.filter(d => drTab === 'pending' ? d.status === 'pending' : d.status !== 'pending').slice().sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const DST = { pending: ['Waiting', '#a8492a'], approved: ['Approved', '#1f7a2a'], reduced: ['Approved · reduced', '#0b5c5c'], rejected: ['Rejected', '#c62828'], cancelled: ['Cancelled by seller', '#6b6866'] };
+    const canDo = d => !!ME && d.status === 'pending' && d.byName !== ME[0] && d.amount <= ME[2];
+    const drList = drShown.map(d => ({ status: (DST[d.status] || DST.pending)[0], sbg: (DST[d.status] || DST.pending)[1], title: d.byName + ' (' + d.byLevel + ') · sale #' + d.saleNo + ' · ' + d.count + ' items', meta: d.till + ' · ' + d.at + ' · customer ' + (d.cust || 'walk-in'), amount: money(d.amount), sub: money(d.sub), pct: (d.sub ? Math.round(d.amount / d.sub * 1000) / 10 : 0) + '%', hasResult: d.status !== 'pending', result: d.status === 'approved' ? 'Approved by ' + d.decidedBy + ' · ' + d.decidedAt + (d.note ? ' · “' + d.note + '”' : '') : d.status === 'reduced' ? 'Reduced to ' + money(d.approved) + ' by ' + d.decidedBy + ' · ' + d.decidedAt + (d.note ? ' · “' + d.note + '”' : '') : d.status === 'rejected' ? 'Rejected by ' + d.decidedBy + ' · ' + (d.reason || '') + (d.note ? ' · “' + d.note + '”' : '') : d.status === 'cancelled' ? 'The customer no longer wanted it · ' + (d.decidedAt || '') : '', btn: d.status === 'pending' ? (canDo(d) ? 'Review & decide' : (ME && d.amount > ME[2] ? 'Admin only · view' : 'View')) : 'View', btnBg: d.status === 'pending' && canDo(d) ? '#0b5c5c' : '#000000', open: () => set({ drSel: d.id, drMode: 'approve', drRed: '', drReason: '', drNote: '', drErr: '', drPin: '', drPinTries: 0 }) }));
+    const DRO = S.drSel ? DRS.find(d => d.id === S.drSel) : null;
+    const RRS = ['Over the discount policy', 'Price already reduced', 'Customer not eligible', 'Stock is low on these items'];
+    const dr = DRO ? (() => { const d = DRO, mode = S.drMode || 'approve', red = parseFloat(S.drRed); const cd = canDo(d); return { id: d.id, meta: d.branchName + ' · requested by ' + d.byName + ' (' + d.byLevel + ') · ' + d.at, saleNo: d.saleNo, till: d.till, at: d.at, cust: d.cust || 'Walk-in customer', by: d.byName, items: d.items, count: String(d.count), sub: money(d.sub), amount: money(d.amount), pct: (d.sub ? Math.round(d.amount / d.sub * 1000) / 10 : 0) + '%', newTotal: money(d.sub - d.amount), hasReason: !!d.reason && d.status === 'pending', reason: d.reason || '',
+      canDecide: cd, blocked: !cd, blockTxt: d.status !== 'pending' ? (DST[d.status] || DST.pending)[0] + (d.decidedBy ? ' by ' + d.decidedBy : '') + (d.decidedAt ? ' · ' + d.decidedAt : '') : !ME ? 'Only a Manager or the Admin can decide discount requests.' : d.byName === ME[0] ? 'This is your own request. The Admin must decide it.' : 'This discount is over your approval limit of ' + money(ME[2]) + '. Only the Admin can approve, reduce or reject it.',
+      modes: [['approve', 'Approve'], ['reduce', 'Approve less'], ['reject', 'Reject']].map(m => Object.assign({ label: m[1], pick: () => set({ drMode: m[0], drErr: '' }) }, (mode === m[0] ? { bg: m[0] === 'reject' ? '#c62828' : m[0] === 'reduce' ? '#0b5c5c' : '#1f7a2a', fg: '#ffffff', bd: 'transparent', pressed: 'true' } : { bg: '#ffffff', fg: '#000000', bd: '#e1e4e6', pressed: 'false' }))),
+      isReduce: mode === 'reduce', isReject: mode === 'reject', redVal: S.drRed || '', redTotal: !isNaN(red) && red > 0 ? 'New total ' + money(d.sub - red) : '',
+      reasons: RRS.map(r => Object.assign({ label: r, pick: () => set({ drReason: r, drErr: '' }) }, pill(S.drReason === r))), note: S.drNote || '',
+      meLabel: ME ? ME[0] + ' (' + ME[1] + ')' : '', pin: S.drPin || '', pinLocked: (S.drPinTries || 0) >= 3, pinBd: S.drErr && /PIN/.test(S.drErr) ? '#c62828' : 'rgba(0, 0, 0, 0.18)',
+      cta: mode === 'reject' ? 'Reject request' : mode === 'reduce' ? 'Approve reduced discount' : 'Approve ' + money(d.amount), ctaBg: mode === 'reject' ? '#c62828' : mode === 'reduce' ? '#0b5c5c' : '#1f7a2a' }; })() : { items: [], modes: [], reasons: [] };
+    const drGo = () => { if (!DRO || !canDo(DRO)) return; const mode = S.drMode || 'approve';
+      const MYPIN = (() => { let c = {}; try { c = JSON.parse(window.localStorage.getItem('ecompos.creds') || '{}') || {}; } catch (e) {} const nm = ME ? ME[0] : ''; return (c[nm] && c[nm].pin) || { superuser: '100026', manager: '111126' }[RK]; })(); const pin = String(S.drPin || '');
+      if ((S.drPinTries || 0) >= 3) { set({ drErr: 'Too many wrong PINs. Close this window and try again later.' }); return; }
+      if (pin.length !== 6) { set({ drErr: 'Enter your 6-digit PIN to confirm the decision.' }); return; }
+      if (pin !== MYPIN) { const t = (S.drPinTries || 0) + 1; set({ drPinTries: t, drPin: '', drErr: t >= 3 ? 'Too many wrong PINs. The decision is locked for now.' : 'That is not your PIN. ' + (3 - t) + (3 - t === 1 ? ' try left.' : ' tries left.') }); return; } const base = { decidedBy: ME[0] + ' (' + ME[1] + ')', decidedAt: nowTxt(), note: String(S.drNote || '').trim() }; let upd = null;
+      if (mode === 'approve') upd = Object.assign({ status: 'approved', approved: DRO.amount }, base);
+      else if (mode === 'reduce') { const n = Math.round(parseFloat(S.drRed) * 100) / 100; if (isNaN(n) || n <= 0) { set({ drErr: 'Enter the lower amount you will approve.' }); return; } if (n >= DRO.amount) { set({ drErr: 'The approved amount must be less than the ' + money(DRO.amount) + ' requested.' }); return; } upd = Object.assign({ status: 'reduced', approved: n }, base); }
+      else { if (!S.drReason) { set({ drErr: 'Pick a reason so the seller can explain it to the customer.' }); return; } upd = Object.assign({ status: 'rejected', approved: 0, reason: S.drReason }, base); }
+      try { const L = JSON.parse(window.localStorage.getItem('ecompos.signins') || '[]') || []; L.unshift({ name: ME[0], level: ME[1], action: (upd.status === 'rejected' ? 'Rejected' : 'Approved') + ' discount request ' + DRO.id + ' (sale #' + DRO.saleNo + ', ' + DRO.byName + ')' + (upd.status === 'reduced' ? ' at ' + money(upd.approved) + ' instead of ' + money(DRO.amount) : upd.status === 'approved' ? ' · ' + money(DRO.amount) : ' · ' + upd.reason), at: Date.now(), device: 'Approvals' }); window.localStorage.setItem('ecompos.signins', JSON.stringify(L.slice(0, 200))); } catch (e) {}
+      saveDR(DRS.map(d => d.id === DRO.id ? Object.assign({}, d, upd) : d), { drSel: '', drPin: '', drPinTries: 0 }); };
+    // ---------- credit sale approvals (Admin only decides) ----------
+    let CQS = []; try { CQS = JSON.parse(window.localStorage.getItem('ecompos.creditReq') || '[]') || []; } catch (e) {}
+    const saveCQ = (list, extra) => { try { window.localStorage.setItem('ecompos.creditReq', JSON.stringify(list)); window.dispatchEvent(new CustomEvent('ecompos:creditReq', { detail: list })); } catch (e) {} set(Object.assign({ cqTick: Date.now() }, extra || {})); };
+    const meNmA = (SESA && SESA.name) || myName;
+    const cqMine = RK === 'superuser' ? CQS : CQS.filter(q => q.byName === meNmA || (RK === 'manager' && (q.branch || 'osu') === MYBR));
+    const cqTab = S.cqTab || 'pending';
+    const CQST = { pending: ['Waiting', '#a8492a'], approved: ['Approved', '#1f7a2a'], rejected: ['Rejected', '#c62828'], cancelled: ['Cancelled', '#6b6866'] };
+    const cqShown = cqMine.filter(q => cqTab === 'pending' ? q.status === 'pending' : q.status !== 'pending').slice().sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const CQR = ['Customer already owes too much', 'Customer has paid late before', 'Amount too high for credit', 'Ask for a bigger part payment', 'Due date too far away'];
+    const cqDecide = (q, ok) => { if (RK !== 'superuser' || q.status !== 'pending') return; const st = S.cqSt || {}; const mine = st[q.id] || {};
+      if (!ok && !mine.reason) { set({ cqSt: Object.assign({}, st, { [q.id]: Object.assign({}, mine, { open: true, err: 'Pick a reason so the seller can tell the customer.' }) }) }); return; }
+      const upd = { status: ok ? 'approved' : 'rejected', decidedBy: (SESA && SESA.level === 'Superuser' ? SESA.name : 'Kofi Adom') + ' (Admin)', decidedAt: nowTxt(), note: String(mine.note || '').trim(), reason: ok ? '' : mine.reason };
+      try { const L = JSON.parse(window.localStorage.getItem('ecompos.signins') || '[]') || []; L.unshift({ name: upd.decidedBy.replace(/ \((Admin|Superuser)\)/, ''), level: 'Superuser', action: (ok ? 'Approved' : 'Rejected') + ' credit sale ' + q.id + ' (sale #' + q.saleNo + ', ' + q.cust + ', balance ' + money(q.owed) + ', ' + q.byName + ')' + (ok ? '' : ' \u00b7 ' + upd.reason), at: Date.now(), device: 'Approvals' }); window.localStorage.setItem('ecompos.signins', JSON.stringify(L.slice(0, 200))); } catch (e) {}
+      saveCQ(CQS.map(x => x.id === q.id ? Object.assign({}, x, upd) : x), { cqSt: Object.assign({}, st, { [q.id]: {} }) }); };
+    const cqList = cqShown.map(q => { const st = (S.cqSt || {})[q.id] || {}; const setQ = p => set({ cqSt: Object.assign({}, S.cqSt || {}, { [q.id]: Object.assign({}, st, p) }) }); const can = RK === 'superuser' && q.status === 'pending';
+      return { id: q.id, status: (CQST[q.status] || CQST.pending)[0], sbg: (CQST[q.status] || CQST.pending)[1],
+        title: q.cust + ' \u00b7 ' + q.phone, meta: q.byName + ' (' + q.byLevel + ') \u00b7 ' + q.till + ' \u00b7 sale #' + q.saleNo + ' \u00b7 ' + q.at,
+        items: (q.items || []).map(i => i.qty + ' \u00d7 ' + i.name).join(', '),
+        total: money(q.total), paid: money(q.paid), owed: money(q.owed), due: new Date(q.due + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        hasOld: (q.oldOwed || 0) > 0, old: 'Already owes ' + money(q.oldOwed) + ' \u2192 ' + money((q.oldOwed || 0) + (q.owed || 0)) + ' after this sale',
+        hasResult: q.status !== 'pending', result: q.status === 'approved' ? 'Approved by ' + q.decidedBy + ' \u00b7 ' + (q.decidedAt || '') + (q.note ? ' \u00b7 \u201c' + q.note + '\u201d' : '') : q.status === 'rejected' ? 'Rejected by ' + q.decidedBy + ' \u00b7 ' + (q.reason || '') + (q.note ? ' \u00b7 \u201c' + q.note + '\u201d' : '') : (q.note || 'Cancelled'),
+        can, open: !!st.open, toggle: () => setQ({ open: !st.open, err: '' }),
+        reasons: CQR.map(r => Object.assign({ label: r, pick: () => setQ({ reason: r, err: '' }) }, pill(st.reason === r))),
+        note: st.note || '', noteIn: e => setQ({ note: e.target.value }), err: st.err || '', hasErr: !!st.err,
+        approve: () => cqDecide(q, true), reject: () => cqDecide(q, false) }; });
+    return {
+      cqShow: cqMine.length > 0 || RK === 'superuser', cqList, cqNone: cqList.length === 0,
+      cqNoneTxt: cqTab === 'pending' ? (RK === 'superuser' ? 'No credit sales waiting. They appear here when a Manager, Supervisor or Sales staff sells on credit.' : 'None of your credit sales are waiting.') : 'Nothing decided yet.',
+      cqSub: RK === 'superuser' ? 'Only you can approve credit sales from Managers, Supervisors and Sales staff' : 'The Admin approves every credit sale \u00b7 your requests are listed here',
+      cqRing: cqMine.some(q => q.status === 'pending') ? '#a8492a' : '#ffffff',
+      cqTabs: [['pending', 'Waiting \u00b7 ' + cqMine.filter(q => q.status === 'pending').length], ['done', 'Decided \u00b7 ' + cqMine.filter(q => q.status !== 'pending').length]].map(t => Object.assign({ label: t[1], pick: () => set({ cqTab: t[0] }) }, pill(cqTab === t[0]))),
+      tabs: [['approvals', 'Approvals'], ['issues', 'Issues'], ['notes', 'Notifications']].map(t => Object.assign({ label: t[1], pick: () => set({ tab: t[0] }) }, pill(S.tab === t[0]))),
+      drShow: RK === 'manager' || RK === 'superuser', drRing: drMine.some(d => d.status === 'pending') ? '#a8492a' : '#ffffff', drSub: RK === 'superuser' ? 'All branches · you can approve any amount' : 'Osu branch · you can approve up to ' + money(200) + ' · requests over that go to the Admin',
+      drTabs: [['pending', 'Waiting · ' + drMine.filter(d => d.status === 'pending').length], ['done', 'Decided · ' + drMine.filter(d => d.status !== 'pending').length]].map(t => Object.assign({ label: t[1], pick: () => set({ drTab: t[0] }) }, pill(drTab === t[0]))),
+      drList, drNone: drList.length === 0, drNoneTxt: drTab === 'pending' ? 'No discount requests waiting. Requests appear here when a seller goes over their limit.' : 'Nothing decided yet.',
+      drOpen: !!DRO, dr, drClose: () => set({ drSel: '' }), drRedIn: e => set({ drRed: String(e.target.value).replace(/[^\d.]/g, '').slice(0, 9), drErr: '' }), drNoteIn: e => set({ drNote: e.target.value }), drPinIn: e => set({ drPin: String(e.target.value).replace(/\D/g, '').slice(0, 6), drErr: '' }), drGo, drHasErr: !!S.drErr, drErr: S.drErr || '',
+      canReportIssue: RK !== 'superuser' && RK !== 'developer',
+      isApprovals: S.tab === 'approvals', isIssues: S.tab === 'issues', isNotes: S.tab === 'notes',
+      kinds: [['all', 'All']].concat(KINDS).map(k => Object.assign({ label: k[1], pick: () => set({ kind: k[0] }) }, pill(S.kind === k[0]))),
+      reqs, noReqs: reqs.length === 0,
+      iTypes: ITYPES.map(t => Object.assign({ label: t[1], pick: () => set({ iType: t[0] }) }, pill(S.iType === t[0]))),
+      iTo: ['Supervisor', 'Manager'].map(t => Object.assign({ label: t, pick: () => set({ iTo: t }) }, pill(S.iTo === t))),
+      report: () => set({ extra: [[ITYPES.find(t => t[0] === S.iType)[1], 'New report from the till', 'You', S.iTo, 'Just now']].concat(S.extra), closed: Object.keys(S.closed).reduce((o, k) => { o[+k + 1] = S.closed[k]; return o; }, {}) }),
+      issues,
+      unread: String(unread), markAll: () => set({ read: NOTES.reduce((o, n) => { o[n.id] = true; return o; }, Object.assign({}, S.read)) }),
+      notes: NOTES.map(n => { const r = !!S.read[n.id]; const k = n.id; return { img: n.img || '', hasImg: !!n.img, text: n.text, when: n.when + (n.br && RK === 'superuser' ? ' · ' + (BRS[n.br] || n.br) + ' branch' : ''), state: r ? 'Read' : 'Unread', bg: r ? '#ffffff' : '#f2f4f5', dot: r ? '#ebebeb' : '#0b5c5c', weight: r ? '400' : '500', read: () => set({ read: Object.assign({}, S.read, { [k]: true }) }) }; }),
+      ids: ['Spec 5.12 Approval requests', 'Spec 5.12 Approve / reject with note', 'Spec 5.12 Issues to Supervisor / Manager', 'Spec 5.12 Notification bell', 'Spec 4 Limits trigger approvals'].map(t => ({ t }))
+    };
+  }
+}
+</script>
+</body>
+</html>

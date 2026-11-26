@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS orders</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@media (max-width:1024px){.or-wrap{flex-direction:column;flex-wrap:nowrap !important;align-items:stretch !important;gap:8px !important}.or-list{display:contents !important}.or-ca{order:-1}.or-tail{order:99999}.or-hid{display:none !important}.or-x{display:inline-flex !important}.or-item{order:var(--ord)}.or-det{order:var(--dord);flex:none !important;border:2px solid #0b5c5c;margin:-2px 0 8px}}
+
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="orders" hint-size="232px,960px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="orders" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Orders</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">Website, till and phone orders in one list · {{brLine}}</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="Rider.dc.html" style="padding: 12px 18px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; font-size: 14px; text-decoration: none">Open rider app</a>
+<button type="button" onClick="{{toggleNew}}" style="font-family: inherit; padding: 12px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: rgba(69, 36, 219, 0.34) 0 4px 24px 0">New manual order</button>
+</div>
+</header>
+<sc-if value="{{hasRefunds}}" hint-placeholder-val="{{false}}"><section aria-label="Refunds" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 20px; background: #ffffff; border: 1px solid #f1c3c3"><div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><h2 style="margin: 0; font-size: 17px; font-weight: 600">Refunds for cancelled online orders</h2><span style="font-size: 13px; color: #8a4b00">{{rfOpenN}} to complete</span></div><sc-for list="{{refunds}}" as="f" hint-placeholder-count="1"><div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; padding: 10px 12px; border-radius: 14px; background: #f8f8f8; font-size: 13px"><div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><strong>{{f.id}} · {{f.who}} · {{f.amount}}</strong><span style="color: #5f5c5a">Refund to {{f.via}} · {{f.phone}} · {{f.ref}} · {{f.when}}</span><span style="color: #5f5c5a">{{f.reason}}</span></div><div style="display: flex; gap: 8px; align-items: center"><span style="padding: 4px 10px; border-radius: 9999px; background: {{f.stBg}}; color: {{f.stFg}}; font-weight: 600">{{f.status}}</span><sc-if value="{{f.open}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{f.markDone}}" style="font-family: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Mark refunded</button></sc-if></div></div></sc-for></section></sc-if>
+
+<sc-if value="{{showNew}}" hint-placeholder-val="{{false}}">
+<section aria-label="New manual order" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; box-shadow: rgba(0, 0, 0, 0.12) 0 4px 24px 0">
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 200px"><label for="no-phone" style="font-size: 13px; color: #5f5c5a">Customer phone</label><div style="display: flex; align-items: center; border: 1px solid {{ph.cust.bd}}; border-radius: 9999px; background: #ffffff; overflow: hidden; min-width: 0"><span aria-hidden="true" style="padding: 0 6px 0 14px; font-size: 15px; font-weight: 600; color: #000000; white-space: nowrap">+233</span><input id="no-phone" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="12" aria-describedby="no-phone-err" value="{{ph.cust.val}}" onInput="{{ph.cust.input}}" placeholder="24 555 0142" style="border: 0; outline: none; font: inherit; font-size: 15px; padding: 11px 14px 11px 2px; flex: 1; min-width: 0; background: transparent; letter-spacing: 0.02em"></div><sc-if value="{{ph.cust.hasErr}}" hint-placeholder-val="{{false}}"><span id="no-phone-err" role="alert" style="font-size: 12px; color: #c62828">{{ph.cust.err}}</span></sc-if><span style="font-size: 11px; color: #5f5c5a">9 digits after +233, without the first 0</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 140px"><label for="no-ch" style="font-size: 13px; color: #5f5c5a">Came in by</label><select id="no-ch" style="font: inherit; font-size: 14px; padding: 11px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff"><option>Phone call</option><option>Walk-in</option></select></div>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 2 1 240px"><label for="no-items" style="font-size: 13px; color: #5f5c5a">Items</label><input id="no-items" placeholder="Search products to add" style="font: inherit; font-size: 14px; padding: 11px 14px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+<button type="button" onClick="{{createLink}}" style="font-family: inherit; padding: 12px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; font-size: 14px; cursor: pointer">Create and send payment link</button>
+</section>
+</sc-if>
+
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+<span style="font-size: 13px; color: #5f5c5a; margin-right: 4px">Channel</span>
+<sc-for list="{{channels}}" as="c" hint-placeholder-count="5">
+<button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 44px; border-radius: 9999px; cursor: pointer; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}">{{c.label}}</button>
+</sc-for>
+</div>
+
+<div class="or-wrap" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-label="Order list" class="or-list" style="flex: 3 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{cancelAlerts}}" as="c" hint-placeholder-count="0"><div role="alert" class="or-ca" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 12px 16px; border-radius: 18px; background: #fbeaea; border: 1.5px solid #c62828; color: #7a1a1a"><span aria-hidden="true" style="flex: none; width: 26px; height: 26px; border-radius: 9999px; background: #c62828; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700">!</span><span style="flex: 1 1 240px; font-size: 14px"><strong style="font-weight: 600">{{c.id}} cancelled by {{c.by}}</strong> · {{c.when}} · {{c.branch}} branch{{c.refund}}</span><button type="button" onClick="{{c.open}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">View order</button><button type="button" onClick="{{c.dismiss}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #c62828; background: #ffffff; color: #c62828; cursor: pointer">Dismiss</button></div></sc-for>
+<sc-for list="{{list}}" as="o" hint-placeholder-count="8">
+<button type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" aria-expanded="{{o.expanded}}" class="or-item" style="--ord: {{o.ord}}; font-family: inherit; text-align: left; cursor: pointer; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 14px 16px; border-radius: 20px; background: #ffffff; color: #000000; border: 2px solid {{o.ring}}; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 120px">
+<span style="font-size: 14px; font-weight: 600">{{o.id}}</span>
+<span style="font-size: 12px; color: #5f5c5a">{{o.time}}</span>
+</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 9999px; background: {{o.chBg}}; color: {{o.chFg}}">{{o.channel}}</span>
+<span style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px">{{o.customer}}</span>
+<span style="font-size: 12px; color: #5f5c5a">{{o.fulfil}} · {{o.branch}}</span>
+</span>
+<span style="font-size: 13px; padding: 4px 10px; border-radius: 9999px; background: {{o.sBg}}; color: {{o.sFg}}">{{o.status}}</span>
+<span style="min-width: 96px; text-align: right; font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums">{{o.total}}</span>
+</button>
+</sc-for>
+<sc-if value="{{noneShown}}" hint-placeholder-val="{{false}}">
+<p class="or-tail" style="margin: 0; padding: 24px; text-align: center; color: #5f5c5a; background: #ffffff; border-radius: 20px">No orders from this channel today.</p>
+</sc-if>
+
+<div class="or-tail" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 600">Delivery zones &amp; rates</h2>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px">
+<thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a"><th scope="col" style="font-weight: 500; padding: 6px 8px">Zone</th><th scope="col" style="font-weight: 500; padding: 6px 8px">From branch</th><th scope="col" style="font-weight: 500; padding: 6px 8px">Fee</th><th scope="col" style="font-weight: 500; padding: 6px 8px">Time</th></tr></thead>
+<tbody>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 10px 8px">Osu, Cantonments, Labone</td><td style="padding: 10px 8px">Osu</td><td style="padding: 10px 8px">GHS 20.00</td><td style="padding: 10px 8px">Same day</td></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 10px 8px">East Legon, Shiashie, Adjiringanor</td><td style="padding: 10px 8px">East Legon</td><td style="padding: 10px 8px">GHS 25.00</td><td style="padding: 10px 8px">Same day</td></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 10px 8px">Adum, Ahodwo, Asokwa (Kumasi)</td><td style="padding: 10px 8px">Adum</td><td style="padding: 10px 8px">GHS 20.00</td><td style="padding: 10px 8px">Same day</td></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 10px 8px">Rest of Ghana · courier</td><td style="padding: 10px 8px">Nearest</td><td style="padding: 10px 8px">From GHS 45.00</td><td style="padding: 10px 8px">1–3 days</td></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 10px 8px">Free delivery</td><td style="padding: 10px 8px">All</td><td style="padding: 10px 8px">Orders over GHS 600</td><td style="padding: 10px 8px">—</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+
+<aside aria-label="Order detail" class="or-det {{detHide}}" style="--dord: {{detOrd}}; flex: 2 1 340px; min-width: 0; background: #ffffff; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 18px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><button type="button" class="or-x" onClick="{{detClose}}" aria-label="Hide order details" style="display: none; order: 9; margin-left: auto; font-family: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; min-height: 36px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">Close ×</button>
+<h2 style="margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.05em">{{o.id}}</h2>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 9999px; background: {{o.chBg}}; color: {{o.chFg}}">{{o.channel}}</span>
+<span style="margin-left: auto; font-size: 13px; padding: 6px 12px; border-radius: 9999px; background: #000000; color: #ffffff">{{o.status}}</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 18px; background: #f2f4f5; flex-wrap: wrap">
+<span style="display: flex; flex-direction: column; flex: 1">
+<span style="font-size: 15px; font-weight: 500">{{o.customer}}</span>
+<span style="font-size: 13px; color: #5f5c5a">{{o.phone}}</span>
+<span style="font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Placed {{o.placedAt}}</span>
+</span>
+<a href="Customers.dc.html" style="font-size: 13px; padding: 8px 12px; border-radius: 9999px; background: #ffffff; text-decoration: none">Profile</a>
+<button type="button" onClick="{{notify}}" style="font-family: inherit; font-size: 13px; padding: 8px 12px; min-height: 36px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">{{notifyLabel}}</button>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+<sc-for list="{{o.items}}" as="it" hint-placeholder-count="3">
+<li style="display: flex; justify-content: space-between; gap: 8px"><span>{{it.qty}} × {{it.name}}</span><span style="font-variant-numeric: tabular-nums">{{it.total}}</span></li>
+</sc-for>
+<li style="display: flex; justify-content: space-between; gap: 8px; color: #5f5c5a"><span>{{o.feeLabel}}</span><span>{{o.fee}}</span></li>
+<li style="display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid #ebebeb; padding-top: 8px; font-weight: 600"><span>Total</span><span>{{o.total}}</span></li>
+<li style="display: flex; justify-content: space-between; gap: 8px; color: #5f5c5a"><span>Payment</span><span>{{o.pay}}</span></li>
+</ul>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; border: 1px solid #ebebeb">
+<span style="font-size: 13px; color: #5f5c5a">{{o.fulfil}}</span>
+<span style="font-size: 14px; font-weight: 500">{{o.where}}</span>
+<sc-if value="{{o.isDelivery}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px">Landmark: {{o.landmark}}</span>
+<span style="font-size: 13px">GhanaPostGPS: {{o.gps}}</span>
+<div style="display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid #ebebeb">
+<span style="font-size: 13px; font-weight: 600">Delivery rider</span>
+<sc-if value="{{dv.hasRider}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 14px; background: #e7f2f2; font-size: 13px"><strong style="font-size: 14px">{{dv.riderTxt}}</strong><span style="color: {{dv.alertC}}">{{dv.alertTxt}}</span></div></sc-if>
+<sc-if value="{{dv.canAssign}}" hint-placeholder-val="{{true}}">
+<span style="font-size: 12px; color: #5f5c5a">{{dv.pickHint}}</span>
+<sc-if value="{{dv.noRiders}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #a8492a">No active riders at {{o.branch}}. The Admin can add one in Users &amp; permissions.</span></sc-if>
+<div role="radiogroup" aria-label="Choose a rider" style="display: flex; flex-direction: column; gap: 6px"><sc-for list="{{dv.riders}}" as="r" hint-placeholder-count="2"><button type="button" role="radio" aria-checked="{{r.pressed}}" onClick="{{r.pick}}" style="font-family: inherit; text-align: left; display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-radius: 14px; border: 1.5px solid {{r.bd}}; background: #ffffff; cursor: pointer; color: #000000"><span aria-hidden="true" style="position: relative; overflow: hidden; width: 34px; height: 34px; flex: none; border-radius: 9999px; background: {{r.av}}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700">{{r.ini}}<sc-if value="{{r.hasPhoto}}" hint-placeholder-val="{{false}}"><img src="{{r.photo}}" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover"></sc-if></span><span style="flex: 1; display: flex; flex-direction: column"><strong style="font-size: 14px; font-weight: 600">{{r.name}}</strong><span style="font-size: 12px; color: #5f5c5a">{{r.note}}</span></span><span style="font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 9999px; background: {{r.sbg}}; color: #ffffff">{{r.state}}</span></button></sc-for></div>
+<button type="button" onClick="{{dv.assign}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">{{dv.assignLabel}}</button>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid #ebebeb">
+<span style="font-size: 13px; font-weight: 600">Delivery status · step {{dv.stepNo}} of 6</span>
+<div aria-hidden="true" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px"><sc-for list="{{dv.steps}}" as="t" hint-placeholder-count="6"><span title="{{t.t}}" style="height: 6px; border-radius: 9999px; background: {{t.bg}}"></span></sc-for></div>
+<span style="font-size: 12px; color: #5f5c5a">{{dv.flowTxt}}</span>
+<sc-if value="{{dv.isCancelled}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828; font-weight: 600">This order was cancelled. Do not send it.</span></sc-if>
+<sc-if value="{{dv.needRider}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #a8492a">Assign a rider and send the alert. Once the rider picks the order up you can move it to In transit, Out for delivery and Delivered.</span></sc-if>
+<sc-if value="{{dv.isLocked}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; border: 1.5px solid #1f7a2a; font-size: 13px"><sc-if value="{{dv.hasPhoto}}" hint-placeholder-val="{{false}}"><img src="{{dv.photo}}" alt="Proof of delivery photo" style="width: 72px; height: 54px; object-fit: cover; border-radius: 8px; flex: none"></sc-if><span style="flex: 1">🔒 {{dv.lockTxt}}</span></div></sc-if>
+<sc-if value="{{dv.waitRider}}" hint-placeholder-val="{{false}}"><span role="status" style="font-size: 13px; padding: 8px 12px; border-radius: 12px; background: #fff4e5; color: #8a4b00">📷 {{dv.waitTxt}}</span></sc-if>
+<sc-if value="{{dv.askRcv}}" hint-placeholder-val="{{false}}"><label style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #3d3a38">Received by<input type="text" value="{{dv.rcv}}" onInput="{{dv.rcvIn}}" placeholder="Name of the person who received it" style="font: inherit; font-size: 14px; padding: 9px 12px; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.18)"></label></sc-if>
+<sc-if value="{{dv.canNext}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{dv.next}}" style="font-family: inherit; font-size: 15px; font-weight: 500; padding: 12px; min-height: 48px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer; box-shadow: rgba(69, 36, 219, 0.34) 0 4px 24px 0">{{dv.nextLabel}}</button></sc-if>
+<sc-if value="{{dv.canChange}}" hint-placeholder-val="{{true}}"><label for="ord-st" style="font-size: 12px; color: #3d3a38">Change status (shows on the customer's account, Sell Now and the rider app)</label><select id="ord-st" value="{{dv.stageV}}" onChange="{{dv.change}}" style="font: inherit; font-size: 14px; padding: 9px 12px; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.18); background: #ffffff"><sc-for list="{{dv.opts}}" as="t" hint-placeholder-count="6"><option value="{{t.v}}">{{t.label}}</option></sc-for></select></sc-if>
+<sc-if value="{{dv.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{dv.err}}</span></sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; color: #5f5c5a">Timeline</span>
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{o.timeline}}" as="e" hint-placeholder-count="3">
+<li style="display: flex; gap: 10px; font-size: 13px"><span aria-hidden="true" style="width: 10px; height: 10px; margin-top: 4px; border-radius: 9999px; background: #000000; flex: none"></span><span style="flex: 1">{{e.text}}</span><span style="color: #5f5c5a">{{e.time}}</span></li>
+</sc-for>
+</ol>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<sc-if value="{{canAdvance}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{advance}}" style="font-family: inherit; flex: 2 1 160px; font-size: 15px; font-weight: 500; padding: 13px; min-height: 48px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer; box-shadow: rgba(69, 36, 219, 0.34) 0 4px 24px 0">{{advanceLabel}}</button>
+</sc-if>
+<button type="button" style="font-family: inherit; flex: 1 1 120px; font-size: 14px; padding: 13px; min-height: 48px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Packing slip</button>
+<button type="button" style="font-family: inherit; flex: 1 1 120px; font-size: 14px; padding: 13px; min-height: 48px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Edit order</button>
+<button type="button" style="font-family: inherit; flex: 1 1 120px; font-size: 14px; padding: 13px; min-height: 48px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Refund</button>
+</div>
+<p style="margin: 0; font-size: 12px; color: #5f5c5a">Customer tracking page: ebenezerunique.com.gh/track/{{o.trackId}}</p>
+</aside>
+</div>
+
+<sc-if value="{{pmOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 130; background: rgba(0, 0, 0, 0.5); display: flex; align-items: flex-start; justify-content: center; padding: 80px 16px; box-sizing: border-box; overflow-y: auto; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000">
+<div role="dialog" aria-modal="true" aria-labelledby="pm-h" style="width: 100%; max-width: 440px; box-sizing: border-box; background: #ffffff; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.3) 0 16px 48px 0">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px"><div style="display: flex; gap: 12px; align-items: center"><span aria-hidden="true" style="flex: none; width: 44px; height: 44px; border-radius: 9999px; background: {{pmV.ibg}}; color: #ffffff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{pmV.icon}}</span><h2 id="pm-h" style="margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.03em">{{pmV.title}}</h2></div><button type="button" onClick="{{pmClose}}" aria-label="Close" style="flex: none; width: 38px; height: 38px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; font-size: 18px; line-height: 1; cursor: pointer">×</button></div>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #3d3a38">{{pmV.body}}</p>
+<sc-if value="{{pmV.isAsk}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap"><button type="button" onClick="{{pmClose}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; cursor: pointer">Cancel</button><button type="button" onClick="{{pmGo}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 20px; min-height: 44px; border-radius: 9999px; border: 0; background: {{pmV.cbg}}; color: #ffffff; cursor: pointer">{{pmV.cta}}</button></div></sc-if>
+<sc-if value="{{pmV.isOk}}" hint-placeholder-val="{{true}}"><div style="display: flex; justify-content: flex-end"><button type="button" onClick="{{pmClose}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 24px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Done</button></div></sc-if>
+</div></div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.onBrAll = () => this.setState({ brAllTick: Date.now() });
+    let gbr = 'all';
+    try { gbr = window.localStorage.getItem('ecompos.branch') || 'all'; } catch (e) {}
+    this.state = { ch: 'All', sel: 1, st: {}, rider: {}, notified: {}, showNew: false, gbr };
+    this.onBranch = e => this.setState({ gbr: (e && e.detail) || 'all' });
+    this.onWeb = () => this.setState({ webTick: Date.now() });
+  }
+  componentDidMount() { try { this.onRf = () => this.setState({ rfTick: Date.now() }); window.addEventListener('ecompos:refunds', this.onRf); window.addEventListener('storage', this.onRf); this.onFocus = () => { try { const f = JSON.parse(window.localStorage.getItem('ecompos.focus') || 'null'); if (f && f.type === 'order' && (!f.page || f.page === 'Orders.dc.html')) { let W = []; try { W = JSON.parse(window.localStorage.getItem('ecompos.webOrders') || '[]') || []; } catch (x) {} window.localStorage.removeItem('ecompos.focus'); this.setState({ focusId: f.id, ch: 'All' }); } } catch (e) {} }; this.onFocus(); window.addEventListener('ecompos:focus', this.onFocus); window.addEventListener('ecompos:branches', this.onBrAll); window.addEventListener('ecompos:branch', this.onBranch); window.addEventListener('ecompos:webOrders', this.onWeb); this.onSto = e => { if (!e || !e.key || /^ecompos\.(webOrders|riders|session)$/.test(e.key)) this.onWeb(); }; window.addEventListener('storage', this.onSto); } catch (e) {} }
+  componentWillUnmount() { try { window.removeEventListener('ecompos:branches', this.onBrAll); window.removeEventListener('ecompos:branch', this.onBranch); window.removeEventListener('ecompos:webOrders', this.onWeb); window.removeEventListener('storage', this.onSto); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Orders'); }
+  renderValsH() {
+    const S = this.state;
+    const pmSet = pm => this.setState({ pm });
+    const pmOk = (title, body) => ({ kind: 'ok', title, body });
+
+    const phClean = v => String(v == null ? '' : v).replace(/\D/g, '');
+    const phOk = d => /^[1-9]\d{8}$/.test(String(d || ''));
+    const phMsg = (d, bad) => bad ? 'Wrong number · only digits 0–9 are allowed' : String(d).charAt(0) === '0' ? 'Wrong number · leave out the first 0 (e.g. 24 555 0142)' : String(d).length > 9 ? 'Wrong number · a number has only 9 digits after +233' : '';
+    const phFmt = d => { d = phClean(d).replace(/^233/, '').replace(/^0/, ''); return d ? '+233 ' + d.replace(/^(\d{2})(\d{3})(\d{4})$/, '$1 $2 $3') : ''; };
+    const phNat = v => { const d = phClean(v); return d.indexOf('233') === 0 && d.length > 9 ? d.slice(3) : d.charAt(0) === '0' && d.length === 10 ? d.slice(1) : d; };
+    const PHV = this.state.ph || {}, PHB = this.state.phBad || {}, PHT = this.state.phTry || {};
+    const ph = {};
+    ['cust'].forEach(k => { const d = PHV[k] || ''; const m = phMsg(d, PHB[k]) || (PHT[k] && !phOk(d) ? 'Wrong number · enter all 9 digits after +233' : ''); ph[k] = { val: d, hasErr: !!m, err: m, bd: m ? '#c62828' : 'rgba(0, 0, 0, 0.18)', ok: phOk(d), fmt: phFmt(d), input: e => { const raw = String(e.target.value); this.setState({ ph: Object.assign({}, this.state.ph || {}, { [k]: phClean(raw) }), phBad: Object.assign({}, this.state.phBad || {}, { [k]: /[^\d\s]/.test(raw) }), phTry: Object.assign({}, this.state.phTry || {}, { [k]: false }) }); } }; });
+    const phTouch = k => this.setState({ phTry: Object.assign({}, this.state.phTry || {}, { [k]: true }) });
+    const set = o => this.setState(o);
+    const money = n => 'GHS ' + n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    let WEB = [];
+    try { WEB = JSON.parse(window.localStorage.getItem('ecompos.webOrders') || '[]') || []; } catch (e) {}
+    const O = WEB.concat([
+      { id: '#34422885', ch: 'Website', who: 'Ama Owusu', phone: '+233 24 555 0142', br: 'Osu', time: '16:02', type: 'P', pay: 'MoMo · MTN · paid', status: 'Ready for pickup', items: [[2, 'Jasmine rice 5kg', 145], [2, 'Tomato paste 400g', 11]], fee: 0 },
+      { id: '#34407047', ch: 'Website', who: 'Kwame Mensah', phone: '+233 20 811 4470', br: 'East Legon', time: '15:31', type: 'D', pay: 'Cash on delivery', status: 'Out for delivery', items: [[1, 'Vegetable oil 1L · carton of 12', 430], [2, 'Laundry detergent 1kg', 32], [1, 'Bottled water · pack of 6', 33], [2, 'Bar soap 200g', 6.5]], fee: 0, area: 'East Legon · American House', landmark: 'Blue gate opposite the filling station', gps: 'GA-492-1187', rider: 'Kojo' },
+      { id: '#34399128', ch: 'Website', who: 'Efua Asante', phone: '+233 55 302 9981', br: 'Adum', time: '14:48', type: 'D', pay: 'Card · paid', status: 'Packing', items: [[4, 'Evaporated milk 410g', 14], [16, 'Instant noodles 70g', 4.5]], fee: 20, area: 'Ahodwo, Kumasi', landmark: 'Behind the Ahodwo roundabout pharmacy', gps: 'AK-039-5521', rider: '' },
+      { id: '#34383290', ch: 'Phone', who: 'Abena Darko', phone: '+233 27 640 1123', br: 'East Legon', time: '13:55', type: 'P', pay: 'Pay-by-link · Telecel Cash · awaiting', status: 'New', items: [[1, 'Jasmine rice 5kg', 145], [1, 'Gari 1kg', 18], [1, 'Vegetable oil 1L', 38]], fee: 0 },
+      { id: '#34414966', ch: 'POS', who: 'Walk-in customer', phone: '—', br: 'Osu', time: '15:58', type: 'S', pay: 'Cash', status: 'Completed', items: [[3, 'Malt drink 330ml', 9.5], [2, 'Sardines 125g', 12], [1, 'Sugar cubes 500g', 16.5], [5, 'Instant noodles 70g', 4.5]], fee: 0 },
+      { id: '#34391209', ch: 'POS', who: 'Kofi Boateng', phone: '+233 24 118 7702', br: 'Adum', time: '12:20', type: 'S', pay: 'On account (credit)', status: 'Completed', items: [[2, 'Sardines 125g · carton of 50', 560], [1, 'Malt drink 330ml · half crate (12)', 120]], fee: 0 },
+      { id: '#34367452', ch: 'Website', who: 'Akosua Frimpong', phone: '+233 50 771 2045', br: 'Osu', time: '11:42', type: 'D', pay: 'MoMo · Telecel · paid', status: 'New', items: [[1, 'Sugar cubes 500g · carton of 20', 310]], fee: 0, area: 'Labone', landmark: 'Next to the Labone post office', gps: 'GA-061-3304', rider: '' },
+      { id: '#34359533', ch: 'Phone', who: 'Yaw Antwi', phone: '+233 26 455 8810', br: 'Osu', time: '10:15', type: 'P', pay: 'Pay on collection', status: 'Ready for pickup', items: [[1, 'Laundry detergent 1kg', 32]], fee: 0 }
+    ].filter(x => !WEB.some(w => w.id === x.id)).filter(() => { try { return !window.localStorage.getItem('ecompos.cleared'); } catch (e) { return true; } }));
+    const TODAY = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    const placed = o => o.placedAt || (TODAY + ', ' + o.time);
+    const CH = { Website: ['#0b5c5c', '#ffffff'], POS: ['#000000', '#ffffff'], Phone: ['#f2f4f5', '#000000'], 'In store': ['#1f7a2a', '#ffffff'] };
+    const DFL = ['Being confirmed', 'Preparing order', 'Packing', 'In transit', 'Out for delivery', 'Delivered'];
+    const statusOf = (k) => !O[k] ? 'New' : O[k].status === 'Cancelled' ? 'Cancelled' : (O[k].ch === 'Website' || O[k].ch === 'In store') && O[k].type === 'D' && typeof O[k].stage === 'number' ? DFL[Math.min(O[k].stage, 5)] : (S.st[k] || O[k].status);
+    const view = (o, k) => {
+      const sub = o.items.reduce((a, i) => a + i[0] * i[2], 0);
+      return Object.assign({}, o, {
+        channel: o.ch, chBg: CH[o.ch][0], chFg: CH[o.ch][1], customer: o.who, branch: o.br,
+        fulfil: o.type === 'D' ? 'Local delivery' : o.type === 'P' ? 'Click & collect' : o.type === 'I' ? 'Buy in store (reserved)' : 'Sold at the till',
+        status: statusOf(k), total: money(sub + o.fee), fee: money(o.fee), feeLabel: o.type === 'D' ? 'Delivery fee' : 'No delivery fee',
+        items: o.items.map(i => ({ qty: i[0], name: i[1], total: money(i[0] * i[2]) })),
+        isDelivery: o.type === 'D', where: o.type === 'D' ? o.area : (o.type === 'P' ? 'Collect at ' + o.br + ' branch' : o.type === 'I' ? 'Customer pays at the ' + o.br + ' till' : o.br + ' branch'),
+        landmark: o.landmark || '', gps: o.gps || '', trackId: o.id.replace('#', '').toLowerCase(),
+        placedAt: placed(o), isWebNew: !!o.placedAt, timeline: Array.isArray(o.track) && o.track.length ? o.track.map(t => ({ text: t.label + (t.by && t.by !== 'Website' ? ' · by ' + t.by + (t.role ? ' (' + t.role + ')' : '') : ' · via website'), time: t.at || '' })) : [{ text: 'Order placed via ' + o.ch + (o.when ? ' · for ' + o.when : ''), time: placed(o) }, { text: 'Payment: ' + o.pay, time: o.time }].concat(statusOf(k) !== 'New' ? [{ text: 'Status: ' + statusOf(k), time: 'now' }] : [])
+      });
+    };
+
+    let BRX = null; try { BRX = JSON.parse(window.localStorage.getItem('ecompos.branches') || 'null'); } catch (e) {}
+    const BRALL = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })((Array.isArray(BRX) && BRX.length ? BRX : [{ id: 'osu', name: 'Osu branch', city: 'Accra' }, { id: 'legon', name: 'East Legon branch', city: 'Accra' }, { id: 'adum', name: 'Adum branch', city: 'Kumasi' }]));
+    const brShort = b => String(b.name || '').replace(/\s*branch$/i, '');
+    const BRNEW = BRALL.filter(b => ['osu', 'legon', 'adum'].indexOf(b.id) < 0);
+    const BRN = { all: '', osu: 'Osu', legon: 'East Legon', adum: 'Adum' }; BRNEW.forEach(b => { BRN[b.id] = brShort(b); });
+    let ROLEX = 'superuser'; try { ROLEX = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {} const LOCKB = ({ manager: 'osu', supervisor: 'osu', staff: 'osu' })[ROLEX] || '';
+    const brName = BRN[LOCKB || S.gbr] || '';
+    const inBr = b => !brName || b === brName;
+    const inBranch = O.map((o, k) => k).filter(k => inBr(O[k].br));
+    const FK = S.focusId ? O.findIndex(o => String(o.id).replace('#', '') === String(S.focusId).replace('#', '')) : -1;
+    if (S.focusId) setTimeout(() => this.setState(FK >= 0 ? { sel: FK, focusId: '', ch: 'All', gbr: inBr(O[FK].br) || LOCKB ? S.gbr : 'all', findMsg: '' } : { focusId: '', findMsg: 'No order ' + S.focusId + ' found.' }), 0);
+    const SEL = FK >= 0 ? FK : inBranch.indexOf(S.sel) >= 0 ? S.sel : (inBranch[0] !== undefined ? inBranch[0] : S.sel);
+    let CDIS = {}; try { CDIS = JSON.parse(window.localStorage.getItem('ecompos.cancelDismissed') || '{}') || {}; } catch (e) {} CDIS = Object.assign({}, CDIS, S.cDis || {});
+    const isCx = o => o.status === 'Cancelled';
+    const nCx = O.filter(o => isCx(o) && inBr(o.br)).length;
+    const CHS = ['All', 'Website', 'POS', 'Phone', 'Cancelled orders'];
+    const channels = CHS.map(c => Object.assign({ label: c === 'Cancelled orders' ? 'Cancelled orders (' + nCx + ')' : c, pick: () => set({ ch: c }) }, pill(S.ch === c)));
+    const list = O.map((o, k) => ({ o, k })).filter(x => inBr(x.o.br) && (S.ch === 'Cancelled orders' ? isCx(x.o) : (!(isCx(x.o) && CDIS[x.o.id]) && (S.ch === 'All' || x.o.ch === S.ch)))).map(x => {
+      const v = view(x.o, x.k);
+      return { id: v.id, time: 'Placed ' + v.placedAt, channel: v.channel, chBg: v.chBg, chFg: v.chFg, customer: v.customer, fulfil: v.fulfil, branch: v.branch, status: v.status, sBg: v.status === 'Cancelled' ? '#c62828' : '#f2f4f5', sFg: v.status === 'Cancelled' ? '#ffffff' : '#000000', total: v.total, ring: x.k === SEL ? '#000000' : '#ffffff', pressed: x.k === SEL ? 'true' : 'false', expanded: x.k === SEL && !!S.mobDet ? 'true' : 'false', pick: () => set({ sel: x.k, mobDet: !(SEL === x.k && S.mobDet) }) };
+    });
+    const cancelAlerts = O.map((x, k) => ({ x, k })).filter(z => z.x.ch === 'Website' && z.x.status === 'Cancelled' && inBr(z.x.br) && !CDIS[z.x.id]).map(z => ({ id: z.x.id, who: z.x.who, by: z.x.cancelledBy ? z.x.cancelledBy + ' · ' + (z.x.cancelReason || '') + ' · customer ' + z.x.who : z.x.who, when: z.x.cancelledAt || 'just now', branch: z.x.br, refund: z.x.refund ? ' · ' + z.x.refund : '', open: () => set({ sel: z.k, ch: 'All' }), dismiss: () => { const nx = Object.assign({}, CDIS, { [z.x.id]: true }); try { window.localStorage.setItem('ecompos.cancelDismissed', JSON.stringify(nx)); } catch (e) {} set({ cDis: nx }); } }));
+    const sel = O[SEL] || { id: '—', ch: 'POS', who: 'No orders yet', phone: '—', br: '', time: '', placedAt: '—', type: 'S', pay: '—', status: 'Completed', items: [], fee: 0 };
+    const o = view(sel, SEL);
+    const cur = statusOf(SEL);
+    const NEXT = sel.type === 'D'
+      ? { 'New': 'Packing', 'Packing': 'Out for delivery', 'Out for delivery': 'Delivered' }
+      : { 'New': 'Packing', 'Packing': 'Ready for pickup', 'Ready for pickup': 'Collected' };
+    const nxt = NEXT[cur];
+    const riders = [];
+    let SESO = null; try { SESO = JSON.parse(window.localStorage.getItem('ecompos.session') || 'null'); } catch (e) {}
+    const ME = SESO ? SESO.name : (({ superuser: 'Kofi Adom', manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei' })[ROLEX] || 'Branch staff'), MEL = SESO ? SESO.level : (({ superuser: 'Superuser', manager: 'Manager', supervisor: 'Supervisor', staff: 'Sales staff' })[ROLEX] || 'Staff');
+    const RIDERSX = (() => { let r = null; try { r = JSON.parse(window.localStorage.getItem('ecompos.riders') || 'null'); } catch (e) {} return Array.isArray(r) && r.length ? r : [{ id: 'r-yaw', name: 'Yaw Darko', phone: '+233 24 310 7781', br: 'osu', bike: 'Motorbike · GR 2214-23', status: 'active' }, { id: 'r-kojo', name: 'Kojo Boateng', phone: '+233 20 455 9012', br: 'legon', bike: 'Motorbike · GW 7810-22', status: 'active' }, { id: 'r-kwesi', name: 'Kwesi Amoah', phone: '+233 54 778 1203', br: 'adum', bike: 'Tricycle · AS 3305-24', status: 'active' }]; })();
+    const BRID = { 'Osu': 'osu', 'East Legon': 'legon', 'Adum': 'adum' }; BRNEW.forEach(b => { BRID[brShort(b)] = b.id; });
+    const nowTxt = () => { const d = new Date(); return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    const STG = { 'New': 0, 'Being confirmed': 0, 'Preparing order': 1, 'Packing': 2, 'In transit': 3, 'Out for delivery': 4, 'Delivered': 5 };
+    const dStage = typeof sel.stage === 'number' ? Math.min(sel.stage, 5) : (STG[S.st[SEL] || sel.status] || 0);
+    const riderOf = x => x.rider && typeof x.rider === 'object' ? x.rider : (typeof x.rider === 'string' && x.rider ? (RIDERSX.find(r => r.name.split(' ')[0] === x.rider) || null) : null);
+    const trk = x => Array.isArray(x.track) && x.track.length ? x.track : [{ label: 'Being confirmed', stage: 0, at: placed(x), by: 'Website', role: x.who }];
+    const upd = (x, fn, extra) => { let all = []; try { all = JSON.parse(window.localStorage.getItem('ecompos.webOrders') || '[]') || []; } catch (e) {} let i = all.findIndex(w => w.id === x.id), selK = SEL;
+      if (i < 0) { const st = STG[S.st[SEL] || x.status] || 0; const rr = riderOf(x); all.push(Object.assign({}, x, { brId: BRID[x.br] || 'osu', stage: st, status: DFL[st], placedAt: placed(x), rider: rr ? { id: rr.id, name: rr.name, phone: rr.phone } : null, track: [{ label: 'Being confirmed', stage: 0, at: placed(x), by: 'Website', role: x.who }].concat(st > 0 ? [{ label: DFL[st], stage: st, at: placed(x), by: 'Branch', role: x.br }] : []) })); i = all.length - 1; selK = WEB.length; }
+      all[i] = fn(Object.assign({}, all[i])); try { window.localStorage.setItem('ecompos.webOrders', JSON.stringify(all)); window.dispatchEvent(new CustomEvent('ecompos:webOrders', { detail: all })); } catch (e) {} set(Object.assign({ sel: selK, webTick: Date.now(), dErr: '' }, extra || {})); };
+    const dv = (() => { if (sel.type !== 'D') return { steps: [], riders: [], opts: [] };
+      const cx = sel.status === 'Cancelled', cr = riderOf(sel), brid = sel.brId || BRID[sel.br] || 'osu'; const pickId = (S.rPick || {})[sel.id] || (cr ? cr.id : ''); const al = sel.riderAlert;
+      const rl = RIDERSX.filter(r => r.br === brid && r.status !== 'suspended').map(r => { const busy = WEB.filter(w => w.id !== sel.id && w.rider && w.rider.id === r.id && w.status !== 'Cancelled' && (typeof w.stage === 'number' ? w.stage : 0) < 5); const road = busy.filter(w => w.stage >= 3).length; const on = pickId === r.id;
+        return { photo: r.photo || '', hasPhoto: !!r.photo, name: r.name, ini: r.name.split(' ').map(x => x[0]).join('').slice(0, 2), note: r.phone + ' · ' + r.bike + (busy.length ? ' · ' + busy.length + ' other job' + (busy.length > 1 ? 's' : '') : ''), state: road ? 'On a delivery' : busy.length ? 'Has jobs' : 'Available', sbg: road ? '#a8492a' : busy.length ? '#0b5c5c' : '#1f7a2a', av: on ? '#0b5c5c' : '#000000', bd: on ? '#0b5c5c' : '#e1e4e6', pressed: on ? 'true' : 'false', pick: () => set({ rPick: Object.assign({}, S.rPick || {}, { [sel.id]: r.id }), dErr: '' }) }; });
+      const pk = RIDERSX.find(r => r.id === pickId);
+      const go = ns => { if (dStage >= 5) { set({ dErr: 'This order was delivered. The status and the evidence are locked.' }); return; } if (ns >= 3 && !cr) { set({ dErr: 'Assign a rider first. The order can only go out once the rider has picked it up.' }); return; } const rcv = String((S.rcv || {})[sel.id] || '').trim() || sel.who; const at = nowTxt();
+        upd(sel, x => { const back = ns < (typeof x.stage === 'number' ? x.stage : 0); x.stage = ns; x.status = DFL[ns]; if (ns >= 1 && !x.preparedBy) x.preparedBy = ME; x.track = trk(x).concat([{ label: ns === 3 ? 'In transit · rider picked up the order' : DFL[ns], stage: ns, at, by: ME, role: MEL, note: back ? 'moved back' : '' }]); if (ns === 5) { x.proof = Object.assign({}, x.proof || {}, { at, by: ME + ' (' + MEL + ')', recv: (x.proof && x.proof.recv) || rcv }); if (/on delivery/i.test(x.pay || '') && !x.codPaid) x.codPaid = 'Cash'; } return x; });
+        ((evk) => { if (!evk) return; try { const NK = JSON.parse(window.localStorage.getItem('ecompos.delivNotified') || '{}') || {}; const r0 = NK[sel.id] || {}; if (r0[evk]) return; NK[sel.id] = Object.assign({}, r0, { [evk]: Date.now() }); window.localStorage.setItem('ecompos.delivNotified', JSON.stringify(NK)); const ob = JSON.parse(window.localStorage.getItem('ecompos.msgOutbox') || '[]') || []; ob.unshift({ id: 'M' + Date.now() + Math.random().toString(36).slice(2, 6), ev: evk, ts: Date.now(), by: 'Automatic · ' + ME, to: { name: sel.who, phone: sel.phone || '', email: sel.email || '' }, vars: { order: sel.id, rider: cr ? cr.name : 'our rider', riderPhone: cr ? cr.phone : '', status: DFL[ns], area: sel.area || '' } }); window.localStorage.setItem('ecompos.msgOutbox', JSON.stringify(ob.slice(0, 3000))); window.dispatchEvent(new CustomEvent('ecompos:msg')); } catch (e) {} })(ns === 3 || ns === 4 ? 'delivery' : ns === 5 ? 'delivered' : '');
+        setTimeout(() => pmSet(pmOk('Status updated', sel.id + ' is now ' + DFL[ns].toLowerCase() + '. ' + sel.who + ' sees it in their online account' + (cr ? ', and ' + cr.name + ' sees it in the rider app.' : '.'))), 0); };
+      const nx = dStage < 5 ? dStage + 1 : -1;
+      return { steps: DFL.map((t, k) => ({ t, bg: cx ? '#f3c4c4' : k <= dStage ? (dStage >= 5 ? '#1f7a2a' : '#0b5c5c') : '#ebebeb' })), stepNo: String(dStage + 1), flowTxt: DFL.map((t, k) => k === dStage ? '[' + t + ']' : t).join(' → '), isCancelled: cx,
+        hasRider: !!cr, riderTxt: cr ? cr.name + ' · ' + cr.phone : '', alertTxt: al ? 'Alert sent ' + al.at + ' by ' + al.by + (al.seen ? ' · opened by the rider ' + (al.seenAt || '') + ' ✓' : ' · not opened yet') : 'Assigned before alerts were added', alertC: al && al.seen ? '#1f7a2a' : '#a8492a',
+        canAssign: !cx && dStage < 3, riders: rl, noRiders: rl.length === 0, pickHint: cr ? 'Change the rider if needed. The new rider gets the alert.' : 'Pick the rider for this order. They get an alert in the rider app and an SMS.',
+        assignLabel: !pk ? 'Pick a rider above' : cr && cr.id === pk.id ? 'Resend the alert to ' + pk.name.split(' ')[0] : (cr ? 'Change to ' : 'Assign ') + pk.name.split(' ')[0] + ' & send alert',
+        assign: () => { if (!pk) { set({ dErr: 'Pick a rider first.' }); return; } const at = nowTxt(); const same = cr && cr.id === pk.id;
+          upd(sel, x => { x.rider = { id: pk.id, name: pk.name, phone: pk.phone }; x.riderAlert = { id: pk.id, at, by: ME + ' (' + MEL + ')', seen: false }; x.track = trk(x).concat([{ label: (same ? 'Delivery alert sent again to ' : cr ? 'Rider changed to ' : 'Rider assigned: ') + pk.name + ' · alert sent', at, by: ME, role: MEL }]); return x; });
+          try { const ob = JSON.parse(window.localStorage.getItem('ecompos.outbox') || '[]') || []; ob.unshift({ at, to: 'SMS to ' + pk.phone + ' (rider)', text: 'Ebenezer Unique Ventures: delivery ' + sel.id + ' for ' + sel.who + ' · ' + (sel.area || '') + ' · ' + sel.br + ' branch. Open the rider app.' }); window.localStorage.setItem('ecompos.outbox', JSON.stringify(ob.slice(0, 100))); } catch (e) {}
+          setTimeout(() => pmSet(pmOk('Rider alerted', pk.name + ' has ' + sel.id + ' for ' + sel.who + '. The alert is in their rider app and an SMS went to ' + pk.phone + '.')), 0); },
+        needRider: !cx && !cr && dStage >= 2, askRcv: false, rcv: (S.rcv || {})[sel.id] || '', rcvIn: e => set({ rcv: Object.assign({}, S.rcv || {}, { [sel.id]: e.target.value }) }),
+        canNext: !cx && nx >= 0 && nx < 5 && !(nx >= 3 && !cr), waitRider: !cx && dStage === 4, waitTxt: 'Waiting for ' + (cr ? cr.name : 'the rider') + ' to deliver. Only the rider marks it delivered: the rider app takes the photo at the door and uploads it automatically as evidence.', nextLabel: nx === 3 ? 'Rider picked it up · mark in transit' : nx === 5 ? 'Mark delivered' : nx > 0 ? 'Mark as ' + String(DFL[nx]).toLowerCase() : '', next: () => nx >= 0 && go(nx),
+        canChange: !cx && !!cr && dStage >= 3 && dStage < 5, isLocked: dStage >= 5 && !cx, lockTxt: 'Delivered' + (sel.proof ? ' to ' + (sel.proof.recv || sel.who) + ' · ' + (sel.proof.at || '') + (sel.proof.img ? ' · photo by ' + (sel.proof.by || 'the rider') + (sel.proof.ev ? ' · evidence ' + sel.proof.ev + ' uploaded automatically' : '') : ' · confirmed by ' + (sel.proof.by || 'the branch')) : '') + '. The delivery evidence is locked and cannot be changed.', hasPhoto: !!(sel.proof && sel.proof.img), photo: sel.proof && sel.proof.img ? sel.proof.img : '', stageV: String(dStage), opts: DFL.slice(0, 5).map((t, k) => ({ v: String(k), label: (k + 1) + '. ' + t })), change: e => { const ns = parseInt(e.target.value, 10); if (ns !== dStage && ns < 5) go(ns); },
+        hasErr: !!S.dErr, err: S.dErr || '' }; })();
+    const ids = ['OR-01', 'OR-02', 'OR-03', 'OR-04', 'OR-05', 'OR-06', 'OR-07', 'OR-08', 'OR-09', 'OR-10', 'OR-11', 'OR-12', 'OR-16', 'OR-17', 'OR-21', 'PY-10', 'PY-13'].map(t => ({ t }));
+    const PMCF = () => ({
+      advance: nxt ? { title: 'Order updated', body: o.id + ' is now marked as ' + nxt.toLowerCase() + '.' } : null,
+      notify: { title: 'Customer notified', body: o.customer + ' was sent an update about ' + o.id + ' on WhatsApp.' }
+    });
+
+    const pmApply = r => {
+      const C = (typeof PMCF === 'function' ? PMCF() : {}) || {};
+      Object.keys(C).forEach(k => { const orig = r[k]; const c = C[k]; if (typeof orig !== 'function' || !c) return;
+        r[k] = (...a) => { if (c.ask) pmSet({ kind: 'ask', title: c.title, body: c.body, cta: c.cta || 'Confirm', danger: !!c.danger, act: () => { orig(...a); if (c.done) setTimeout(() => pmSet(pmOk(c.done[0], c.done[1])), 0); } }); else { orig(...a); pmSet(pmOk(c.title, c.body)); } }; });
+      const pm = this.state.pm;
+      return Object.assign(r, { pmOpen: !!pm, pmV: pm ? { title: pm.title, body: pm.body || '', isAsk: pm.kind === 'ask', isOk: pm.kind !== 'ask', cta: pm.cta || 'Confirm', cbg: pm.danger ? '#c62828' : '#0b5c5c', ibg: pm.kind === 'ask' ? (pm.danger ? '#c62828' : '#0b5c5c') : '#1f7a2a', icon: pm.kind === 'ask' ? (pm.danger ? '!' : '?') : '✓' } : { title: '', body: '', isAsk: false, isOk: true, cta: '', cbg: '#0b5c5c', ibg: '#1f7a2a', icon: '' },
+        pmClose: () => pmSet(null), pmGo: () => { const act = pm && pm.act; pmSet(null); if (act) act(); } });
+    };
+    list.forEach((r, i) => { r.ord = String(i * 2); }); const selPos = list.findIndex(r => r.pressed === 'true');
+    const __r = {
+      detOrd: String(selPos < 0 ? 0 : selPos * 2 + 1), detHide: S.mobDet ? '' : 'or-hid', detClose: () => set({ mobDet: false }),
+      cancelAlerts,
+      ph,
+      ...(() => { let L = []; try { L = JSON.parse(window.localStorage.getItem('ecompos.refunds') || '[]') || []; } catch (z) {} const save = (id, st) => { try { const A = JSON.parse(window.localStorage.getItem('ecompos.refunds') || '[]') || []; window.localStorage.setItem('ecompos.refunds', JSON.stringify(A.map(x => x.id === id ? Object.assign({}, x, { status: st, doneAt: Date.now() }) : x))); } catch (z) {} this.setState({ rfTick: Date.now() }); }; return { hasRefunds: L.length > 0, rfOpenN: String(L.filter(x => x.status !== 'Refunded').length), refunds: L.slice(0, 20).map(x => ({ id: x.id, who: x.customer || 'Online customer', phone: x.phone || '', amount: x.amountTxt || '', via: x.via || '', ref: x.payRef ? 'Payment ref ' + x.payRef : '', when: new Date(x.at || Date.now()).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), reason: x.reason || '', status: x.status || 'Refund initiated', stBg: x.status === 'Refunded' ? '#e7f4e8' : '#fff4e5', stFg: x.status === 'Refunded' ? '#1f5f24' : '#8a4b00', open: x.status !== 'Refunded', markDone: () => save(x.id, 'Refunded') })) }; })(), brLine: brName ? brName + ' branch only' : 'all branches', channels, list, noneShown: list.length === 0, o, riders, dv, ids,
+      canAdvance: !!nxt && sel.type !== 'D', advanceLabel: nxt ? 'Mark as ' + nxt.toLowerCase() : '',
+      advance: () => nxt && set({ st: Object.assign({}, S.st, { [SEL]: nxt }) }),
+      notifyLabel: S.notified[SEL] ? 'Customer notified' : 'Notify on WhatsApp',
+      notify: () => set({ notified: Object.assign({}, S.notified, { [SEL]: true }) }),
+      showNew: S.showNew, toggleNew: () => set({ showNew: !S.showNew }),
+      createLink: () => { if (!ph.cust.ok) { phTouch('cust'); return; } pmSet(pmOk('Payment link sent', 'A payment link was texted to ' + ph.cust.fmt + '. The order appears here once it is paid.')); set({ showNew: false, ph: Object.assign({}, S.ph || {}, { cust: '' }) }); }
+    };
+    return pmApply(__r);
+  }
+}
+</script>
+</body>
+</html>

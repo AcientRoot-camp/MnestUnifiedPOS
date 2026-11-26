@@ -1,0 +1,26 @@
+<!--
+  MNest "m" mark — browser favicon for the POS and the online store (/shop).
+  Two overlapping arches: teal (left) sits behind navy (right).
+  Geometry and colours were measured from the supplied logo artwork
+  (1254px canvas), so the viewBox uses those original pixel units and is
+  cropped to a square around the mark so it fills the tab icon.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="72 88 1100 1100" role="img">
+  <title>MNest</title>
+  <defs>
+    <!-- The teal arch's right leg is hidden under the navy arch in the artwork.
+         Clip teal at the navy arch's inner edge (x=712) so no sliver of it
+         shows through the navy arch's transparent opening. -->
+    <clipPath id="teal-clip">
+      <rect x="0" y="0" width="712" height="1254" />
+    </clipPath>
+  </defs>
+  <g fill="none" stroke-linecap="butt">
+    <!-- Teal arch (back): legs centred at x=175 / x=629, 184px thick. -->
+    <path clip-path="url(#teal-clip)" stroke="#01807B" stroke-width="184"
+          d="M175 973 V623 A227 227 0 0 1 629 623 V973" />
+    <!-- Navy arch (front): legs centred at x=621 / x=1068, 184px thick. -->
+    <path stroke="#012149" stroke-width="184"
+          d="M621 973 V621.5 A223.5 223.5 0 0 1 1068 621.5 V973" />
+  </g>
+</svg>

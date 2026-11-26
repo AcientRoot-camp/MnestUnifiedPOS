@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS categories</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="categories" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="products" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Categories</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">Group products for the till, the website and reports · {{countLine}}</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="Products.dc.html" style="font-size: 14px; padding: 12px 18px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; text-decoration: none">Back to products</a>
+<button type="button" onClick="{{openNew}}" style="font-family: inherit; padding: 12px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: rgba(69, 36, 219, 0.34) 0 4px 24px 0">Add category</button>
+</div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="cl-h" style="flex: 3 1 520px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 18px; display: flex; flex-direction: column; gap: 6px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding-bottom: 6px"><h2 id="cl-h" style="margin: 0; font-size: 16px; font-weight: 600">All categories</h2><span style="font-size: 12px; color: #5f5c5a">Order here is the order on the till and the website</span></div>
+<sc-for list="{{rows}}" as="c" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-left: {{c.indent}}; border-radius: 16px; border: 1px solid {{c.bd}}; background: {{c.bg}}; flex-wrap: wrap">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 10px; background: {{c.tone}}; flex: none"></span>
+<button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="font-family: inherit; flex: 1 1 160px; text-align: left; border: 0; background: transparent; cursor: pointer; padding: 0; display: flex; flex-direction: column; gap: 2px; color: #000000"><span style="font-size: 14px; font-weight: 500">{{c.name}}</span><span style="font-size: 12px; color: #5f5c5a">{{c.meta}}</span></button>
+<sc-if value="{{c.hidden}}" hint-placeholder-val="{{false}}"><span style="font-size: 11px; padding: 3px 9px; border-radius: 9999px; border: 1px solid #cccccc; color: #5f5c5a">Hidden</span></sc-if>
+<div style="display: flex; gap: 4px">
+<button type="button" onClick="{{c.up}}" disabled="{{c.first}}" aria-label="Move {{c.name}} up" style="width: 32px; height: 32px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">↑</button>
+<button type="button" onClick="{{c.down}}" disabled="{{c.last}}" aria-label="Move {{c.name}} down" style="width: 32px; height: 32px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">↓</button>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{hasArchived}}" hint-placeholder-val="{{false}}">
+<div style="padding-top: 10px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; color: #5f5c5a">Archived · not shown anywhere</span>
+<sc-for list="{{archived}}" as="a" hint-placeholder-count="1"><div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 14px; background: #f2f4f5; font-size: 14px"><span>{{a.name}}</span><button type="button" onClick="{{a.restore}}" style="font-family: inherit; font-size: 12px; padding: 6px 12px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Restore</button></div></sc-for>
+</div>
+</sc-if>
+</section>
+
+<aside aria-labelledby="ed-h" style="flex: 2 1 340px; min-width: 0; background: #ffffff; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="ed-h" style="margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.04em">{{panelTitle}}</h2>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="cat-n" style="font-size: 12px; color: #5f5c5a">Category name</label><input id="cat-n" value="{{form.name}}" onChange="{{typeName}}" placeholder="e.g. Baby care" style="font: inherit; font-size: 15px; padding: 11px 14px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="cat-d" style="font-size: 12px; color: #5f5c5a">Description (shown on the website)</label><textarea id="cat-d" rows="2" value="{{form.desc}}" onChange="{{typeDesc}}" placeholder="One line customers see under the category name" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 16px; border: 1px solid #ebebeb; resize: vertical"></textarea></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="cat-p" style="font-size: 12px; color: #5f5c5a">Sits under</label><select id="cat-p" value="{{form.parent}}" onChange="{{pickParent}}" style="font: inherit; font-size: 14px; padding: 11px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff"><option value="">Top level (main category)</option><sc-for list="{{parentOpts}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.v}}</option></sc-for></select></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #5f5c5a">Colour on the till</span>
+<div role="group" aria-label="Colour" style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{tones}}" as="t" hint-placeholder-count="6"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" aria-label="{{t.label}}" style="width: 34px; height: 34px; border-radius: 10px; background: {{t.c}}; border: 2px solid {{t.ring}}; cursor: pointer"></button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{switches}}" as="w" hint-placeholder-count="2"><button type="button" role="switch" aria-checked="{{w.on}}" onClick="{{w.toggle}}" style="font-family: inherit; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; border: 0; background: #f2f4f5; cursor: pointer; font-size: 14px; color: #000000; text-align: left"><span>{{w.label}}</span><span aria-hidden="true" style="width: 40px; height: 24px; border-radius: 9999px; padding: 3px; box-sizing: border-box; background: {{w.track}}; display: flex; justify-content: {{w.just}}; flex: none"><span style="width: 18px; height: 18px; border-radius: 9999px; background: #ffffff"></span></span></button></sc-for>
+</div>
+<sc-if value="{{hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{err}}</span></sc-if>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{save}}" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 11px 20px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">{{saveLabel}}</button>
+<sc-if value="{{isEdit}}" hint-placeholder-val="{{true}}"><a href="Products.dc.html" style="font-size: 14px; padding: 12px 16px; border-radius: 9999px; border: 1px solid #ebebeb; text-decoration: none">View its products</a></sc-if>
+<sc-if value="{{isEdit}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{archive}}" style="font-family: inherit; font-size: 14px; padding: 11px 16px; min-height: 44px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">Archive</button></sc-if>
+</div>
+<span style="font-size: 12px; color: #5f5c5a">{{archiveNote}}</span>
+<span style="font-size: 12px; color: #5f5c5a">Managers can add and edit categories. Changes appear on the till, the website and in Products straight away.</span>
+</aside>
+</div>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const DEF = [
+      { name: 'Staples', parent: '', tone: '#e9e4dc', online: 1, till: 1, n: 3, arch: 0, desc: 'Rice, oil, noodles and everyday basics, by the piece or the carton.' },
+      { name: 'Rice & grains', parent: 'Staples', tone: '#e9e4dc', online: 1, till: 1, n: 1, arch: 0 },
+      { name: 'Tins', parent: '', tone: '#e1e4df', online: 1, till: 1, n: 2, arch: 0, desc: 'Milk, fish and tomato paste with a long shelf life.' },
+      { name: 'Drinks', parent: '', tone: '#e6dfd6', online: 1, till: 1, n: 2, arch: 0, desc: 'Malt, water and soft drinks, single or by the crate.' },
+      { name: 'Household', parent: '', tone: '#e8e3e6', online: 1, till: 1, n: 2, arch: 0, desc: 'Detergent, soap and cleaning essentials for the home.' },
+      { name: 'Gift cards', parent: '', tone: '#d9e9e9', online: 1, till: 1, n: 1, arch: 0, desc: 'Ebenezer Unique Ventures gift cards for any amount, spend in store or online.' },
+      { name: 'Electronics', parent: '', tone: '#e4e7ef', online: 1, till: 1, n: 70, arch: 0, desc: 'TVs, fridges, freezers, air conditioners, fans, washing machines, dryers, irons, kitchen electricals, generators and inverters. Most of this range is available on hire purchase.' },
+      { name: 'TVs & displays', parent: 'Electronics', tone: '#e4e7ef', online: 1, till: 1, n: 10, arch: 0 },
+      { name: 'Fridges & freezers', parent: 'Electronics', tone: '#e4e7ef', online: 1, till: 1, n: 10, arch: 0 },
+      { name: 'Air conditioners & fans', parent: 'Electronics', tone: '#e4e7ef', online: 1, till: 1, n: 12, arch: 0 },
+      { name: 'Laundry & cleaning', parent: 'Electronics', tone: '#e4e7ef', online: 1, till: 1, n: 10, arch: 0 },
+      { name: 'Kitchen electricals', parent: 'Electronics', tone: '#e4e7ef', online: 1, till: 1, n: 16, arch: 0 },
+      { name: 'Power & small electronics', parent: 'Electronics', tone: '#e4e7ef', online: 1, till: 1, n: 12, arch: 0 }
+    ];
+    let cats = DEF;
+    try { const s = JSON.parse(window.localStorage.getItem('ecompos.categories') || 'null'); if (Array.isArray(s) && s.length) cats = s; } catch (e) {}
+    this.state = { cats, sel: -1, form: { name: '', parent: '', tone: '#eef0f1', online: 1, till: 1, desc: '' }, err: '' };
+  }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Categories'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const save = cats => { try { window.localStorage.setItem('ecompos.categories', JSON.stringify(cats)); } catch (e) {} try { window.dispatchEvent(new CustomEvent('ecompos:categories', { detail: cats })); } catch (e) {} set({ cats }); };
+    const live = S.cats.map((c, k) => ({ c, k })).filter(x => !x.c.arch);
+    const ordered = [];
+    live.filter(x => !x.c.parent).forEach(x => { ordered.push(x); live.filter(y => y.c.parent === x.c.name).forEach(y => ordered.push(y)); });
+    live.filter(x => x.c.parent && !live.some(p => !p.c.parent && p.c.name === x.c.parent)).forEach(x => ordered.push(x));
+    const move = (k, d) => {
+      const tops = S.cats.map((c, i) => i).filter(i => !S.cats[i].arch && S.cats[i].parent === S.cats[k].parent);
+      const pos = tops.indexOf(k), other = tops[pos + d];
+      if (other === undefined) return;
+      const next = S.cats.slice(); const t = next[k]; next[k] = next[other]; next[other] = t; save(next);
+      if (S.sel === k) set({ sel: other }); else if (S.sel === other) set({ sel: k });
+    };
+    const rows = ordered.map(x => {
+      const sib = S.cats.map((c, i) => i).filter(i => !S.cats[i].arch && S.cats[i].parent === x.c.parent);
+      const subs = live.filter(y => y.c.parent === x.c.name).length;
+      return {
+        name: x.c.name, tone: x.c.tone, indent: x.c.parent ? '28px' : '0px', hidden: !x.c.online && !x.c.till,
+        meta: x.c.n + (x.c.n === 1 ? ' product' : ' products') + (subs ? ' · ' + subs + (subs > 1 ? ' sub-categories' : ' sub-category') : '') + ' · ' + ([x.c.till ? 'till' : '', x.c.online ? 'website' : ''].filter(Boolean).join(' & ') || 'hidden'),
+        bd: S.sel === x.k ? '#000000' : '#ebebeb', bg: S.sel === x.k ? '#f2f4f5' : '#ffffff', pressed: S.sel === x.k ? 'true' : 'false',
+        pick: () => set({ sel: x.k, form: { name: x.c.name, parent: x.c.parent, tone: x.c.tone, online: x.c.online, till: x.c.till, desc: x.c.desc || '' }, err: '' }),
+        first: sib.indexOf(x.k) === 0, last: sib.indexOf(x.k) === sib.length - 1, up: () => move(x.k, -1), down: () => move(x.k, 1)
+      };
+    });
+    const isEdit = S.sel >= 0 && S.cats[S.sel] && !S.cats[S.sel].arch;
+    const TONES = [['#eef0f1', 'Grey'], ['#e9e4dc', 'Sand'], ['#e1e4df', 'Sage'], ['#e6dfd6', 'Clay'], ['#e8e3e6', 'Rose'], ['#d9e9e9', 'Violet'], ['#dfe3dd', 'Mint']];
+    const setF = (k, v) => set({ form: Object.assign({}, S.form, { [k]: v }), err: '' });
+    const archived = S.cats.map((c, k) => ({ c, k })).filter(x => x.c.arch);
+    return {
+      countLine: live.length + ' categories · ' + live.filter(x => x.c.parent).length + ' sub-categories',
+      rows, isEdit, panelTitle: isEdit ? 'Edit ' + S.cats[S.sel].name : 'Add category',
+      openNew: () => set({ sel: -1, form: { name: '', parent: '', tone: '#eef0f1', online: 1, till: 1, desc: '' }, err: '' }),
+      form: Object.assign({ desc: '' }, S.form), typeDesc: e => setF('desc', e.target.value), typeName: e => setF('name', e.target.value), pickParent: e => setF('parent', e.target.value),
+      parentOpts: live.filter(x => !x.c.parent && (!isEdit || x.k !== S.sel)).map(x => ({ v: x.c.name })),
+      tones: TONES.map(t => ({ c: t[0], label: t[1] + ' colour', pressed: S.form.tone === t[0] ? 'true' : 'false', ring: S.form.tone === t[0] ? '#000000' : 'transparent', pick: () => setF('tone', t[0]) })),
+      switches: [['till', 'Show on the till (Sell Now)'], ['online', 'Show on the website']].map(w => { const on = !!S.form[w[0]]; return { label: w[1], on: on ? 'true' : 'false', track: on ? '#000000' : '#cccccc', just: on ? 'flex-end' : 'flex-start', toggle: () => setF(w[0], on ? 0 : 1) }; }),
+      hasErr: !!S.err, err: S.err,
+      saveLabel: isEdit ? 'Save changes' : 'Add category',
+      save: () => {
+        const nm = (S.form.name || '').trim();
+        if (!nm) { set({ err: 'Give the category a name.' }); return; }
+        if (S.cats.some((c, k) => !c.arch && c.name.toLowerCase() === nm.toLowerCase() && k !== S.sel)) { set({ err: 'A category with that name already exists.' }); return; }
+        const next = S.cats.slice();
+        if (isEdit) {
+          const old = next[S.sel].name;
+          next[S.sel] = Object.assign({}, next[S.sel], S.form, { name: nm });
+          next.forEach((c, i) => { if (c.parent === old) next[i] = Object.assign({}, c, { parent: nm }); });
+          save(next);
+        } else {
+          next.push(Object.assign({ n: 0, arch: 0 }, S.form, { name: nm }));
+          save(next); set({ sel: next.length - 1 });
+        }
+      },
+      archive: () => { if (!isEdit) return; const next = S.cats.map((c, i) => (i === S.sel || c.parent === S.cats[S.sel].name) ? Object.assign({}, c, { arch: 1 }) : c); save(next); set({ sel: -1, form: { name: '', parent: '', tone: '#eef0f1', online: 1, till: 1 } }); },
+      archiveNote: isEdit && S.cats[S.sel].n ? 'Archiving keeps its ' + S.cats[S.sel].n + ' products; they move to “Uncategorised” until you pick a new category.' : 'Archived categories can be restored at any time.',
+      hasArchived: archived.length > 0, archived: archived.map(x => ({ name: x.c.name, restore: () => save(S.cats.map((c, i) => i === x.k ? Object.assign({}, c, { arch: 0 }) : c)) })),
+      ids: ['Add category', 'Edit & rename', 'Sub-categories', 'Reorder for till & website', 'Show on till / website', 'Archive & restore'].map(t => ({ t }))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS payroll</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+@page{size:A4;margin:10mm}
+@media print{body *{visibility:hidden !important}.print-doc,.print-doc *{visibility:visible !important}.print-doc{position:absolute !important;left:0 !important;top:0 !important;width:100% !important;max-width:none !important;border:0 !important;border-radius:0 !important;box-shadow:none !important}.no-print{display:none !important}}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="payroll" hint-size="232px,960px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="payroll" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">{{payTitle}}</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{payNote}}</p>
+</div>
+<sc-if value="{{isHr}}" hint-placeholder-val="{{true}}"><ol aria-label="Pay run steps" style="list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="4"><li style="font-size: 13px; padding: 8px 14px; border-radius: 9999px; background: {{s.bg}}; color: {{s.fg}}; border: 1px solid {{s.bd}}">{{s.label}}</li></sc-for>
+</ol></sc-if>
+</header>
+
+<sc-if value="{{isHr}}" hint-placeholder-val="{{true}}"><section aria-label="Totals" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px">
+<sc-for list="{{totals}}" as="t" hint-placeholder-count="4">
+<div style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 6px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px"><span style="font-size: 13px; color: #5f5c5a">{{t.label}}</span><span style="font-size: 26px; font-weight: 500; letter-spacing: -0.05em">{{t.value}}</span><span style="font-size: 12px; color: #3d3a38">{{t.note}}</span></div>
+</sc-for>
+</section></sc-if>
+
+<section aria-labelledby="pp-h" class="no-print" style="background: #ffffff; border-radius: 24px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap">
+<h2 id="pp-h" style="margin: 0; font-size: 15px; font-weight: 600">Pay period · {{periodTxt}}</h2>
+<div role="group" aria-label="Year" style="display: flex; gap: 4px; flex-wrap: wrap"><sc-for list="{{yearChips}}" as="y" hint-placeholder-count="2"><button type="button" onClick="{{y.pick}}" aria-pressed="{{y.pressed}}" style="font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 14px; border-radius: 9999px; cursor: pointer; background: {{y.bg}}; color: {{y.fg}}; border: 1px solid {{y.bd}}">{{y.label}}</button></sc-for></div>
+</div>
+<div role="group" aria-label="Month" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); gap: 5px">
+<sc-for list="{{monthChips}}" as="m" hint-placeholder-count="12"><button type="button" onClick="{{m.pick}}" aria-pressed="{{m.pressed}}" aria-label="{{m.aria}}" style="font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 9px 6px; border-radius: 12px; cursor: pointer; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.bd}}; display: flex; flex-direction: column; align-items: center; gap: 1px"><span>{{m.label}}</span><sc-if value="{{m.hasN}}" hint-placeholder-val="{{false}}"><span style="font-size: 10px; font-weight: 500; opacity: 0.75">{{m.n}} sent</span></sc-if></button></sc-for>
+</div>
+<span style="font-size: 12px; color: #5f5c5a">{{periodNote}}</span>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="run-h" style="flex: 3 1 560px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center"><h2 id="run-h" style="margin: 0; font-size: 17px; font-weight: 600">{{empTitle}}</h2><span style="font-size: 12px; color: #5f5c5a">Demo figures · PAYE uses the GRA monthly bands loaded in settings</span></div>
+<div style="overflow-x: auto"><table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px"><thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a">
+<th scope="col" style="font-weight: 500; padding: 8px">Employee</th><th scope="col" style="font-weight: 500; padding: 8px">Basic</th><th scope="col" style="font-weight: 500; padding: 8px">Overtime</th><th scope="col" style="font-weight: 500; padding: 8px">Commission</th><th scope="col" style="font-weight: 500; padding: 8px">Gross</th><th scope="col" style="font-weight: 500; padding: 8px">SSNIT 5.5%</th><th scope="col" style="font-weight: 500; padding: 8px">PAYE</th><th scope="col" style="font-weight: 500; padding: 8px">Advance</th><th scope="col" style="font-weight: 500; padding: 8px">Net pay</th><th scope="col" style="font-weight: 500; padding: 8px">Paid to</th></tr></thead><tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<tr style="border-top: 1px solid #ebebeb; background: {{r.rowBg}}"><td style="padding: 8px"><button type="button" onClick="{{r.pick}}" style="font-family: inherit; text-align: left; border: 0; background: transparent; cursor: pointer; padding: 0; color: #000000; display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 500">{{r.name}}</span><span style="font-size: 12px; color: #5f5c5a">{{r.role}}</span></button></td>
+<td style="padding: 8px">{{r.basic}}</td><td style="padding: 8px">{{r.ot}}</td><td style="padding: 8px">{{r.comm}}</td><td style="padding: 8px">{{r.gross}}</td><td style="padding: 8px">{{r.ssnit}}</td><td style="padding: 8px">{{r.paye}}</td><td style="padding: 8px">{{r.adv}}</td><td style="padding: 8px; font-weight: 600">{{r.net}}</td><td style="padding: 8px">{{r.to}}</td></tr>
+</sc-for>
+</tbody></table></div>
+<sc-if value="{{isHr}}" hint-placeholder-val="{{true}}"><div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{next}}" disabled="{{finished}}" style="font-family: inherit; font-size: 15px; font-weight: 500; padding: 13px 22px; min-height: 48px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer; box-shadow: rgba(69, 36, 219, 0.34) 0 4px 24px 0">{{nextLabel}}</button>
+<span style="font-size: 13px; color: #3d3a38; align-self: center">{{stepNote}}</span>
+</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding-top: 10px; border-top: 1px solid #ebebeb"><button type="button" onClick="{{pushSlips}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 12px 20px; min-height: 46px; border-radius: 9999px; border: 0; background: {{pushBg}}; color: #ffffff; cursor: pointer">{{pushLabel}}</button><span style="font-size: 13px; color: #3d3a38">{{pushNote}}</span></div></sc-if>
+</section>
+
+<aside aria-label="Payslip preview" style="flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="background: #ffffff; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; align-items: center; gap: 10px; padding-bottom: 6px; border-bottom: 1px solid #ebebeb"><sc-if value="{{coHasLogo}}" hint-placeholder-val="{{false}}"><img src="{{coLogo}}" alt="{{coName}} logo" style="width: 36px; height: 36px; object-fit: contain; flex: none"></sc-if><strong style="font-size: 14px; font-weight: 600">{{coName}}</strong></div>
+<span style="font-size: 12px; color: #5f5c5a">Payslip · October 2026</span>
+<strong style="font-size: 18px; font-weight: 600">{{slip.name}}</strong>
+<span style="color: #5f5c5a">{{slip.role}} · {{slip.hours}} hours from the QR time clock</span>
+<div style="display: flex; justify-content: space-between; border-top: 1px solid #ebebeb; padding-top: 8px"><span>Gross</span><span>{{slip.gross}}</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #5f5c5a">SSNIT (employee)</span><span>− {{slip.ssnit}}</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #5f5c5a">PAYE</span><span>− {{slip.paye}}</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #5f5c5a">Salary advance</span><span>− {{slip.adv}}</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 600; border-top: 1px solid #ebebeb; padding-top: 8px"><span>Net pay</span><span>{{slip.net}}</span></div>
+<span style="color: #5f5c5a; font-size: 13px">Leave: {{slip.leave}} days left · paid to {{slip.to}}</span>
+<span style="font-size: 13px">{{slip.sent}}</span>
+</div>
+<sc-if value="{{isHr}}" hint-placeholder-val="{{true}}"><div style="background: #000000; color: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+<strong style="font-weight: 600">Statutory returns</strong>
+<span style="color: #c9c6c4">GRA PAYE schedule and SSNIT contribution report are ready to file. Employer SSNIT 13% is added on top of basic pay; of the 18.5% total, 13.5% goes to Tier 1 and 5% to the Tier 2 fund.</span>
+<button type="button" style="font-family: inherit; align-self: flex-start; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #ffffff; background: transparent; color: #ffffff; cursor: pointer">Download schedules</button>
+</div></sc-if>
+<div style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #3d3a38">
+<strong style="font-size: 14px; font-weight: 600; color: #000000">Other countries &amp; links</strong>
+<span>UK stores: PAYE, National Insurance, pension auto-enrolment and RTI to HMRC.</span>
+<span>US and Canada stores: hand-off to Gusto, ADP or Wagepoint.</span>
+<span>Wages journal posts to accounting; staff records sync with the HR system.</span>
+</div>
+</aside>
+</div>
+
+<section aria-labelledby="ps-h" class="no-print" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="ps-h" style="margin: 0; font-size: 17px; font-weight: 600">{{psTitle}}</h2><span style="font-size: 12px; color: #5f5c5a">{{psNote}}</span></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap">
+<sc-if value="{{isHr}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{co.toggle}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">{{co.toggleTxt}}</button></sc-if>
+<sc-if value="{{isHr}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{psEdit.toggle}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">{{psEdit.toggleTxt}}</button></sc-if>
+<button type="button" onClick="{{psPrint}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Print or save as PDF</button>
+<a href="{{psHref}}" download="{{psFileName}}" style="font-size: 13px; font-weight: 600; padding: 10px 16px; min-height: 40px; box-sizing: border-box; border-radius: 9999px; background: #000000; color: #ffffff; text-decoration: none">Download</a>
+<sc-if value="{{isHr}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{sendOne}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 16px; min-height: 40px; border-radius: 9999px; border: 0; background: {{sendOneBg}}; color: #ffffff; cursor: pointer">{{sendOneTxt}}</button></sc-if>
+</div>
+</div>
+<sc-if value="{{psEdit.open}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 18px; background: #f2f4f5">
+<div style="display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap"><strong style="font-size: 14px; font-weight: 600">{{psEdit.who}}</strong><span style="font-size: 12px; color: #5f5c5a">Staff number {{psEdit.no}} · generated by the system</span></div>
+<span style="font-size: 12px; color: #5f5c5a">{{psEdit.note}}</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px"><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 180px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">TIN / Tax number</span><input value="{{psEdit.tin}}" onChange="{{psEdit.tinIn}}" placeholder="GHA-000000000-0" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 110px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Pay grade</span><input value="{{psEdit.grade}}" onChange="{{psEdit.gradeIn}}" placeholder="e.g. 12" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 190px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Employee type</span><input value="{{psEdit.etype}}" onChange="{{psEdit.etypeIn}}" placeholder="Permanent Staff (Full-time)" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 120px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Employee allowances (GHS)</span><input value="{{psEdit.allow}}" onChange="{{psEdit.allowIn}}" placeholder="0.00" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 120px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Other allowances (GHS)</span><input value="{{psEdit.other}}" onChange="{{psEdit.otherIn}}" placeholder="0.00" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 120px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Loan deduction (GHS)</span><input value="{{psEdit.loan}}" onChange="{{psEdit.loanIn}}" placeholder="0.00" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 120px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Union dues (GHS)</span><input value="{{psEdit.union}}" onChange="{{psEdit.unionIn}}" placeholder="0.00" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 150px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Bank or network</span><input value="{{psEdit.bank}}" onChange="{{psEdit.bankIn}}" placeholder="GCB Bank" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 150px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Bank branch</span><input value="{{psEdit.bankBr}}" onChange="{{psEdit.bankBrIn}}" placeholder="Adabraka Branch" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label><label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 170px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Account or MoMo number</span><input value="{{psEdit.acct}}" onChange="{{psEdit.acctIn}}" placeholder="0012457763104" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end">
+<label style="display: flex; flex-direction: column; gap: 3px; flex: 1 1 220px; min-width: 0"><span style="font-size: 11px; color: #5f5c5a">Payment date</span><input value="{{psEdit.payDate}}" onChange="{{psEdit.payDateIn}}" placeholder="Last day of the pay month" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9"></label>
+<button type="button" onClick="{{psEdit.useNow}}" style="font-family: inherit; font-size: 12px; padding: 9px 13px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Use today&#39;s date and time</button>
+<button type="button" onClick="{{psEdit.useMonthEnd}}" style="font-family: inherit; font-size: 12px; padding: 9px 13px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Use the end of the month</button>
+<span style="font-size: 11px; color: #5f5c5a; flex: 1 1 100%">{{psEdit.payDateNote}}</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{psEdit.save}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 16px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Save details</button><button type="button" onClick="{{psEdit.cancel}}" style="font-family: inherit; font-size: 13px; padding: 10px 16px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Cancel</button></div>
+</div>
+</sc-if>
+<sc-if value="{{hasPsFlash}}" hint-placeholder-val="{{false}}"><div role="status" style="font-size: 13px; padding: 10px 14px; border-radius: 14px; background: #e7f4e8; border: 1px solid #1f7a2a">{{psFlash}}</div></sc-if>
+<sc-if value="{{co.open}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; padding: 12px; border-radius: 16px; background: #f2f4f5">
+<span style="flex: 1 1 100%; font-size: 12px; color: #5f5c5a">{{co.note}}</span>
+<input aria-label="Company street address on the payslip" value="{{co.addr}}" onChange="{{co.addrIn}}" placeholder="Street address, city, Ghana" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9; flex: 2 1 240px">
+<input aria-label="Company telephone on the payslip" value="{{co.tel}}" onChange="{{co.telIn}}" placeholder="Telephone" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9; flex: 1 1 150px">
+<input aria-label="Payroll email on the payslip" value="{{co.email}}" onChange="{{co.emailIn}}" placeholder="Payroll email" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9; flex: 1 1 180px">
+<input aria-label="Employer tax number on the payslip" value="{{co.tin}}" onChange="{{co.tinIn}}" placeholder="Employer Tax No / TIN" style="font: inherit; font-size: 13px; padding: 9px 11px; border-radius: 12px; border: 1px solid #d9d9d9; flex: 1 1 170px">
+<button type="button" onClick="{{co.save}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 16px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Save</button>
+</div>
+</sc-if>
+<sc-if value="{{isLetter}}" hint-placeholder-val="{{false}}"><style>@page{size:Letter;margin:10mm}</style></sc-if>
+<div class="no-print" role="group" aria-label="Paper size" style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap"><span style="font-size: 12px; color: #5f5c5a">Paper size</span><sc-for list="{{paperChips}}" as="p2" hint-placeholder-count="2"><button type="button" onClick="{{p2.pick}}" aria-pressed="{{p2.pressed}}" style="font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 13px; border-radius: 9999px; cursor: pointer; background: {{p2.bg}}; color: {{p2.fg}}; border: 1px solid {{p2.bd}}">{{p2.label}}</button></sc-for></div>
+<div style="display: flex; justify-content: center; padding: 14px; border-radius: 18px; background: #e9ebed; overflow-x: auto">
+<article class="print-doc print-a4" aria-label="Payslip for {{ps.empName}}, {{ps.monthTxt}}" style="width: {{ps.pw}}; min-height: {{ps.ph}}; max-width: 100%; box-sizing: border-box; background: #ffffff; border: 2px solid #0f1b3d; border-radius: 6px; padding: 0; display: flex; flex-direction: column; font-size: 11.5px; line-height: 1.35; color: #111111">
+
+<div style="display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; padding: 18px 20px 14px">
+<div style="display: flex; gap: 12px; align-items: flex-start; flex: 1 1 320px; min-width: 0">
+<span aria-hidden="true" style="width: 46px; height: 46px; flex: none; border-radius: 8px; overflow: hidden; position: relative; background: {{ps.tileBg}}; color: #0f1b3d; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{ps.coIni}}<sc-if value="{{ps.coHasLogo}}" hint-placeholder-val="{{false}}"><img src="{{ps.coLogo}}" alt="" style="position: absolute; width: 46px; height: 46px; object-fit: contain"></sc-if></span>
+<span style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+<span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: #0f1b3d">EMPLOYEE PAYSLIP</span>
+<strong style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15">{{ps.coName}}</strong>
+<sc-if value="{{ps.hasAddr}}" hint-placeholder-val="{{true}}"><span style="color: #3d3a38">{{ps.coAddr}}</span></sc-if>
+<sc-if value="{{ps.hasContact}}" hint-placeholder-val="{{true}}"><span style="color: #3d3a38">{{ps.coContact}}</span></sc-if>
+<sc-if value="{{ps.hasTin}}" hint-placeholder-val="{{true}}"><span style="color: #3d3a38">Tax No: {{ps.coTin}}</span></sc-if>
+</span>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 1px; text-align: right; flex: 0 1 220px">
+<strong style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em">{{ps.empName}}</strong>
+<span style="font-weight: 700">{{ps.monthTxt}}</span>
+<span style="color: #3d3a38">{{ps.ref}}</span>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid #0f1b3d; border-bottom: 1px solid #0f1b3d">
+<sc-for list="{{ps.facts}}" as="f" hint-placeholder-count="12">
+<div style="display: flex; flex-direction: column; gap: 1px; padding: 7px 10px; border-right: 1px solid #e1e4e6; border-bottom: 1px solid #e1e4e6; min-width: 0"><span style="font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; color: #5f5c5a">{{f.k}}</span><strong style="font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{f.v}}</strong></div>
+</sc-for>
+</div>
+
+<div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; padding: 14px 20px 10px">
+<div style="flex: 1.35 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 9px">
+
+<div style="background: #0b0b0b; color: #ffffff; border-radius: 6px; padding: 6px 11px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em">EARNINGS AMOUNT ({{ps.cur}})</div>
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{ps.earn}}" as="r" hint-placeholder-count="4"><div style="display: flex; justify-content: space-between; gap: 10px; padding: 6px 2px; border-bottom: 1px solid #ebebeb"><span>{{r.k}}</span><strong style="font-weight: 700; white-space: nowrap">{{r.v}}</strong></div></sc-for>
+</div>
+
+<div style="background: #0b0b0b; color: #ffffff; border-radius: 6px; padding: 6px 11px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em">DEDUCTIONS AMOUNT ({{ps.cur}})</div>
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{ps.ded}}" as="r" hint-placeholder-count="4"><div style="display: flex; justify-content: space-between; gap: 10px; padding: 6px 2px; border-bottom: 1px solid #ebebeb"><span>{{r.k}}</span><strong style="font-weight: 700; white-space: nowrap">{{r.v}}</strong></div></sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 5px; padding: 9px 11px; border-radius: 8px; background: #eef1f8">
+<div style="display: flex; justify-content: space-between; gap: 10px"><strong style="font-weight: 700">Total Deductions</strong><strong style="font-weight: 700">{{ps.totDed}}</strong></div>
+<div style="display: flex; justify-content: space-between; gap: 10px"><strong style="font-weight: 700">Taxable</strong><strong style="font-weight: 700">{{ps.taxable}}</strong></div>
+</div>
+
+<div style="background: #0b0b0b; color: #ffffff; border-radius: 6px; padding: 6px 11px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em">SUMMARY ({{ps.cur}})</div>
+<div style="display: flex; flex-direction: column; gap: 5px; padding: 10px 11px; border-radius: 8px; background: #eef1f8">
+<div style="display: flex; justify-content: space-between; gap: 10px"><strong style="font-weight: 700">Gross Salary</strong><strong style="font-weight: 700">{{ps.gross}}</strong></div>
+<div style="display: flex; justify-content: space-between; gap: 10px"><strong style="font-weight: 700">Net Pay</strong><strong style="font-weight: 700">{{ps.net}}</strong></div>
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline; padding-top: 3px"><strong style="font-size: 16px; font-weight: 700">Take Home Pay</strong><strong style="font-size: 17px; font-weight: 700">{{ps.take}}</strong></div>
+</div>
+</div>
+
+<div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 9px">
+<div style="background: #0b0b0b; color: #ffffff; border-radius: 6px; padding: 6px 11px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em">SOCIAL SECURITY CONTRIBUTION</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 9px 11px; border-radius: 8px; background: #eef1f8">
+<sc-for list="{{ps.ss}}" as="r" hint-placeholder-count="2"><div style="display: flex; justify-content: space-between; gap: 10px"><strong style="font-weight: 700">{{r.k}}</strong><strong style="font-weight: 700; white-space: nowrap">{{r.v}}</strong></div></sc-for>
+</div>
+
+<div style="background: #0b0b0b; color: #ffffff; border-radius: 6px; padding: 6px 11px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em">EMPLOYEE TAX BREAKDOWN</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 9px 11px; border-radius: 8px; background: #eef1f8">
+<div style="display: flex; justify-content: space-between; gap: 10px"><strong style="font-weight: 700">PAYE / Income Tax</strong><strong style="font-weight: 700">{{ps.paye}}</strong></div>
+</div>
+
+<div style="background: #0b0b0b; color: #ffffff; border-radius: 6px; padding: 6px 11px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em">{{ps.payTitle}}</div>
+<div style="display: flex; flex-direction: column; gap: 5px; padding: 9px 11px; border-radius: 8px; background: #eef1f8">
+<sc-for list="{{ps.payRows}}" as="r" hint-placeholder-count="4"><div style="display: flex; justify-content: space-between; gap: 10px"><span>{{r.k}}</span><strong style="font-weight: 700; text-align: right">{{r.v}}</strong></div></sc-for>
+</div>
+</div>
+</div>
+
+<div style="border-top: 1px solid #0f1b3d; margin: 6px 20px 0"></div>
+<div style="display: flex; flex-direction: column; gap: 9px; padding: 12px 20px 18px">
+<strong style="font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em">UNDERSTANDING YOUR PAYSLIP</strong>
+<div style="display: flex; gap: 18px; flex-wrap: wrap">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 7px; color: #3d3a38">
+<span><strong style="color: #111111">Earnings</strong> is everything you were paid before anything was taken off: your basic salary plus overtime, commission and any allowances. Added together these give your <strong style="color: #111111">Gross Salary</strong>.</span>
+<span><strong style="color: #111111">Net Pay</strong> is your gross salary minus total deductions — the amount sent to the account shown on this payslip. <strong style="color: #111111">Take Home Pay</strong> is the same figure.</span>
+</div>
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 7px; color: #3d3a38">
+<span><strong style="color: #111111">Deductions</strong> are the amounts taken off your gross pay. <strong style="color: #111111">PAYE / Income Tax</strong> is charged on your gross pay after SSNIT. Your <strong style="color: #111111">SSNIT Pension Contribution</strong> is charged on basic salary only, not on allowances. A <strong style="color: #111111">Salary advance</strong> or loan is a fixed monthly amount.</span>
+<span><strong style="color: #111111">Social Security Contribution</strong> shows both sides of your SSNIT pension. The employer's share is paid in by the company on top of your salary — it is not deducted from your pay and does not reduce your net pay. Your own share is the SSNIT deduction listed on the left.</span>
+</div>
+</div>
+<span style="padding-top: 7px; border-top: 1px solid #ebebeb; color: #3d3a38">This payslip is issued electronically and is valid without a signature. Please keep it for your records. If any figure looks wrong, contact {{ps.coName}} payroll quoting the reference shown at the top of this payslip.</span>
+</div>
+</article>
+</div>
+</section>
+
+<sc-if value="{{isHr}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="yt-h" class="no-print" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px; overflow-x: auto">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap"><h2 id="yt-h" style="margin: 0; font-size: 17px; font-weight: 600">{{yearTitle}}</h2><span style="font-size: 12px; color: #5f5c5a">{{yearNote}}</span></div>
+<table style="width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 720px">
+<thead><tr style="text-align: left; font-size: 10.5px; color: #5f5c5a; text-transform: uppercase"><th scope="col" style="font-weight: 600; padding: 6px 8px">Employee</th><sc-for list="{{trackHead}}" as="h" hint-placeholder-count="12"><th scope="col" style="font-weight: 600; padding: 6px 2px; text-align: center">{{h.t}}</th></sc-for><th scope="col" style="font-weight: 600; padding: 6px 8px; text-align: right">Paid</th><th scope="col" style="font-weight: 600; padding: 6px 8px; text-align: right">Net for the year</th></tr></thead>
+<tbody><sc-for list="{{track}}" as="r" hint-placeholder-count="6"><tr style="border-top: 1px solid #ebebeb; background: {{r.rowBg}}">
+<td style="padding: 6px 8px"><button type="button" onClick="{{r.pick}}" style="font-family: inherit; font-size: 12.5px; padding: 0; border: 0; background: transparent; cursor: pointer; text-align: left; display: flex; flex-direction: column"><strong style="font-weight: 600">{{r.name}}</strong><span style="font-size: 10.5px; color: #5f5c5a">{{r.role}} · {{r.no}}</span></button></td>
+<sc-for list="{{r.cells}}" as="c" hint-placeholder-count="12"><td style="padding: 3px 2px; text-align: center"><button type="button" onClick="{{c.pick}}" aria-label="{{c.aria}}" style="font-family: inherit; width: 26px; height: 26px; border-radius: 8px; border: 0; cursor: pointer; font-size: 12px; font-weight: 700; background: {{c.bg}}; color: {{c.fg}}">{{c.t}}</button></td></sc-for>
+<td style="padding: 6px 8px; text-align: right; color: #5f5c5a">{{r.count}}</td><td style="padding: 6px 8px; text-align: right; font-weight: 600">{{r.total}}</td>
+</tr></sc-for></tbody></table>
+<span style="font-size: 11.5px; color: #5f5c5a">A green tick means that month&#39;s payslip is in the employee&#39;s account. Click any month to open it, change it, and send or re-send it.</span>
+</section>
+</sc-if>
+
+
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) { super(props); let role = 'superuser'; try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {} this.state = { step: 0, sel: 1, role }; this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' }); }
+  componentDidMount() { try { window.addEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  componentWillUnmount() { try { window.removeEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Payroll'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const money = n => 'GHS ' + n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const BANDS = [[490, 0], [110, 0.05], [130, 0.10], [3166.67, 0.175], [16000, 0.25], [30520, 0.30], [Infinity, 0.35]];
+    const paye = taxable => { let left = taxable, tax = 0; for (const b of BANDS) { const part = Math.min(left, b[0]); if (part <= 0) break; tax += part * b[1]; left -= part; } return tax; };
+    const rdp = (k, d) => { try { const v = JSON.parse(window.localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+    const BXP = rdp('ecompos.branches', null);
+    const BRP = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })(Array.isArray(BXP) && BXP.length ? BXP : [{ id: 'osu', name: 'Osu branch' }, { id: 'legon', name: 'East Legon branch' }, { id: 'adum', name: 'Adum branch' }]);
+    const LNP = {}; BRP.forEach(b => { LNP[b.id] = String(b.name || '').replace(/\s*branch$/i, ''); });
+    const ROLENP = { overall: 'Superuser', manager: 'Branch manager', supervisor: 'Supervisor', normal: 'Sales staff' };
+    const SYSP = [['Kofi Adom', 'overall', 'all', 'active'], ['Ama Darko', 'manager', 'osu', 'active'], ['Kwame Asante', 'supervisor', 'osu', 'active'], ['Akua Kyei', 'normal', 'osu', 'active'], ['Kwesi Ofori', 'normal', 'osu', 'active'], ['Efua Sarpong', 'manager', 'legon', 'active'], ['Nana Ampofo', 'supervisor', 'legon', 'active'], ['Adjoa Badu', 'normal', 'legon', 'active'], ['Esi Quaye', 'normal', 'legon', 'closed'], ['Yaw Boakye', 'manager', 'adum', 'active'], ['Abena Mensah', 'supervisor', 'adum', 'active'], ['Kojo Appiah', 'normal', 'adum', 'suspended']];
+    const mainP = (window.localStorage.getItem('ecompos.activeCompany') || 'main') === 'main';
+    const HRP = rdp('ecompos.hr', {}) || {};
+    const CLKP = rdp('ecompos.clock', []) || [];
+    const LVP = rdp('ecompos.leave', []) || [];
+    const PAYDEFP = { 'Superuser': 6500, 'Branch manager': 4200, 'Supervisor': 2800, 'Sales staff': 2400, 'Rider': 1800, 'Stock clerk': 2100 };
+    const PAYP = [];
+    (mainP ? SYSP : SYSP.slice(0, 1)).forEach(u => { if (u[3] !== 'active') return; PAYP.push({ name: u[0], role: ROLENP[u[1]] || 'Sales staff', br: u[2] === 'all' ? 'All branches' : (LNP[u[2]] || u[2]) }); });
+    (rdp('ecompos.riders', []) || []).forEach(r => { if ((r.status || 'active') !== 'active') return; PAYP.push({ name: r.name, role: 'Rider', br: LNP[r.br] || r.br }); });
+    Object.keys(HRP).forEach(n => { const h = HRP[n] || {}; if (h.added && (h.state || 'active') === 'active' && !PAYP.some(p => p.name === n)) PAYP.push({ name: n, role: h.role || 'Sales staff', br: LNP[h.br] || h.br }); });
+    const PSTART = ['2021-02-15', '2022-06-01', '2023-01-09', '2023-04-17', '2024-02-05', '2022-09-12', '2024-06-03', '2025-01-20', '2023-11-02', '2021-08-30', '2024-09-15', '2025-06-11', '2023-03-21', '2024-11-04', '2025-03-18'];
+    const PIDX = (() => {
+      const bs = [];
+      (mainP ? SYSP : SYSP.slice(0, 1)).forEach((u, k) => bs.push({ name: u[0], seq: k + 1 }));
+      (rdp('ecompos.riders', []) || []).forEach((r, k) => { if (!bs.some(b => b.name === r.name)) bs.push({ name: r.name, seq: 100 + k }); });
+      Object.keys(HRP).forEach(n => { if (HRP[n] && HRP[n].added && !bs.some(b => b.name === n)) bs.push({ name: n, seq: 200 }); });
+      const m = {}; bs.forEach((b, k) => { m[b.name] = { seq: b.seq, k }; }); return m;
+    })();
+    const empNoOf = (() => {
+      let HRN = {}; try { HRN = JSON.parse(window.localStorage.getItem('ecompos.hr') || '{}') || {}; } catch (e) {}
+      const taken = {}; Object.keys(HRN).forEach(k => { if (HRN[k] && HRN[k].no) taken[String(HRN[k].no).toUpperCase()] = 1; });
+      let dirty = false;
+      return name => {
+        const h = HRN[name] || {};
+        if (h.no) return h.no;
+        let n = 1; let id = '';
+        for (;;) { id = 'EMP-' + String(1000 + n).slice(-4); if (!taken[id]) break; n++; }
+        taken[id] = 1; HRN[name] = Object.assign({}, h, { no: id }); dirty = true;
+        if (dirty) { try { window.localStorage.setItem('ecompos.hr', JSON.stringify(HRN)); window.dispatchEvent(new CustomEvent('ecompos:hr', { detail: HRN })); } catch (e) {} }
+        return id;
+      };
+    })();
+    const hrsP = n => CLKP.filter(c => c.name === n && c.inTs >= Date.now() - 30 * 86400000).reduce((a, c) => a + (c.mins || 0), 0) / 60;
+    const salesP = (rdp('ecompos.sales', []) || []);
+    const commP = n => salesP.filter(x => String(x.staff || '').split(' (')[0] === n).reduce((a, x) => a + (Number(x.total) || 0), 0) * 0.015;
+    const leaveP = n => LVP.filter(l => l.name === n && l.status === 'approved').reduce((a, l) => a + l.days, 0);
+    const E = PAYP.map(p => {
+      const h = HRP[p.name] || {};
+      const basic = Number(h.pay) || PAYDEFP[p.role] || 2400;
+      const hours = hrsP(p.name);
+      const ot = Math.max(0, hours - 173) * (basic / 173) * 1.5;
+      const comm = Math.round(commP(p.name) * 100) / 100;
+      const adv = Number(h.advance) || 0;
+      const how = h.payBy || (p.role === 'Rider' || p.role === 'Sales staff' ? 'MoMo · MTN' : 'Bank · GCB');
+      const seed = String(p.name).split('').reduce((a, ch) => a + ch.charCodeAt(0), 0);
+      const meta = {
+        no: h.no || empNoOf(p.name),
+        ssnitNo: h.ssnitNo || ('GHA-' + String(100000000 + seed * 4871 % 899999999) + '-' + (seed % 9)),
+        tin: h.tin || ('GHA-' + String(100000000 + seed * 4871 % 899999999) + '-' + (seed % 9)),
+        payDate: h.payDate || '',
+        grade: h.grade || ({ 'Superuser': '16', 'Branch manager': '12', 'Supervisor': '10', 'Sales staff': '7', 'Rider': '5', 'Stock clerk': '6' }[p.role] || '7'),
+        etype: ({ 'Full-time': 'Permanent Staff (Full-time)', 'Part-time': 'Part-time Staff', 'Contract': 'Contract Staff', 'Casual': 'Casual Staff' })[h.contract] || h.contract || (p.role === 'Rider' ? 'Part-time Staff' : 'Permanent Staff (Full-time)'),
+        started: (() => { const iso = h.start || PSTART[((PIDX[p.name] || {}).k || 0) % PSTART.length]; return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); })(),
+        bank: h.bank || (/Bank/i.test(how) ? String(how).split('·').slice(-1)[0].trim() : ''),
+        bankBr: h.bankBr || '', acct: h.acct || '',
+        allow: Number(h.allow) || 0, other: Number(h.other) || 0, loan: Number(h.loan) || 0, union: Number(h.union) || 0
+      };
+      return [p.name, p.role + ' · ' + p.br, basic, Math.round(ot * 100) / 100, comm, adv, how, Math.round(hours), Math.max(0, 18 - leaveP(p.name)), meta];
+    });
+    const META0 = { no: '', ssnitNo: '', tin: '', payDate: '', grade: '', etype: '', started: '', bank: '', bankBr: '', acct: '', allow: 0, other: 0, loan: 0, union: 0 };
+    if (!E.length) E.push(['No active employees', 'Add people in Staff & roles', 0, 0, 0, 0, '—', 0, 0, META0]);
+    const calc = e => {
+      const m = e[9] || META0;
+      const gross = e[2] + e[3] + e[4] + m.allow + m.other;
+      const ssnit = e[2] * 0.055;
+      const tax = paye(gross - ssnit);
+      return { gross, ssnit, tax, net: gross - ssnit - tax - e[5] - m.loan - m.union };
+    };
+    // ---------- payslip document (A4 / Letter) ----------
+    const PSBIZ = (() => { try { const b = JSON.parse(window.localStorage.getItem('ecompos.biz') || '{}') || {}; return { name: String(b.name || 'Ebenezer Unique Ventures'), logo: b.logo || window.localStorage.getItem('ecompos.logo') || '' }; } catch (e) { return { name: 'Ebenezer Unique Ventures', logo: '' }; } })();
+    const psCo = (() => { let c = {}; try { c = JSON.parse(window.localStorage.getItem('ecompos.payrollco') || '{}') || {}; } catch (e) {} return c; })();
+    const psMoney = n => 'GH₵' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const psMonthTxt = m => { const p = String(m || '').split('-'); const d = new Date(Number(p[0]) || 2026, (Number(p[1]) || 1) - 1, 1); return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }); };
+    const psPaper = (() => { try { return window.localStorage.getItem('ecompos.payslipPaper') === 'Letter' ? 'Letter' : 'A4'; } catch (e) { return 'A4'; } })();
+    const psDoc = x => {
+      if (!x) return null;
+      const co = x.co || {};
+      const coName = co.name || PSBIZ.name;
+      const tel = co.tel || psCo.tel || '';
+      const email = co.email || psCo.email || '';
+      const contact = [tel ? 'Tel: ' + tel : '', email ? 'Email: ' + email : ''].filter(Boolean).join('  |  ');
+      const addr = co.addr || psCo.addr || '';
+      const tin = co.tin || psCo.tin || '';
+      const earn = [['Basic Salary', Number(x.basic) || 0]]
+        .concat(Number(x.ot) ? [['Overtime', Number(x.ot)]] : [])
+        .concat(Number(x.comm) ? [['Commission on sales', Number(x.comm)]] : [])
+        .concat(Number(x.allow) ? [['Employee Allowances', Number(x.allow)]] : [])
+        .concat(Number(x.other) ? [['Other Allowances', Number(x.other)]] : []);
+      const ded = [['SSNIT Pension Contribution (5.5%)', Number(x.ssnit) || 0], ['PAYE / Income Tax', Number(x.paye) || 0]]
+        .concat(Number(x.adv) ? [['Salary advance', Number(x.adv)]] : [])
+        .concat(Number(x.loan) ? [['Loan Deduction', Number(x.loan)]] : [])
+        .concat(Number(x.union) ? [['Union Dues', Number(x.union)]] : []);
+      const totDed = ded.reduce((a, r) => a + r[1], 0);
+      const gross = Number(x.gross) || earn.reduce((a, r) => a + r[1], 0);
+      const net = Number(x.net) || (gross - totDed);
+      const byMomo = /momo|mobile/i.test(String(x.payHow || ''));
+      const payRows = byMomo
+        ? [['Employee Name', x.name], ['Network', String(x.payHow || '').split('·').slice(-1)[0].trim() || 'MTN MoMo'], ['MoMo Number', x.acct || 'Not on file']]
+        : [['Employee Name', x.name], ['Bank', x.bank || String(x.payHow || '').split('·').slice(-1)[0].trim() || 'Not on file'], ['Branch', x.bankBr || (x.br ? x.br + ' Branch' : 'Not on file')], ['Bank Account#', x.acct || 'Not on file']];
+      return {
+        coName, coIni: String(coName).split(/\s+/).map(w => w.charAt(0)).join('').slice(0, 2).toUpperCase(),
+        coLogo: co.logo || PSBIZ.logo, coHasLogo: !!(co.logo || PSBIZ.logo), tileBg: (co.logo || PSBIZ.logo) ? '#ffffff' : '#dfe4f2',
+        coAddr: addr, hasAddr: !!addr, coContact: contact, hasContact: !!contact, coTin: tin, hasTin: !!tin,
+        empName: x.name, monthTxt: psMonthTxt(x.month), ref: x.ref || ('PAY-' + String(x.month).replace('-', '') + '-' + String(x.no || '').replace(/\W/g, '')),
+        cur: 'GHS',
+        facts: [
+          ['PAYROLL PERIOD', psMonthTxt(x.month)], ['EMPLOYEE NO', x.no || '—'], ['EMPLOYEE NAME', x.name], ['TIN / TAX NUMBER', x.tin || x.ssnitNo || 'Not on file'],
+          ['EMPLOYEE TYPE', x.etype || 'Permanent Staff (Full-time)'], ['PAY GRADE', x.grade || '—'], ['POSITION / RANK', x.role || '—'], ['BRANCH / DEPARTMENT', x.br || 'All branches'],
+          ['DATE EMPLOYED', x.started || 'Not on file'], ['PAYMENT DATE', x.payDate || '—'], ['CURRENCY', 'GHS (Ghana Cedi)'], ['HOURS WORKED', (x.hours || 0) + ' h on the time clock']
+        ].map(f => ({ k: f[0], v: f[1] })),
+        earn: earn.map(r => ({ k: r[0], v: psMoney(r[1]) })),
+        ded: ded.map(r => ({ k: r[0], v: psMoney(r[1]) })),
+        totDed: psMoney(totDed), taxable: psMoney(Math.max(0, gross - (Number(x.ssnit) || 0))),
+        gross: psMoney(gross), net: psMoney(net), take: psMoney(net),
+        ss: [['Employer SSNIT Contribution (13%)', psMoney(Number(x.erSsnit) || (Number(x.basic) || 0) * 0.13)], ['Employee SSNIT Contribution (5.5%)', psMoney(Number(x.ssnit) || 0)]].map(r => ({ k: r[0], v: r[1] })),
+        paye: psMoney(Number(x.paye) || 0),
+        payTitle: byMomo ? 'PAYMENT BY MOBILE MONEY' : 'PAYMENT BY BANK TRANSFER',
+        payRows: payRows.map(r => ({ k: r[0], v: r[1] })),
+        paper: psPaper, pw: psPaper === 'Letter' ? '216mm' : '210mm', ph: psPaper === 'Letter' ? '279mm' : '297mm',
+        fileName: 'payslip-' + String(x.name).replace(/\s+/g, '-').toLowerCase() + '-' + x.month + '.html',
+        sentLine: x.by ? 'Sent by ' + x.by + ' · ' + x.at : ''
+      };
+    };
+    const psEsc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const psFile = d => {
+      if (!d) return '';
+      const bar = t => '<div class="bar">' + psEsc(t) + '</div>';
+      const rows = L => L.map(r => '<div class="row"><span>' + psEsc(r.k) + '</span><b>' + psEsc(r.v) + '</b></div>').join('');
+      const box = L => '<div class="box">' + L.map(r => '<div class="row"><b>' + psEsc(r.k) + '</b><b>' + psEsc(r.v) + '</b></div>').join('') + '</div>';
+      const html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Payslip · ' + psEsc(d.empName) + ' · ' + psEsc(d.monthTxt) + '</title>'
+        + '<style>@page{size:' + (d.paper === 'Letter' ? 'Letter' : 'A4') + ';margin:12mm}body{margin:0;padding:18px;background:#f2f4f5;font:11.5px/1.35 Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#111}'
+        + '.doc{width:' + (d.paper === 'Letter' ? '216mm' : '210mm') + ';max-width:100%;margin:0 auto;background:#fff;border:2px solid #0f1b3d;border-radius:6px}'
+        + '.hd{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 20px 14px}.hd h1{margin:0;font-size:22px;letter-spacing:-.02em}'
+        + '.kic{font-size:11px;font-weight:700;letter-spacing:.12em;color:#0f1b3d}.mut{color:#3d3a38}.rt{text-align:right}'
+        + '.facts{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #0f1b3d;border-bottom:1px solid #0f1b3d}'
+        + '.facts div{padding:7px 10px;border-right:1px solid #e1e4e6;border-bottom:1px solid #e1e4e6}.facts span{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;color:#5f5c5a}'
+        + '.body{display:flex;gap:16px;flex-wrap:wrap;padding:14px 20px 10px}.col1{flex:1.35 1 300px}.col2{flex:1 1 240px}'
+        + '.bar{background:#0b0b0b;color:#fff;border-radius:6px;padding:6px 11px;font-size:11px;font-weight:700;letter-spacing:.08em;margin:9px 0}'
+        + '.row{display:flex;justify-content:space-between;gap:10px;padding:6px 2px;border-bottom:1px solid #ebebeb}'
+        + '.box{background:#eef1f8;border-radius:8px;padding:9px 11px}.box .row{border:0;padding:3px 0}'
+        + '.take{font-size:16px}.ft{padding:12px 20px 18px;border-top:1px solid #0f1b3d;margin:6px 20px 0}.ft .two{display:flex;gap:18px;flex-wrap:wrap}.ft .two div{flex:1 1 260px;color:#3d3a38}'
+        + '@media print{body{background:#fff;padding:0}.doc{border:0;max-width:none}}</style></head><body><div class="doc">'
+        + '<div class="hd"><div><div class="kic">EMPLOYEE PAYSLIP</div><h1>' + psEsc(d.coName) + '</h1>'
+        + (d.hasAddr ? '<div class="mut">' + psEsc(d.coAddr) + '</div>' : '') + (d.hasContact ? '<div class="mut">' + psEsc(d.coContact) + '</div>' : '') + (d.hasTin ? '<div class="mut">Tax No: ' + psEsc(d.coTin) + '</div>' : '')
+        + '</div><div class="rt"><b style="font-size:19px">' + psEsc(d.empName) + '</b><div><b>' + psEsc(d.monthTxt) + '</b></div><div class="mut">' + psEsc(d.ref) + '</div></div></div>'
+        + '<div class="facts">' + d.facts.map(f => '<div><span>' + psEsc(f.k) + '</span><b>' + psEsc(f.v) + '</b></div>').join('') + '</div>'
+        + '<div class="body"><div class="col1">' + bar('EARNINGS AMOUNT (' + d.cur + ')') + rows(d.earn) + bar('DEDUCTIONS AMOUNT (' + d.cur + ')') + rows(d.ded)
+        + box([{ k: 'Total Deductions', v: d.totDed }, { k: 'Taxable', v: d.taxable }]) + bar('SUMMARY (' + d.cur + ')')
+        + '<div class="box"><div class="row"><b>Gross Salary</b><b>' + psEsc(d.gross) + '</b></div><div class="row"><b>Net Pay</b><b>' + psEsc(d.net) + '</b></div><div class="row take"><b>Take Home Pay</b><b>' + psEsc(d.take) + '</b></div></div>'
+        + '</div><div class="col2">' + bar('SOCIAL SECURITY CONTRIBUTION') + box(d.ss) + bar('EMPLOYEE TAX BREAKDOWN') + box([{ k: 'PAYE / Income Tax', v: d.paye }]) + bar(d.payTitle) + box(d.payRows) + '</div></div>'
+        + '<div class="ft"><b style="letter-spacing:.06em">UNDERSTANDING YOUR PAYSLIP</b><div class="two" style="margin-top:9px">'
+        + '<div><p><b>Earnings</b> is everything you were paid before anything was taken off: your basic salary plus overtime, commission and any allowances. Added together these give your <b>Gross Salary</b>.</p><p><b>Net Pay</b> is your gross salary minus total deductions — the amount sent to the account shown on this payslip. <b>Take Home Pay</b> is the same figure.</p></div>'
+        + '<div><p><b>Deductions</b> are the amounts taken off your gross pay. <b>PAYE / Income Tax</b> is charged on your gross pay after SSNIT. Your <b>SSNIT Pension Contribution</b> is charged on basic salary only, not on allowances.</p><p><b>Social Security Contribution</b> shows both sides of your SSNIT pension. The employer’s share is paid in by the company on top of your salary — it is not deducted from your pay.</p></div></div>'
+        + '<p class="mut">This payslip is issued electronically and is valid without a signature. Please keep it for your records. If any figure looks wrong, contact ' + psEsc(d.coName) + ' payroll quoting the reference shown at the top of this payslip.</p></div>'
+        + '</div></body></html>';
+      return 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+    };
+    const HRADM = (S.role || 'superuser') === 'superuser' || S.role === 'developer';
+    let MEP = 'Kofi Adom'; try { const sp = JSON.parse(window.localStorage.getItem('ecompos.session') || 'null'); if (sp && sp.name) MEP = sp.name; else MEP = ({ manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei' })[S.role] || MEP; } catch (e) {}
+    const EV = HRADM ? E : E.filter(e => e[0] === MEP);
+    if (!EV.length) EV.push([MEP, 'Your record is kept by HR', 0, 0, 0, 0, '—', 0, 0, META0]);
+    const MN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const MS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const NOWD = new Date();
+    const PY = Number(S.pyYear) || NOWD.getFullYear();
+    const PM = (S.pyMonth === undefined || S.pyMonth === null) ? NOWD.getMonth() : Number(S.pyMonth);
+    const mKey = PY + '-' + String(PM + 1).padStart(2, '0');
+    const monthEnd = (y, m) => new Date(y, m + 1, 0).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const isFuture = (PY > NOWD.getFullYear()) || (PY === NOWD.getFullYear() && PM > NOWD.getMonth());
+    const SLIPS0 = rdp('ecompos.payslips', []) || [];
+    const sentThis = SLIPS0.filter(x => x.month === mKey).length;
+    const pushSlips = () => {
+      const at = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + new Date().toTimeString().slice(0, 5);
+      const payDateAuto = monthEnd(PY, PM);
+      const coSnap = { name: PSBIZ.name, logo: PSBIZ.logo, addr: psCo.addr || '', tel: psCo.tel || '', email: psCo.email || '', tin: psCo.tin || '' };
+      const made = E.map(e => { const c = calc(e); const m = e[9] || META0; const brp = String(e[1]).split(' · ')[1] || ''; return {
+        id: 'PS-' + mKey + '-' + String(e[0]).replace(/\s+/g, '').slice(0, 6).toUpperCase(), name: e[0], role: String(e[1]).split(' · ')[0], br: brp,
+        no: m.no, month: mKey, basic: e[2], ot: e[3], comm: e[4], adv: e[5], allow: m.allow, other: m.other, loan: m.loan, union: m.union,
+        gross: c.gross, ssnit: c.ssnit, erSsnit: e[2] * 0.13, paye: c.tax, net: c.net, hours: e[7], leaveLeft: e[8],
+        ssnitNo: m.ssnitNo, tin: m.tin, grade: m.grade, etype: m.etype, started: m.started, payDate: m.payDate || payDateAuto, payHow: e[6], bank: m.bank, bankBr: m.bankBr, acct: m.acct,
+        ref: 'PAY-GH-' + mKey.replace('-', '') + '-' + String(m.no || '').replace(/\W/g, ''), co: coSnap,
+        by: MEP, at, ts: Date.now() }; });
+      const keep = SLIPS0.filter(x => x.month !== mKey);
+      try { window.localStorage.setItem('ecompos.payslips', JSON.stringify(made.concat(keep).slice(0, 600))); window.dispatchEvent(new CustomEvent('ecompos:hr', { detail: made })); } catch (x) {}
+      try { const O = JSON.parse(window.localStorage.getItem('ecompos.outbox') || '[]') || []; made.forEach(m => O.unshift({ to: m.name, subject: 'Your payslip for ' + mKey, body: 'Hello ' + m.name + ', your payslip is in your account under My HR. Take-home pay GHS ' + m.net.toFixed(2) + '.', at, ts: Date.now(), kind: 'payslip' })); window.localStorage.setItem('ecompos.outbox', JSON.stringify(O.slice(0, 400))); } catch (x) {}
+      set({ pushed: made.length, step: Math.max(S.step, 3) });
+    };
+    const rows = EV.map((e, k) => {
+      const c = calc(e);
+      return { name: e[0], role: e[1], basic: money(e[2]), ot: e[3] ? money(e[3]) : '—', comm: e[4] ? money(e[4]) : '—', gross: money(c.gross), ssnit: money(c.ssnit), paye: money(c.tax), adv: e[5] ? money(e[5]) : '—', net: money(c.net), to: e[6], rowBg: k === S.sel ? '#f2f4f5' : '#ffffff', pick: () => set({ sel: k }) };
+    });
+    const tot = EV.reduce((a, e) => { const c = calc(e); a.g += c.gross; a.n += c.net; a.t += c.tax; a.s += c.ssnit + e[2] * 0.13; a.b += e[2]; return a; }, { g: 0, n: 0, t: 0, s: 0, b: 0 });
+    const totals = [
+      { label: 'Gross pay', value: money(tot.g), note: E.length + ' employees · ' + BRP.length + ' branches' },
+      { label: 'Net pay to staff', value: money(tot.n), note: E.filter(e => /MoMo/.test(e[6])).length + ' by MoMo · ' + E.filter(e => /Bank/.test(e[6])).length + ' by bank' },
+      { label: 'PAYE to GRA', value: money(tot.t), note: 'Due by the 15th of next month' },
+      { label: 'SSNIT (employee + employer)', value: money(tot.s), note: '18.5% of ' + money(tot.b) + ' basic' }
+    ];
+    const ST = ['Review', 'Approved by owner', 'Paid via Hubtel', 'Payslips sent'];
+    const steps = ST.map((s, k) => ({ label: (k + 1) + '. ' + s, bg: k <= S.step ? '#000000' : '#ffffff', fg: k <= S.step ? '#ffffff' : '#5f5c5a', bd: k <= S.step ? '#000000' : '#ebebeb' }));
+    const NEXT = ['Approve pay run (owner PIN)', 'Pay ' + E.length + ' staff by MoMo and bank', 'Send payslips on WhatsApp', 'Pay run complete'];
+    const NOTE = ['Hours come from the QR time clock. Check overtime, commission and advances, then approve.', 'Approved by the Admin', 'Bulk payout sent through Hubtel · all ' + E.length + ' confirmed', 'Payslips delivered by WhatsApp and email'];
+    const e = EV[Math.min(S.sel, EV.length - 1)] || EV[0], c = calc(e);
+    const slip = { name: e[0], role: e[1], hours: String(e[7]), gross: money(c.gross), ssnit: money(c.ssnit), paye: money(c.tax), adv: money(e[5]), net: money(c.net), leave: String(e[8]), to: e[6], sent: S.step >= 3 ? 'Sent on WhatsApp · opened' : 'Sent on WhatsApp after payment' };
+    const psSent = SLIPS0.filter(x => x.name === e[0] && x.month === mKey)[0];
+    const psPreview = psDoc(psSent || (() => { const m = e[9] || META0; const brp = String(e[1]).split(' · ')[1] || ''; const payDate = monthEnd(PY, PM); return {
+      name: e[0], role: String(e[1]).split(' · ')[0], br: brp, no: m.no, month: mKey, basic: e[2], ot: e[3], comm: e[4], adv: e[5], allow: m.allow, other: m.other, loan: m.loan, union: m.union,
+      gross: c.gross, ssnit: c.ssnit, erSsnit: e[2] * 0.13, paye: c.tax, net: c.net, hours: e[7], ssnitNo: m.ssnitNo, grade: m.grade, etype: m.etype, started: m.started,
+      tin: m.tin, payDate: m.payDate || payDate, payHow: e[6], bank: m.bank, bankBr: m.bankBr, acct: m.acct, ref: 'PAY-GH-' + mKey.replace('-', '') + '-' + String(m.no || '').replace(/\W/g, ''),
+      co: { name: PSBIZ.name, logo: PSBIZ.logo, addr: psCo.addr || '', tel: psCo.tel || '', email: psCo.email || '', tin: psCo.tin || '' } }; })());
+    const CF = S.cf || psCo;
+    const setCF = o => set({ cf: Object.assign({}, CF, o) });
+    const coForm = {
+      open: !!S.coOpen, toggleTxt: S.coOpen ? 'Close' : 'Company details on the payslip',
+      toggle: () => set({ coOpen: !S.coOpen, cf: psCo }),
+      name: PSBIZ.name,
+      addr: CF.addr || '', addrIn: ev => setCF({ addr: ev.target.value }),
+      tel: CF.tel || '', telIn: ev => setCF({ tel: ev.target.value }),
+      email: CF.email || '', emailIn: ev => setCF({ email: ev.target.value }),
+      tin: CF.tin || '', tinIn: ev => setCF({ tin: ev.target.value }),
+      save: () => { const v = { addr: String(CF.addr || '').trim(), tel: String(CF.tel || '').trim(), email: String(CF.email || '').trim(), tin: String(CF.tin || '').trim() }; try { window.localStorage.setItem('ecompos.payrollco', JSON.stringify(v)); } catch (x) {} set({ coOpen: false, cf: v, saved: Date.now() }); },
+      note: 'These appear under ' + PSBIZ.name + ' at the top of every payslip. Leave a line blank and it is left off.'
+    };
+    const hrSave = (name, patch) => { let H = {}; try { H = JSON.parse(window.localStorage.getItem('ecompos.hr') || '{}') || {}; } catch (x) {} H[name] = Object.assign({}, H[name] || {}, patch); try { window.localStorage.setItem('ecompos.hr', JSON.stringify(H)); window.dispatchEvent(new CustomEvent('ecompos:hr', { detail: H })); } catch (x) {} };
+    const sendOne = () => {
+      const at = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + new Date().toTimeString().slice(0, 5);
+      const m = e[9] || META0; const brp = String(e[1]).split(' · ')[1] || '';
+      const payDateAuto = monthEnd(PY, PM);
+      const rec = { id: 'PS-' + mKey + '-' + String(e[0]).replace(/\s+/g, '').slice(0, 6).toUpperCase(), name: e[0], role: String(e[1]).split(' · ')[0], br: brp,
+        no: m.no, month: mKey, basic: e[2], ot: e[3], comm: e[4], adv: e[5], allow: m.allow, other: m.other, loan: m.loan, union: m.union,
+        gross: c.gross, ssnit: c.ssnit, erSsnit: e[2] * 0.13, paye: c.tax, net: c.net, hours: e[7], leaveLeft: e[8],
+        ssnitNo: m.ssnitNo, tin: m.tin, grade: m.grade, etype: m.etype, started: m.started, payDate: m.payDate || payDateAuto, payHow: e[6], bank: m.bank, bankBr: m.bankBr, acct: m.acct,
+        ref: 'PAY-GH-' + mKey.replace('-', '') + '-' + String(m.no || '').replace(/\W/g, ''),
+        co: { name: PSBIZ.name, logo: PSBIZ.logo, addr: psCo.addr || '', tel: psCo.tel || '', email: psCo.email || '', tin: psCo.tin || '' },
+        by: MEP, at, ts: Date.now() };
+      const keep = SLIPS0.filter(x => !(x.month === mKey && x.name === e[0]));
+      try { window.localStorage.setItem('ecompos.payslips', JSON.stringify([rec].concat(keep).slice(0, 600))); window.dispatchEvent(new CustomEvent('ecompos:hr', { detail: [rec] })); } catch (x) {}
+      try { const O = JSON.parse(window.localStorage.getItem('ecompos.outbox') || '[]') || []; O.unshift({ to: rec.name, subject: 'Your payslip for ' + psMonthTxt(mKey), body: 'Hello ' + String(rec.name).split(' ')[0] + ', your payslip for ' + psMonthTxt(mKey) + ' is in your account under My HR. You can view it, print it or download it. Take-home pay GH\u20B5' + rec.net.toFixed(2) + '.', at, ts: Date.now(), kind: 'payslip' }); window.localStorage.setItem('ecompos.outbox', JSON.stringify(O.slice(0, 400))); } catch (x) {}
+      set({ sentOne: e[0], savedWho: '', tick: Date.now() });
+    };
+    const PF = S.pf || {};
+    const curM = e[9] || META0;
+    const pfv = (k, d) => (PF[e[0]] && PF[e[0]][k] !== undefined) ? PF[e[0]][k] : (d === undefined ? '' : d);
+    const setPF = o => set({ pf: Object.assign({}, PF, { [e[0]]: Object.assign({}, PF[e[0]] || {}, o) }) });
+    const psEdit = {
+      open: !!S.pfOpen, toggleTxt: S.pfOpen ? 'Close' : 'Edit payslip details',
+      toggle: () => set({ pfOpen: !S.pfOpen }),
+      who: e[0], no: curM.no,
+      note: 'Only ' + e[0] + '\u2019s payslip changes. The staff number is generated by the system and stays with them.',
+      tin: pfv('tin', curM.tin), tinIn: ev => setPF({ tin: ev.target.value }),
+      grade: pfv('grade', curM.grade), gradeIn: ev => setPF({ grade: ev.target.value }),
+      etype: pfv('etype', curM.etype), etypeIn: ev => setPF({ etype: ev.target.value }),
+      payDate: pfv('payDate', curM.payDate), payDateIn: ev => setPF({ payDate: ev.target.value }),
+      payDateNote: (pfv('payDate', curM.payDate) ? 'Shown on the payslip as typed.' : 'Left blank, the payslip uses the last day of the pay month.'),
+      useNow: () => { const d = new Date(); setPF({ payDate: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + d.toTimeString().slice(0, 5) }); },
+      useMonthEnd: () => setPF({ payDate: '' }),
+      allow: String(pfv('allow', curM.allow) || ''), allowIn: ev => setPF({ allow: ev.target.value }),
+      other: String(pfv('other', curM.other) || ''), otherIn: ev => setPF({ other: ev.target.value }),
+      loan: String(pfv('loan', curM.loan) || ''), loanIn: ev => setPF({ loan: ev.target.value }),
+      union: String(pfv('union', curM.union) || ''), unionIn: ev => setPF({ union: ev.target.value }),
+      bank: pfv('bank', curM.bank), bankIn: ev => setPF({ bank: ev.target.value }),
+      bankBr: pfv('bankBr', curM.bankBr), bankBrIn: ev => setPF({ bankBr: ev.target.value }),
+      acct: pfv('acct', curM.acct), acctIn: ev => setPF({ acct: ev.target.value }),
+      save: () => { const num = v => { const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n; };
+        hrSave(e[0], { tin: String(pfv('tin', curM.tin) || '').trim(), grade: String(pfv('grade', curM.grade) || '').trim(), etype: String(pfv('etype', curM.etype) || '').trim(), payDate: String(pfv('payDate', curM.payDate) || '').trim(),
+          allow: num(pfv('allow', curM.allow)), other: num(pfv('other', curM.other)), loan: num(pfv('loan', curM.loan)), union: num(pfv('union', curM.union)),
+          bank: String(pfv('bank', curM.bank) || '').trim(), bankBr: String(pfv('bankBr', curM.bankBr) || '').trim(), acct: String(pfv('acct', curM.acct) || '').trim() });
+        set({ pfOpen: false, pf: {}, savedWho: e[0], tick: Date.now() }); },
+      cancel: () => set({ pfOpen: false, pf: {} })
+    };
+    const yearOf = k => Number(String(k).split('-')[0]);
+    const YEARS = (() => { const ys = {}; SLIPS0.forEach(x => { ys[yearOf(x.month)] = 1; }); ys[NOWD.getFullYear()] = 1; ys[PY] = 1; return Object.keys(ys).map(Number).sort((a, b) => b - a); })();
+    const sentOf = (nm, mk) => SLIPS0.filter(x => x.name === nm && x.month === mk)[0] || null;
+    const yearChips = YEARS.map(y => ({ label: String(y), pick: () => set({ pyYear: y, sentOne: '', savedWho: '' }), bg: y === PY ? '#000000' : '#ffffff', fg: y === PY ? '#ffffff' : '#000000', bd: y === PY ? '#000000' : '#ebebeb', pressed: y === PY ? 'true' : 'false' }));
+    const monthChips = MN.map((nm, k) => {
+      const mk = PY + '-' + String(k + 1).padStart(2, '0');
+      const n = SLIPS0.filter(x => x.month === mk).length;
+      const ahead = (PY > NOWD.getFullYear()) || (PY === NOWD.getFullYear() && k > NOWD.getMonth());
+      return { label: MS[k], on: k === PM, n: n ? String(n) : '', hasN: n > 0,
+        bg: k === PM ? '#000000' : (n ? '#e7f4e8' : '#ffffff'), fg: k === PM ? '#ffffff' : (ahead ? '#9a9794' : '#000000'),
+        bd: k === PM ? '#000000' : (n ? '#1f7a2a' : '#ebebeb'), pressed: k === PM ? 'true' : 'false',
+        aria: MN[k] + ' ' + PY + (n ? ', ' + n + ' payslips sent' : ', nothing sent yet'),
+        pick: () => set({ pyMonth: k, sentOne: '', savedWho: '' }) };
+    });
+    const trackHead = MS.map((t, k) => ({ t, on: k === PM }));
+    const track = EV.map((x, ri) => {
+      let paid = 0, totNet = 0;
+      const cells = MN.map((nm, k) => {
+        const mk = PY + '-' + String(k + 1).padStart(2, '0');
+        const rec = sentOf(x[0], mk);
+        const ahead = (PY > NOWD.getFullYear()) || (PY === NOWD.getFullYear() && k > NOWD.getMonth());
+        if (rec) { paid++; totNet += Number(rec.net) || 0; }
+        return { t: rec ? '\u2713' : (ahead ? '' : '\u2013'), bg: rec ? '#1f7a2a' : (k === PM ? '#eef1f8' : '#f2f4f5'), fg: rec ? '#ffffff' : '#9a9794',
+          aria: x[0] + ', ' + MN[k] + ' ' + PY + ': ' + (rec ? 'paid ' + money(rec.net) : 'no payslip'),
+          pick: () => set({ pyMonth: k, sel: ri, sentOne: '', savedWho: '' }) };
+      });
+      return { name: x[0], role: String(x[1]).split(' · ')[0], no: (x[9] || META0).no, cells,
+        count: paid + ' of 12', total: money(totNet), rowBg: ri === Math.min(S.sel, EV.length - 1) ? '#f2f4f5' : '#ffffff', pick: () => set({ sel: ri }) };
+    });
+    const yearNet = SLIPS0.filter(x => yearOf(x.month) === PY).reduce((a, x) => a + (Number(x.net) || 0), 0);
+    const yearCount = SLIPS0.filter(x => yearOf(x.month) === PY).length;
+    const ids = ['PR-01', 'PR-02', 'PR-03', 'PR-04', 'PR-05', 'PR-06', 'PR-07', 'PR-08', 'PR-09', 'PR-10', 'PR-11', 'PR-12', 'PR-13', 'PR-14', 'PR-15', 'PR-16'].map(t => ({ t }));
+    const __LG = (() => { try { const b = JSON.parse(window.localStorage.getItem('ecompos.biz') || '{}') || {}; const nm = String(b.name || 'Ebenezer Unique Ventures').replace('Adom' + ' Mart', 'Ebenezer Unique Ventures'); return { logo: b.logo || window.localStorage.getItem('ecompos.logo') || '', name: nm, ini: nm.split(/\s+/).map(w => w.charAt(0)).join('').slice(0, 2).toUpperCase() }; } catch (e) { return { logo: '', name: 'Ebenezer Unique Ventures', ini: 'EU' }; } })(); 
+    return { coLogo: __LG.logo, coHasLogo: !!__LG.logo, coNoLogo: !__LG.logo, coName: __LG.name, coIni: __LG.ini, 
+      rows, totals, steps, slip, ids, isHr: HRADM, selfOnly: !HRADM,
+      yearChips, monthChips, trackHead, track, periodTxt: MN[PM] + ' ' + PY,
+      yearTitle: 'Payslips through ' + PY, yearNote: yearCount ? yearCount + ' payslip' + (yearCount > 1 ? 's' : '') + ' sent in ' + PY + ' · ' + money(yearNet) + ' paid out' : 'Nothing sent for ' + PY + ' yet',
+      periodNote: isFuture ? MN[PM] + ' ' + PY + ' has not happened yet \u2014 sending now records it in advance.' : 'Pay run for ' + MN[PM] + ' ' + PY + '. Pick another month to send or re-send its payslips.',
+      ps: psPreview, psHref: psFile(psPreview), psFileName: psPreview ? psPreview.fileName : 'payslip.html',
+      psTitle: HRADM ? 'Payslip for ' + psPreview.empName : 'Your payslip',
+      psNote: sentThis ? 'This is exactly what the employee opens in My HR.' : 'A preview. Send the payslips to put this in each employee account.',
+      psPrint: () => { try { window.print(); } catch (x) {} },
+      co: coForm, psEdit,
+      isLetter: psPaper === 'Letter',
+      paperChips: ['A4', 'Letter'].map(t => ({ label: t === 'A4' ? 'A4 (210 × 297 mm)' : 'Letter (8.5 × 11 in)', pressed: psPaper === t ? 'true' : 'false',
+        bg: psPaper === t ? '#000000' : '#ffffff', fg: psPaper === t ? '#ffffff' : '#000000', bd: psPaper === t ? '#000000' : '#ebebeb',
+        pick: () => { try { window.localStorage.setItem('ecompos.payslipPaper', t); } catch (x) {} set({ tick: Date.now() }); } })),
+      sendOne, sendOneTxt: (S.sentOne === e[0] ? 'Sent to ' + String(e[0]).split(' ')[0] : 'Send this payslip to ' + String(e[0]).split(' ')[0]),
+      sendOneBg: S.sentOne === e[0] ? '#1f7a2a' : '#0b5c5c',
+      psFlash: S.sentOne === e[0] ? 'Sent. ' + e[0] + ' can now open, print or download this payslip in My HR.' : (S.savedWho === e[0] ? 'Saved. ' + e[0] + '\u2019s payslip is updated \u2014 send it so they get the new copy.' : ''),
+      hasPsFlash: (S.savedWho === e[0]) || (S.sentOne === e[0]),
+      pushLabel: S.pushed ? 'Payslips sent to ' + S.pushed + ' staff' : (sentThis ? 'Re-send ' + MN[PM] + ' payslips to ' + E.length + ' staff' : 'Send ' + MN[PM] + ' ' + PY + ' payslips to ' + E.length + ' staff'),
+      pushBg: S.pushed ? '#1f7a2a' : '#0b5c5c', pushSlips,
+      pushNote: S.pushed ? 'Each person can now view, print or download ' + MN[PM] + ' ' + PY + ' in My HR.' : (sentThis ? sentThis + ' payslips already sent for ' + MN[PM] + '. Sending again replaces them.' : 'Builds a ' + MN[PM] + ' ' + PY + ' payslip for every employee and puts it in their own account.'),
+      empTitle: HRADM ? 'Employees' : 'My pay this month',
+      payTitle: (HRADM ? 'Payroll · ' : 'My payslip · ') + MN[PM] + ' ' + PY,
+      payNote: HRADM ? 'Monthly pay run across every branch · hours come from the QR time clock, commission from till sales, leave from People & HR' : 'Your own payslip. The full pay run is kept by the Admin, who is HR for this company.',
+      nextLabel: NEXT[S.step], stepNote: NOTE[S.step], finished: S.step >= 3,
+      next: () => set({ step: Math.min(3, S.step + 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>

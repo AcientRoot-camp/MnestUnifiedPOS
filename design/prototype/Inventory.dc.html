@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS inventory</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@media print{body *{visibility:hidden !important}.inv-print,.inv-print *{visibility:visible !important}.inv-print{position:absolute !important;left:0 !important;top:0 !important;width:100% !important;background:none !important;padding:0 !important;gap:0 !important;overflow:visible !important;border-radius:0 !important}.inv-page{box-shadow:none !important;margin:0 !important;break-after:page;page-break-after:always}.inv-page:last-child{break-after:auto;page-break-after:auto}.no-print{display:none !important}}
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="inventory" hint-size="232px,960px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="inventory" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Inventory</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">Live stock at every branch{{valueLine}}</p>
+</div>
+<div role="tablist" aria-label="Inventory views" style="display: flex; gap: 4px; padding: 4px; border-radius: 9999px; background: #ffffff; flex-wrap: wrap; box-shadow: rgba(0, 0, 0, 0.06) 0 2px 8px 0">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+<button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 42px; border-radius: 9999px; border: 0; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}">{{t.label}}</button>
+</sc-for>
+</div>
+</header>
+<sc-if value="{{hasInvMsg}}" hint-placeholder-val="{{false}}"><div role="status" style="display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 16px; background: #1f7a2a; color: #ffffff; font-size: 14px; font-weight: 500"><span aria-hidden="true">✓</span><span style="flex: 1">{{invMsg}}</span><button type="button" onClick="{{hideInvMsg}}" aria-label="Dismiss" style="width: 30px; height: 30px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">×</button></div></sc-if>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section style="flex: 3 1 540px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<section aria-labelledby="rr-h" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px; border: 2px solid {{rrBd}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><h2 id="rr-h" style="margin: 0; font-size: 17px; font-weight: 600">Returns to receive <span style="font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 9999px; background: {{rrBadgeBg}}; color: #ffffff; vertical-align: middle">{{rrCount}}</span></h2><span style="font-size: 12px; color: #5f5c5a">{{rrScope}} · good items go back into stock, damaged items are logged</span></div>
+<sc-if value="{{rrNone}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">No returns waiting. Online returns requested by customers appear here. Till returns are received at Sell Now → Return / exchange.</span></sc-if>
+<sc-for list="{{rrList}}" as="r" hint-placeholder-count="1"><div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; background: #f6f7f8">
+<div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap"><span style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 15px">{{r.id}} · Order #{{r.no}} · {{r.who}}</strong><span style="font-size: 12px; color: #5f5c5a">{{r.sub}}</span></span><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #fff4e5; color: #a8492a; align-self: flex-start">Reason: {{r.reason}}</span></div>
+<sc-for list="{{r.lines}}" as="l" hint-placeholder-count="2"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 10px; border-radius: 12px; background: #ffffff; font-size: 13px"><span style="flex: 1 1 180px; display: flex; flex-direction: column"><strong style="font-weight: 600">{{l.qty}} × {{l.name}}</strong><span style="font-size: 12px; color: {{l.c}}">{{l.txt}}</span></span><span style="display: inline-flex; gap: 5px; align-items: center; font-size: 12px; font-weight: 600">Damaged <button type="button" onClick="{{l.dec}}" aria-label="Fewer damaged" style="width: 26px; height: 26px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer; padding: 0; font-size: 13px">−</button><span style="min-width: 14px; text-align: center">{{l.dmg}}</span><button type="button" onClick="{{l.inc}}" aria-label="More damaged" style="width: 26px; height: 26px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer; padding: 0; font-size: 13px">+</button></span></div></sc-for>
+<div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; align-items: center"><span style="font-size: 13px; color: #3d3a38; margin-right: auto">{{r.sum}}</span><button type="button" onClick="{{r.receive}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Receive return &amp; restock</button></div>
+</div></sc-for>
+<sc-if value="{{rrHasDone}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #5f5c5a">Received recently</span><sc-for list="{{rrDone}}" as="r" hint-placeholder-count="2"><span style="font-size: 12px; color: #3d3a38">✓ {{r.txt}}</span></sc-for></div></sc-if>
+</section>
+
+<sc-if value="{{tabStock}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{pv.open}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 10px"><div class="no-print" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><strong style="font-size: 15px">{{pv.title}}</strong><span style="font-size: 13px; color: #5f5c5a">{{pv.pagesTxt}}</span><span style="flex: 1"></span><button type="button" onClick="{{pv.print}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; border: 0; background: #000000; color: #ffffff; font-weight: 600">Print or save as PDF</button><button type="button" onClick="{{pv.close}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; border: 1px solid #d9d9d9; background: #ffffff">Close</button></div><sc-if value="{{pv.isA4}}" hint-placeholder-val="{{true}}"><style>@media print{@page{size:A4 portrait;margin:0}}</style></sc-if><sc-if value="{{pv.isLetter}}" hint-placeholder-val="{{false}}"><style>@media print{@page{size:letter portrait;margin:0}}</style></sc-if><div class="inv-print" style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; border-radius: 16px; background: #e4e6e9; overflow-x: auto"><sc-for list="{{pv.pages}}" as="pg" hint-placeholder-count="2"><article class="inv-page" aria-label="Page {{pg.n}} of {{pg.of}}" style="flex: none; width: {{pv.pw}}; height: {{pv.ph}}; box-sizing: border-box; background: #ffffff; padding: 13mm 13mm 10mm; display: flex; flex-direction: column; gap: 9px; color: #000000; overflow: hidden; box-shadow: rgba(0, 0, 0, 0.18) 0 4px 18px 0"><sc-if value="{{pg.first}}" hint-placeholder-val="{{true}}"><div style="display: flex; gap: 12px; align-items: flex-start; padding-bottom: 9px; border-bottom: 2px solid #000000"><sc-if value="{{pv.hasLogo}}" hint-placeholder-val="{{false}}"><img src="{{pv.logo}}" alt="{{pv.co}} logo" style="height: 64px; width: auto; max-width: 120px; object-fit: contain; flex: none"></sc-if><span style="display: flex; flex-direction: column; gap: 1px; flex: 1 1 0; min-width: 0"><strong style="font-size: 15px">{{pv.co}}</strong><span style="font-size: 10.5px; color: #3d3a38; line-height: 1.4">{{pv.addr}}</span><span style="font-size: 10.5px; color: #3d3a38; line-height: 1.4">Tel: {{pv.tel}}</span><span style="font-size: 10.5px; color: #3d3a38; line-height: 1.4">Email: {{pv.email}}</span><span style="font-size: 10.5px; color: #3d3a38; line-height: 1.4">Website: {{pv.web}}</span></span><span style="display: flex; flex-direction: column; gap: 2px; text-align: right; flex: 0 1 46%"><strong style="font-size: 14px">{{pv.title}}</strong><span style="font-size: 10.5px; color: #3d3a38">{{pv.scope}}</span><span style="font-size: 10px; color: #5f5c5a">{{pv.genOn}}</span><span style="font-size: 10px; color: #5f5c5a">{{pv.genBy}}</span></span></div><span style="font-size: 10.5px; color: #3d3a38">{{pv.intro}}</span></sc-if><sc-if value="{{pg.notFirst}}" hint-placeholder-val="{{false}}"><div style="display: flex; justify-content: space-between; gap: 10px; padding-bottom: 6px; border-bottom: 1.5px solid #000000; font-size: 10px"><strong style="font-size: 11.5px">{{pv.co}}</strong><span style="color: #3d3a38">{{pv.title}} · {{pv.scope}}</span></div></sc-if><table style="width: 100%; border-collapse: collapse; font-size: 10.5px; table-layout: fixed; font-variant-numeric: tabular-nums"><thead><tr><sc-for list="{{pv.cols}}" as="c" hint-placeholder-count="7"><th scope="col" style="padding: 5px 5px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; text-align: left; border-bottom: 1.5px solid #000000; width: {{c.w}}; text-align: {{c.al}}">{{c.t}}</th></sc-for></tr></thead><tbody><sc-for list="{{pg.rows}}" as="r" hint-placeholder-count="10"><tr style="height: 25px; border-bottom: 1px solid #e1e4e6"><sc-for list="{{r.cells}}" as="c" hint-placeholder-count="7"><td style="padding: 3px 5px; text-align: {{c.al}}; font-weight: {{c.fw}}; color: {{c.fg}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><sc-if value="{{c.box}}" hint-placeholder-val="{{false}}"><span style="display: inline-block; width: 100%; height: 17px; border: 1px solid #9b9aa3; border-radius: 3px; box-sizing: border-box"></span></sc-if>{{c.t}}</td></sc-for></tr></sc-for></tbody></table><sc-if value="{{pg.last}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px; padding-top: 6px"><span style="font-size: 10.5px; color: #3d3a38">{{pv.outro}}</span><sc-if value="{{pv.isCount}}" hint-placeholder-val="{{false}}"><div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding-top: 18px; font-size: 10px"><span style="border-top: 1px solid #000000; padding-top: 3px">Counted by</span><span style="border-top: 1px solid #000000; padding-top: 3px">Date &amp; time</span><span style="border-top: 1px solid #000000; padding-top: 3px">Checked by (Supervisor)</span><span style="border-top: 1px solid #000000; padding-top: 3px">Signature</span></div></sc-if></div></sc-if><div style="margin-top: auto; display: flex; justify-content: space-between; gap: 10px; padding-top: 6px; border-top: 1px solid #d9d9d9; font-size: 9.5px; color: #5f5c5a"><span>{{pv.genOn}} · {{pv.genBy}}</span><strong style="color: #000000">Page {{pg.n}} of {{pg.of}}</strong></div></article></sc-for></div></div></sc-if>
+<div style="background: #ffffff; border-radius: 24px; padding: 8px 8px 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div class="no-print" style="display: flex; flex-direction: column; gap: 10px; padding: 8px 8px 4px"><div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><div role="search" style="flex: 1 1 260px; max-width: 420px"><label for="inv-q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search inventory</label><input id="inv-q" type="search" autocomplete="off" value="{{iv.q}}" onInput="{{iv.qIn}}" placeholder="Search inventory by product or category" style="font: inherit; font-size: 15px; padding: 9px 16px; min-height: 42px; box-sizing: border-box; border-radius: 9999px; border: 1px solid #000000; width: 100%"></div><label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #3d3a38">Show<select value="{{iv.viewV}}" onChange="{{iv.viewIn}}" style="font: inherit; font-size: 14px; padding: 8px 12px; min-height: 40px; border-radius: 9999px; border: 1px solid #000000; background: #ffffff; min-width: 200px"><sc-for list="{{iv.views}}" as="x" hint-placeholder-count="5"><option value="{{x.v}}">{{x.label}} ({{x.n}})</option></sc-for></select></label><span style="font-size: 13px; color: #5f5c5a">{{iv.count}}</span></div><div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 12px; border-radius: 16px; background: #f6f7f8"><strong style="font-size: 13px">🖨 Print</strong><label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #3d3a38">Sheet<select value="{{iv.prtV}}" onChange="{{iv.prtIn}}" style="font: inherit; font-size: 14px; padding: 8px 12px; min-height: 40px; border-radius: 9999px; border: 1px solid #000000; background: #ffffff; min-width: 240px"><sc-for list="{{iv.prints}}" as="x" hint-placeholder-count="7"><option value="{{x.v}}">{{x.label}}</option></sc-for></select></label><label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #3d3a38">Branch<select value="{{iv.brV}}" onChange="{{iv.brIn}}" style="font: inherit; font-size: 14px; padding: 8px 12px; min-height: 40px; border-radius: 9999px; border: 1px solid #000000; background: #ffffff"><sc-for list="{{iv.brOpts}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for></select></label><label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #3d3a38">Paper<select value="{{iv.paperV}}" onChange="{{iv.paperIn}}" style="font: inherit; font-size: 14px; padding: 8px 12px; min-height: 40px; border-radius: 9999px; border: 1px solid #000000; background: #ffffff"><option value="a4">A4</option><option value="letter">Letter</option></select></label></div></div>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 700px">
+<thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a">
+<th scope="col" style="font-weight: 500; padding: 12px">Product</th>
+<th scope="col" style="font-weight: 500; padding: 12px">Category</th>
+<sc-for list="{{brHeads}}" as="h" hint-placeholder-count="3"><th scope="col" style="font-weight: 500; padding: 12px">{{h.name}}<sc-if value="{{h.isNew}}" hint-placeholder-val="{{false}}"> <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: #0b5c5c; color: #ffffff">NEW</span></sc-if></th></sc-for>
+<th scope="col" style="font-weight: 500; padding: 12px">Total</th>
+<th scope="col" style="font-weight: 500; padding: 12px">Sold · 30 days</th>
+<th scope="col" style="font-weight: 500; padding: 12px">Status</th>
+<th scope="col" style="font-weight: 500; padding: 12px">Reserved online</th>
+<th scope="col" style="font-weight: 500; padding: 12px">Reorder at</th>
+<th scope="col" style="font-weight: 500; padding: 12px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Actions</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{stockShown}}" as="s" hint-placeholder-count="8">
+<tr style="border-top: 1px solid #ebebeb; background: {{s.rowBg}}">
+<td style="padding: 12px; font-weight: 500">{{s.name}}</td>
+<td style="padding: 12px; color: #5f5c5a">{{s.cat}}</td>
+<sc-for list="{{s.cells}}" as="c" hint-placeholder-count="3">
+<td style="padding: 12px"><span style="padding: 3px 10px; border-radius: 9999px; background: {{c.bg}}; color: {{c.fg}}; font-variant-numeric: tabular-nums">{{c.v}}</span></td>
+</sc-for>
+<td style="padding: 12px; font-weight: 600; font-variant-numeric: tabular-nums">{{s.total}}</td>
+<td style="padding: 12px; font-variant-numeric: tabular-nums">{{s.sold}}</td>
+<td style="padding: 12px"><span style="font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 9999px; background: {{s.stBg}}; color: {{s.stFg}}; white-space: nowrap">{{s.status}}</span></td>
+<td style="padding: 12px; color: #5f5c5a">{{s.reserved}}</td>
+<td style="padding: 12px; color: #5f5c5a">{{s.reorder}}</td>
+<td style="padding: 12px"><sc-if value="{{canAdj}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{s.adjust}}" style="font-family: inherit; font-size: 13px; padding: 7px 12px; min-height: 36px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Adjust</button></sc-if></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<sc-if value="{{iv.none}}" hint-placeholder-val="{{false}}"><p style="margin: 8px 12px 0; font-size: 14px; color: #5f5c5a">No product matches this search or view.</p></sc-if>
+<p style="margin: 8px 12px 0; font-size: 12px; color: #5f5c5a">Dark chips are below their reorder level. Stock updates within seconds of a till sale, online order, return or adjustment.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{tabTransfers}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{openSugg}}" as="o" hint-placeholder-count="1"><div style="background: #e7f2f2; border: 1.5px solid #0b5c5c; border-radius: 22px; padding: 16px 18px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap"><span style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px"><strong style="font-weight: 600">{{o.name}} has no stock yet</strong><span style="font-size: 13px; color: #3d3a38">It shares the company catalogue. Send opening stock from Osu to start selling.</span></span><button type="button" onClick="{{o.send}}" style="font-family: inherit; font-size: 13px; font-weight: 500; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Send opening stock</button></div></sc-for>
+<sc-for list="{{transfers}}" as="t" hint-placeholder-count="3">
+<div style="background: #ffffff; border-radius: 22px; padding: 18px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<span style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 220px"><strong style="font-weight: 600">{{t.id}} · {{t.route}}</strong><span style="font-size: 13px; color: #5f5c5a">{{t.items}}</span></span>
+<span style="font-size: 13px; padding: 5px 12px; border-radius: 9999px; background: {{t.stBg}}; color: {{t.stFg}}">{{t.status}}</span>
+<sc-if value="{{t.canReceive}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{t.receive}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Receive (scan)</button></sc-if>
+</div>
+</sc-for>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><a href="Warehouse.dc.html" onClick="{{goTransfer}}" style="font-family: inherit; align-self: flex-start; font-size: 14px; padding: 12px 18px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; text-decoration: none; cursor: pointer">New transfer</a><a href="Warehouse.dc.html" onClick="{{goWarehouse}}" style="font-family: inherit; align-self: flex-start; font-size: 14px; padding: 12px 18px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; text-decoration: none">Warehouse &amp; transfers</a></div>
+</div>
+</sc-if>
+
+<sc-if value="{{tabMoves}}" hint-placeholder-val="{{false}}">
+<div style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; gap: 10px; flex-wrap: wrap"><sc-for list="{{mvKpis}}" as="k" hint-placeholder-count="4"><div style="flex: 1 1 130px; padding: 10px 14px; border-radius: 16px; background: #f6f7f8; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #5f5c5a">{{k.k}}</span><strong style="font-size: 19px; font-weight: 700; color: {{k.c}}">{{k.v}}</strong></div></sc-for></div>
+<span style="font-size: 12px; color: #5f5c5a">Every sale, online order, cancellation, return and adjustment changes the stock count here automatically, so the numbers match what is on the shelf.</span>
+<sc-if value="{{mvNone}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">No stock movements yet. Make a sale at Sell Now or place an online order.</span></sc-if>
+<div style="overflow-x: auto"><table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px"><thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a"><th scope="col" style="font-weight: 500; padding: 8px 6px">When</th><th scope="col" style="font-weight: 500; padding: 8px 6px">Product</th><th scope="col" style="font-weight: 500; padding: 8px 6px">Branch</th><th scope="col" style="font-weight: 500; padding: 8px 6px; text-align: right">Stock change</th><th scope="col" style="font-weight: 500; padding: 8px 6px">What happened</th><th scope="col" style="font-weight: 500; padding: 8px 6px">By</th></tr></thead><tbody>
+<sc-for list="{{moves}}" as="m" hint-placeholder-count="5"><tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px; white-space: nowrap; color: #5f5c5a">{{m.at}}</td><td style="padding: 8px 6px; font-weight: 500">{{m.name}}</td><td style="padding: 8px 6px">{{m.br}}</td><td style="padding: 8px 6px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: {{m.c}}">{{m.q}}</td><td style="padding: 8px 6px">{{m.kind}}<br><span style="font-size: 11px; color: #5f5c5a">{{m.ref}}</span></td><td style="padding: 8px 6px; color: #5f5c5a">{{m.by}}</td></tr></sc-for>
+</tbody></table></div>
+</div>
+</sc-if>
+
+<sc-if value="{{tabPO}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap"><strong style="font-size: 16px; font-weight: 600">PO-0312 · Coastal Foods Ltd (imported)</strong><span style="font-size: 13px; padding: 5px 12px; border-radius: 9999px; background: #f2f4f5">Partly received · 3 of 4 lines</span></div>
+<div style="overflow-x: auto"><table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 480px"><thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a"><th scope="col" style="font-weight: 500; padding: 6px">Line</th><th scope="col" style="font-weight: 500; padding: 6px">Ordered</th><th scope="col" style="font-weight: 500; padding: 6px">Received</th><sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><th scope="col" style="font-weight: 500; padding: 6px">Landed unit cost</th></sc-if></tr></thead><tbody>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px">Vegetable oil 1L</td><td style="padding: 8px 6px">40 cartons</td><td style="padding: 8px 6px">40</td><sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><td style="padding: 8px 6px">GHS 31.20</td></sc-if></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px">Evaporated milk 410g</td><td style="padding: 8px 6px">20 cartons</td><td style="padding: 8px 6px">20</td><sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><td style="padding: 8px 6px">GHS 11.45</td></sc-if></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px">Sardines 125g</td><td style="padding: 8px 6px">15 cartons</td><td style="padding: 8px 6px">15</td><sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><td style="padding: 8px 6px">GHS 9.60</td></sc-if></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px">Tomato paste 400g</td><td style="padding: 8px 6px">30 cartons</td><td style="padding: 8px 6px">0</td><sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><td style="padding: 8px 6px">—</td></sc-if></tr>
+</tbody></table></div>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; font-size: 13px">
+<div style="padding: 12px; border-radius: 14px; background: #f2f4f5"><span style="color: #5f5c5a">Goods</span><div style="font-size: 16px; font-weight: 500">GHS 38,400.00</div></div>
+<div style="padding: 12px; border-radius: 14px; background: #f2f4f5"><span style="color: #5f5c5a">Freight</span><div style="font-size: 16px; font-weight: 500">GHS 2,150.00</div></div>
+<div style="padding: 12px; border-radius: 14px; background: #f2f4f5"><span style="color: #5f5c5a">Customs duty</span><div style="font-size: 16px; font-weight: 500">GHS 3,840.00</div></div>
+<div style="padding: 12px; border-radius: 14px; background: #f2f4f5"><span style="color: #5f5c5a">Clearing</span><div style="font-size: 16px; font-weight: 500">GHS 900.00</div></div>
+</div>
+<span style="font-size: 12px; color: #5f5c5a">Freight, duty and clearing are spread over the received units to give the landed cost above.</span>
+</sc-if>
+<sc-if value="{{notSu}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #5f5c5a">Purchase costs and landed cost are visible to the Admin only. You can still receive the goods.</span></sc-if>
+</div>
+<div style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<strong style="font-size: 16px; font-weight: 600">Suggested reorders (from the last 8 weeks of sales)</strong>
+<sc-for list="{{suggest}}" as="g" hint-placeholder-count="3">
+<div style="display: flex; gap: 10px; align-items: center; padding: 12px; border-radius: 16px; background: #f2f4f5; flex-wrap: wrap"><span style="flex: 1 1 200px">{{g.name}}</span><span style="font-size: 13px; color: #5f5c5a">{{g.why}}</span><button type="button" onClick="{{g.add}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 38px; border-radius: 9999px; border: 0; background: {{g.bg}}; color: {{g.fg}}; cursor: pointer">{{g.btn}}</button></div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{tabCount}}" hint-placeholder-val="{{false}}">
+<div style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap"><strong style="font-size: 16px; font-weight: 600">Cycle count · Osu · aisle 3 (tins)</strong><span style="font-size: 13px; color: #5f5c5a">Counted on a phone scanner by Akua</span></div>
+<div aria-hidden="true" style="height: 10px; border-radius: 9999px; background: #f2f4f5; overflow: hidden"><div style="width: {{countPct}}%; height: 100%; background: #000000"></div></div>
+<span style="font-size: 13px">{{countDone}} of 4 products counted</span>
+<div style="overflow-x: auto"><table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 420px"><thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a"><th scope="col" style="font-weight: 500; padding: 6px">Product</th><th scope="col" style="font-weight: 500; padding: 6px">Expected</th><th scope="col" style="font-weight: 500; padding: 6px">Counted</th><th scope="col" style="font-weight: 500; padding: 6px">Variance</th></tr></thead><tbody>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px">Evaporated milk 410g</td><td style="padding: 8px 6px">11</td><td style="padding: 8px 6px">11</td><td style="padding: 8px 6px">0</td></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px">Sardines 125g</td><td style="padding: 8px 6px">96</td><td style="padding: 8px 6px">93</td><td style="padding: 8px 6px">−3 · GHS 27.00</td></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px">Tomato paste 400g</td><td style="padding: 8px 6px">70</td><td style="padding: 8px 6px">70</td><td style="padding: 8px 6px">0</td></tr>
+<tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px">Corned beef 340g</td><td style="padding: 8px 6px">24</td><td style="padding: 8px 6px">{{lastCount}}</td><td style="padding: 8px 6px">{{lastVar}}</td></tr>
+</tbody></table></div>
+<button type="button" onClick="{{finishCount}}" style="font-family: inherit; align-self: flex-start; font-size: 14px; padding: 12px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">{{countBtn}}</button>
+</div>
+</sc-if>
+</section>
+
+<aside style="flex: 2 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<sc-if value="{{readOnly}}" hint-placeholder-val="{{false}}"><section style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 6px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px"><strong style="font-size: 17px; font-weight: 600">Stock you can see</strong><span style="font-size: 14px; color: #3d3a38">{{roTxt}}</span><a href="Warehouse.dc.html" style="align-self: flex-start; font-size: 13px; font-weight: 500; padding: 9px 14px; border-radius: 9999px; border: 1px solid #ebebeb; text-decoration: none">Ask for a transfer</a></section></sc-if>
+<sc-if value="{{canAdj}}" hint-placeholder-val="{{true}}"><section aria-labelledby="adj-h" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="adj-h" style="margin: 0; font-size: 17px; font-weight: 600">Adjust stock · {{adj.name}}</h2>
+<div role="group" aria-label="Reason" style="display: flex; gap: 6px; flex-wrap: wrap">
+<sc-for list="{{reasons}}" as="r" hint-placeholder-count="5">
+<button type="button" onClick="{{r.pick}}" aria-pressed="{{r.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 12px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: {{r.bg}}; color: {{r.fg}}; border: 1px solid {{r.bd}}">{{r.label}}</button>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="adj-br" style="font-size: 12px; color: #5f5c5a">Branch</label><select id="adj-br" value="{{adjBr}}" onChange="{{adjBrIn}}" style="font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff"><sc-for list="{{adjBrs}}" as="h" hint-placeholder-count="3"><option value="{{h.id}}">{{h.name}}</option></sc-for></select></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="adj-q" style="font-size: 12px; color: #5f5c5a">Quantity (−/+)</label><input id="adj-q" inputmode="numeric" value="{{adjQ}}" onInput="{{adjQIn}}" placeholder="−2" style="font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+</div>
+<sc-if value="{{adjHasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{adjErr}}</span></sc-if>
+<span style="font-size: 12px; color: #5f5c5a">{{adjNow}}</span>
+<button type="button" onClick="{{saveAdj}}" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 12px; min-height: 46px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">{{adjBtn}}</button>
+</section>
+
+</sc-if>
+<section aria-labelledby="rules-h" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="rules-h" style="margin: 0; font-size: 17px; font-weight: 600">Stock rules</h2>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="oos" style="font-size: 12px; color: #5f5c5a">When sold out online</label><select id="oos" style="font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff"><option>Show as sold out</option><option>Hide the product</option><option>Allow pre-order</option></select></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="route" style="font-size: 12px; color: #5f5c5a">Fulfil online orders from</label><select id="route" style="font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff"><option>Nearest branch with stock</option><option>Branch with most stock</option><sc-for list="{{brHeads}}" as="h" hint-placeholder-count="3"><option>{{h.name}} first</option></sc-for></select></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #5f5c5a">Valuation method</span>
+<div role="group" aria-label="Valuation method" style="display: flex; gap: 6px">
+<sc-for list="{{vals}}" as="v" hint-placeholder-count="2"><button type="button" onClick="{{v.pick}}" aria-pressed="{{v.pressed}}" style="font-family: inherit; flex: 1; font-size: 13px; padding: 9px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{v.bg}}; color: {{v.fg}}; border: 1px solid {{v.bd}}">{{v.label}}</button></sc-for>
+</div></div>
+<label style="display: flex; gap: 10px; align-items: center"><input type="checkbox" defaultChecked="{{true}}" style="width: 18px; height: 18px; margin: 0">Low-stock alerts to managers on WhatsApp</label>
+<label style="display: flex; gap: 10px; align-items: center"><input type="checkbox" style="width: 18px; height: 18px; margin: 0">Track consignment stock separately</label>
+</section>
+
+<section aria-labelledby="loss-h" style="background: #000000; color: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+<h2 id="loss-h" style="margin: 0; font-size: 17px; font-weight: 600">Shrinkage this month</h2>
+<div style="display: flex; justify-content: space-between"><span style="color: #c9c6c4">Damaged</span><span>GHS 312.00</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #c9c6c4">Damaged returns logged</span><span>{{dmgRet}}</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #c9c6c4">Expired</span><span>GHS 146.50</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #c9c6c4">Count variance</span><span>GHS 88.00</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #c9c6c4">Suppliers on file</span><span>14 · lead time 3–21 days</span></div>
+</section>
+</aside>
+</div>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  componentDidMount() { try { window.addEventListener('ecompos:stock', this.onBrAll); window.addEventListener('ecompos:returns', this.onBrAll); window.addEventListener('ecompos:branches', this.onBrAll); window.addEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  componentWillUnmount() { try { window.removeEventListener('ecompos:stock', this.onBrAll); window.removeEventListener('ecompos:returns', this.onBrAll); window.removeEventListener('ecompos:branches', this.onBrAll); window.removeEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  constructor(props) { super(props); this.onBrAll = () => this.setState({ brAllTick: Date.now() }); let role = 'superuser'; try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {} this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' }); this.state = { role, tab: 'stock', adj: 1, reason: 'Damaged', saved: false, received: {}, added: {}, val: 'FIFO', counted: false }; }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Inventory'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const PVI = ({ manager: ['Ama Darko', 'M'], supervisor: ['Kwame Asante', 'S'], staff: ['Akua Kyei', 'N'] })[S.role];
+    let GRI = {}; try { if (PVI) GRI = (JSON.parse(window.localStorage.getItem('ecompos.grants') || '{}') || {})[PVI[0]] || {}; } catch (e) {}
+    const DEFI = { 'stock.view': 'MSN', 'stock.manage': 'M', 'stock.count': 'S', 'stock.alerts': 'M' };
+    const CANI = { 'stock.view': 'MSN', 'stock.manage': 'M', 'stock.count': 'MS', 'stock.alerts': 'M' };
+    const hasI = k => !PVI ? true : (!GRI.__off && (CANI[k] || '').indexOf(PVI[1]) >= 0 && (GRI[k] !== undefined ? !!GRI[k] : (DEFI[k] || '').indexOf(PVI[1]) >= 0));
+    const CAN_ADJ = hasI('stock.manage') || hasI('stock.count');
+    const CAN_PO = hasI('stock.manage');
+    const CAN_CNT = hasI('stock.count');
+    const TABS = [['stock', 'Stock levels', true], ['moves', 'Stock movements', true], ['transfers', 'Transfers', true], ['po', 'Purchase orders', CAN_PO], ['count', 'Stock take', CAN_CNT]].filter(t => t[2]);
+    if (!TABS.some(t => t[0] === S.tab)) S.tab = 'stock';
+    const tabs = TABS.map(t => Object.assign({ label: t[1], pick: () => set({ tab: t[0] }) }, pill(S.tab === t[0])));
+
+    let BRX = null; try { BRX = JSON.parse(window.localStorage.getItem('ecompos.branches') || 'null'); } catch (e) {}
+    const BRALL = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })((Array.isArray(BRX) && BRX.length ? BRX : [{ id: 'osu', name: 'Osu branch', city: 'Accra' }, { id: 'legon', name: 'East Legon branch', city: 'Accra' }, { id: 'adum', name: 'Adum branch', city: 'Kumasi' }]));
+    const brShort = b => String(b.name || '').replace(/\s*branch$/i, '');
+    const BRNEW = BRALL.filter(b => ['osu', 'legon', 'adum'].indexOf(b.id) < 0);
+    let BSTK = {}; try { BSTK = JSON.parse(window.localStorage.getItem('ecompos.branchStock') || '{}') || {}; } catch (e) {}
+    const saveBstk = (o, extra) => { try { window.localStorage.setItem('ecompos.branchStock', JSON.stringify(o)); } catch (e) {} set(Object.assign({ bstkTick: Date.now() }, extra || {})); };
+    const P = [
+      ['Jasmine rice 5kg', 22, 4, 19, 2, 8], ['Vegetable oil 1L', 6, 31, 18, 1, 12], ['Instant noodles 70g', 310, 220, 80, 0, 120],
+      ['Evaporated milk 410g', 11, 64, 40, 4, 24], ['Sardines 125g', 96, 50, 75, 0, 30], ['Malt drink 330ml', 140, 96, 60, 12, 48],
+      ['Bottled water 1.5L', 210, 180, 120, 6, 60], ['Laundry detergent 1kg', 27, 12, 20, 0, 10],
+      ['Gari 1kg', 54, 30, 25, 0, 15], ['Tomato paste 400g', 70, 40, 35, 0, 24], ['Sugar cubes 500g', 38, 20, 18, 0, 20], ['Bar soap 200g', 120, 60, 45, 0, 36]
+    ];
+    let REG = []; try { REG = (JSON.parse(window.localStorage.getItem('ecompos.newProducts') || '[]') || []).filter(n => n.status !== 'rejected' && n.status !== 'pending'); } catch (e) {}
+    const PX = P.concat(REG.map(n => [n.name + (n.scope === 'branch' ? ' · ' + (n.branchName || 'one branch') + ' only' : ''), 0, 0, 0, 0, 5, n]));
+    let SMV = {}; try { SMV = JSON.parse(window.localStorage.getItem('ecompos.stockMoves') || '{}') || {}; } catch (e) {}
+    const soldAt = (name, br) => Number(((SMV[name] || {})[br]) || 0);
+    const smvAdd = moves => { try { const cur = JSON.parse(window.localStorage.getItem('ecompos.stockMoves') || '{}') || {}; moves.forEach(m => { if (!m[0] || !m[2]) return; cur[m[0]] = cur[m[0]] || {}; cur[m[0]][m[1]] = Number(cur[m[0]][m[1]] || 0) + m[2]; }); window.localStorage.setItem('ecompos.stockMoves', JSON.stringify(cur)); window.dispatchEvent(new CustomEvent('ecompos:stock', { detail: cur })); } catch (e) {} };
+    const qtyAt0 = (p, b) => { const reg = p[6]; if (reg) { if (reg.scope === 'branch') return b.id === reg.branchId ? (parseInt(reg.stock, 10) || 0) : null; return b.id === 'osu' ? (parseInt(reg.stock, 10) || 0) : (BSTK[b.id] === 'received' ? 0 : (['legon', 'adum'].indexOf(b.id) >= 0 ? 0 : 0)); } const ix = ['osu', 'legon', 'adum'].indexOf(b.id); if (ix >= 0) return p[1 + ix]; return BSTK[b.id] === 'received' ? Math.round(p[1] * 0.3) : 0; };
+    const qtyAt = (p, b) => { const v = qtyAt0(p, b); return v === null ? null : Math.max(0, v - soldAt(p[6] ? p[6].name : p[0], b.id)); };
+    const CATI = { 'Jasmine rice 5kg': 'Staples', 'Vegetable oil 1L': 'Staples', 'Instant noodles 70g': 'Staples', 'Evaporated milk 410g': 'Tins', 'Sardines 125g': 'Tins', 'Malt drink 330ml': 'Drinks', 'Bottled water 1.5L': 'Drinks', 'Laundry detergent 1kg': 'Household', 'Gari 1kg': 'Staples', 'Tomato paste 400g': 'Tins', 'Sugar cubes 500g': 'Staples', 'Bar soap 200g': 'Household' };
+    const SOLD0 = { 'Jasmine rice 5kg': 64, 'Vegetable oil 1L': 140, 'Instant noodles 70g': 900, 'Evaporated milk 410g': 210, 'Sardines 125g': 18, 'Malt drink 330ml': 520, 'Bottled water 1.5L': 610, 'Laundry detergent 1kg': 6, 'Gari 1kg': 0, 'Tomato paste 400g': 11, 'Sugar cubes 500g': 0, 'Bar soap 200g': 160 };
+    const INFO = PX.map(p => { const nm = p[6] ? p[6].name : p[0]; const per = BRALL.map(b => qtyAt(p, b)); const total = per.reduce((a, v) => a + (v || 0), 0); const moved = BRALL.reduce((a, b) => a + Math.max(0, soldAt(nm, b.id)), 0); const sold = (SOLD0[nm] || 0) + moved; const low = per.some(v => v !== null && v < p[5]); const kind = low ? 'low' : sold >= 100 ? 'fast' : sold === 0 ? 'none' : sold <= 15 ? 'slow' : 'ok'; return { nm, cat: p[6] ? String(p[6].cat || 'New product').split(' › ')[0] : (CATI[nm] || 'Other'), per, total, sold, low, fast: sold >= 100, slow: sold > 0 && sold <= 15, none: sold === 0, kind }; });
+    const STI = i => i.low ? ['Low stock', '#c62828', '#ffffff'] : i.none ? ['Not selling', '#6b6866', '#ffffff'] : i.slow ? ['Slow selling', '#b26a00', '#ffffff'] : i.fast ? ['Fast selling', '#1f7a2a', '#ffffff'] : ['OK', '#f2f4f5', '#000000'];
+    const stock = PX.map((p, k) => ({ cat: INFO[k].cat, total: String(INFO[k].total), sold: String(INFO[k].sold), status: STI(INFO[k])[0], stBg: STI(INFO[k])[1], stFg: STI(INFO[k])[2], k,
+      cells: BRALL.map(b => { const v = qtyAt(p, b); return v === null ? { v: '—', bg: '#ffffff', fg: '#c9c6c4' } : { v: String(v), bg: v < p[5] ? '#000000' : '#f2f4f5', fg: v < p[5] ? '#ffffff' : '#000000' }; }),
+      name: p[0], reserved: String(p[4]), reorder: String(p[5]), rowBg: k === S.adj ? '#f2f4f5' : '#ffffff',
+      adjust: () => set({ adj: k, saved: false })
+    }));
+
+    // ---------- inventory views, search and printable sheets ----------
+    const IVQ = String(S.ivq || '').trim().toLowerCase(); const IVV = S.ivv || 'all';
+    const inView = (i, v) => v === 'all' || (v === 'low' && i.low) || (v === 'fast' && i.fast) || (v === 'slow' && i.slow) || (v === 'none' && i.none);
+    const qHit = i => !IVQ || IVQ.split(/\s+/).every(w => (i.nm + ' ' + i.cat).toLowerCase().indexOf(w) >= 0);
+    const stockShown = stock.filter((s0, k) => inView(INFO[k], IVV) && qHit(INFO[k]));
+    const VIEWS = [['all', 'All products'], ['low', 'Low stock'], ['fast', 'Fast selling'], ['slow', 'Slow selling'], ['none', 'Not selling']];
+    const PBR = S.prtBr && (S.prtBr === 'all' || BRALL.some(b => b.id === S.prtBr)) ? S.prtBr : 'all';
+    const bix = BRALL.findIndex(b => b.id === PBR);
+    const qOf = (i) => PBR === 'all' ? i.total : (i.per[bix] == null ? null : i.per[bix]);
+    const PAPER = S.paper === 'letter' ? 'letter' : 'a4';
+    let BIV = { addr: '12 Oxford Street, Osu', city: 'Accra, Greater Accra', gps: 'GA-123-4567', phone: '+233 30 000 1111', mobile: '+233 24 400 0111', email: 'info@ebenezerunique.com.gh', web: 'www.ebenezerunique.com.gh' }; try { BIV = Object.assign({}, BIV, JSON.parse(window.localStorage.getItem('ecompos.bizInfo') || '{}') || {}); } catch (e) {}
+    let BZ = {}; try { BZ = JSON.parse(window.localStorage.getItem('ecompos.biz') || '{}') || {}; } catch (e) {}
+    const coName = String(BZ.name || 'Ebenezer Unique Ventures'); const coLogo = BZ.logo || (() => { try { return window.localStorage.getItem('ecompos.logo') || ''; } catch (e) { return ''; } })();
+    const PT = { count: 'Stock count sheet', all: 'Product inventory list', low: 'Low stock products', fast: 'Fast selling products', slow: 'Slow selling products', none: 'Products not selling' };
+    const pv = (() => { const T = S.prt; if (!T) return { open: false, pages: [], cols: [] };
+      const isCount = T === 'count';
+      const list = INFO.map((i, k) => ({ i, k })).filter(x => (isCount || T === 'all' ? true : inView(x.i, T)) && qOf(x.i) !== null).sort((a, b) => T === 'fast' ? b.i.sold - a.i.sold : T === 'low' ? (qOf(a.i) - PX[a.k][5]) - (qOf(b.i) - PX[b.k][5]) : a.i.cat.localeCompare(b.i.cat) || a.i.nm.localeCompare(b.i.nm));
+      const C = (t, al, fw, fg, box) => ({ t: t == null ? '' : String(t), al: al || 'left', fw: fw || '400', fg: fg || '#000000', box: !!box });
+      const cols = isCount ? [['#', '5%', 'left'], ['Product', '31%', 'left'], ['Category', '13%', 'left'], ['Reorder at', '9%', 'right'], ['In system', '10%', 'right'], ['Physical count', '12%', 'left'], ['Difference', '10%', 'left'], ['Match? ✓/✗', '10%', 'left']]
+        : [['#', '5%', 'left'], ['Product', '33%', 'left'], ['Category', '14%', 'left'], ['In stock', '10%', 'right'], ['Reorder at', '10%', 'right'], ['Sold · 30 days', '12%', 'right'], ['Action', '16%', 'left']];
+      const rowsAll = list.map((x, n) => { const q = qOf(x.i); const re = PX[x.k][5]; const act = x.i.low ? 'Reorder ' + Math.max(re * 2 - q, re) : x.i.none ? 'Promote or clear' : x.i.slow ? 'Promote' : x.i.fast ? 'Keep well stocked' : 'OK';
+        return { cells: isCount ? [C(n + 1, 'left', '400', '#5f5c5a'), C(x.i.nm, 'left', '600'), C(x.i.cat), C(re, 'right'), C(q, 'right', '700'), C('', 'left', '400', '#000000', true), C('', 'left', '400', '#000000', true), C('', 'left', '400', '#000000', true)]
+          : [C(n + 1, 'left', '400', '#5f5c5a'), C(x.i.nm, 'left', '600'), C(x.i.cat), C(q, 'right', '700', q < re ? '#c62828' : '#000000'), C(re, 'right'), C(x.i.sold, 'right'), C(act, 'left', '600', x.i.low ? '#c62828' : x.i.fast ? '#1f7a2a' : '#000000')] }; });
+      const first = PAPER === 'letter' ? 25 : 28, next = PAPER === 'letter' ? 31 : 34, tail = isCount ? 5 : 2;
+      const pages = []; let rest = rowsAll.slice(); let pi = 0; do { const cap = pi === 0 ? first : next; pages.push(rest.splice(0, cap)); pi++; } while (rest.length);
+      if (pages[pages.length - 1].length > (pages.length === 1 ? first : next) - tail) pages.push([]);
+      const brName = PBR === 'all' ? 'all branches (total)' : brShort(BRALL[bix]) + ' branch';
+      const now = new Date();
+      return { open: true, isCount, title: PT[T], scope: brName + ' · ' + rowsAll.length + ' products', genOn: 'Printed ' + now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + ' at ' + now.toTimeString().slice(0, 5), genBy: 'By ' + ((() => { try { const z = JSON.parse(window.localStorage.getItem('ecompos.session') || 'null'); return z && z.name; } catch (e) { return ''; } })() || ({ superuser: 'Kofi Adom', manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei' })[S.role] || 'Branch staff'),
+        intro: isCount ? 'Count every product on the shelves and in the store room. Write the physical count, the difference (physical − system) and tick ✓ if they match or ✗ if not. Hand the signed sheet to the Supervisor, then record any differences under Stock take.' : T === 'low' ? 'Products below their reorder level at ' + brName + ', lowest first, with a suggested reorder quantity.' : T === 'fast' ? 'Products sold the most in the last 30 days, best sellers first.' : T === 'slow' ? 'Products selling 15 or fewer units in the last 30 days.' : T === 'none' ? 'Products with no sales in the last 30 days.' : 'Every product in inventory with its stock, reorder level and sales in the last 30 days.',
+        outro: isCount ? 'Total products to count: ' + rowsAll.length + '. Differences must be explained in the Stock take notes.' : 'End of list · ' + rowsAll.length + ' products.',
+        co: coName, logo: coLogo, hasLogo: !!coLogo, addr: [BIV.addr, BIV.city, BIV.gps ? 'GPS ' + BIV.gps : ''].filter(Boolean).join(', '), tel: [BIV.phone, BIV.mobile].filter(Boolean).join(' · '), email: BIV.email || '', web: BIV.web || '',
+        cols: cols.map(c => ({ t: c[0], w: c[1], al: c[2] })), pw: PAPER === 'letter' ? '215.9mm' : '210mm', ph: PAPER === 'letter' ? '279.4mm' : '297mm', isA4: PAPER === 'a4', isLetter: PAPER === 'letter',
+        pages: pages.map((r, k) => ({ n: String(k + 1), of: String(pages.length), first: k === 0, notFirst: k > 0, last: k === pages.length - 1, rows: r })), pagesTxt: pages.length + (pages.length === 1 ? ' page' : ' pages') + ' · ' + (PAPER === 'letter' ? 'Letter' : 'A4'),
+        print: () => { try { window.print(); } catch (e) {} }, close: () => set({ prt: '' }) }; })();
+    const iv = { q: S.ivq || '', qIn: e => set({ ivq: e.target.value }), count: stockShown.length + ' of ' + stock.length + ' products',
+      views: VIEWS.map(v => Object.assign({ v: v[0], label: v[1], n: String(INFO.filter(i => inView(i, v[0])).length), pick: () => set({ ivv: v[0] }) }, pill(IVV === v[0]))), viewV: IVV, viewIn: e => set({ ivv: e.target.value }),
+      prints: [['', 'Choose a sheet to print…'], ['count', 'Stock count sheet (manual check)'], ['all', 'All products'], ['low', 'Low stock'], ['fast', 'Fast selling'], ['slow', 'Slow selling'], ['none', 'Not selling']].map(x => ({ v: x[0], label: x[1] })), prtV: S.prt || '', prtIn: e => set({ prt: e.target.value }),
+      brV: PBR, brIn: e => set({ prtBr: e.target.value }), brOpts: [{ v: 'all', label: 'All branches (total)' }].concat(BRALL.map(b => ({ v: b.id, label: brShort(b) }))),
+      paperV: PAPER, paperIn: e => set({ paper: e.target.value }), none: stockShown.length === 0 };
+    const slog = es => { try { const L = JSON.parse(window.localStorage.getItem('ecompos.stockLog') || '[]') || []; const now = new Date(); const at = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + now.toTimeString().slice(0, 5); window.localStorage.setItem('ecompos.stockLog', JSON.stringify(es.filter(Boolean).map(e => Object.assign({ ts: Date.now(), at }, e)).concat(L).slice(0, 800))); } catch (e) {} };
+    const CTN = { 'Instant noodles 70g': 40, 'Vegetable oil 1L': 12, 'Evaporated milk 410g': 48, 'Malt drink 330ml': 24, 'Sardines 125g': 50, 'Tomato paste 400g': 24, 'Bottled water 1.5L': 6, 'Sugar cubes 500g': 20, 'Bar soap 200g': 36 };
+    const unitsOf = (name, qty) => { const parts = String(name || '').split(' · '); let base = parts[0]; const hit = Object.keys(CTN).concat(P.map(p => p[0])).find(n => base.indexOf(n) === 0); const extra = base.slice(hit ? hit.length : base.length) + ' ' + parts.slice(1).join(' '); if (hit) base = hit; if (!/carton|crate|pack|case|box|half/i.test(extra)) return [base, qty]; const m = extra.match(/(\d+)/); return [base, qty * (m ? parseInt(m[1], 10) : (CTN[base] || 1))]; };
+    let SESI = null; try { SESI = JSON.parse(window.localStorage.getItem('ecompos.session') || 'null'); } catch (e) {}
+    const MEI = SESI ? SESI.name : ({ superuser: 'Kofi Adom', manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei' })[S.role] || 'Branch staff';
+    const LOCKI = ({ manager: 'osu', supervisor: 'osu', staff: 'osu' })[S.role] || '';
+    const BRNI = {}; BRALL.forEach(b => { BRNI[b.id] = brShort(b); });
+    const money = n => 'GHS ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    let RR = []; try { RR = JSON.parse(window.localStorage.getItem('ecompos.returnReqs') || 'null'); } catch (e) {}
+    if (!Array.isArray(RR)) { RR = []; } if (!(function () { try { return window.localStorage.getItem('ecompos.rrSeeded'); } catch (e) { return '1'; } })()) { RR = RR.concat([{ id: 'RR-20417', no: '34335776', who: 'Ama Owusu', phone: '+233 24 555 0142', email: 'ama.owusu@gmail.com', br: 'osu', reason: 'Damaged or faulty', at: 'Thu, 29 Oct 2026, 16:20', ts: Date.now() - 86400000, items: [{ name: 'Jasmine rice 5kg', qty: 1, each: 145 }, { name: 'Vegetable oil 1L', qty: 2, each: 38 }], total: 221, status: 'requested' }]); try { window.localStorage.setItem('ecompos.returnReqs', JSON.stringify(RR)); window.localStorage.setItem('ecompos.rrSeeded', '1'); } catch (e) {} }
+    const rrMine = RR.filter(r => !LOCKI || r.br === LOCKI);
+    const RQ = S.rrDmg || {};
+    const rrReceive = r => { const dm = RQ[r.id] || {}; const at = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + new Date().toTimeString().slice(0, 5);
+      const lines = r.items.map((it, k) => { const d = Math.min(it.qty, dm[k] || 0); const sl = Array.isArray(r.stockLines) && r.stockLines[k] && r.stockLines[k][2] ? [String(r.stockLines[k][0]), r.stockLines[k][2] / it.qty] : null; const u = sl ? [sl[0], sl[1]] : unitsOf(it.name, 1); return { name: it.name, qty: it.qty, each: it.each, dmg: d, good: it.qty - d, base: u[0], per: u[1] }; });
+      smvAdd(lines.filter(l => l.good > 0).map(l => [l.base, r.br, -l.good * l.per]));
+      slog(lines.filter(l => l.good > 0).map(l => ({ name: l.base, br: r.br, qty: l.good * l.per, kind: 'Return received · back in stock', ref: r.id + ' · order #' + r.no, by: MEI })).concat(lines.filter(l => l.dmg > 0).map(l => ({ name: l.base, br: r.br, qty: 0, dmg: l.dmg * l.per, value: l.dmg * l.each, kind: 'Return received · damaged, not restocked', ref: r.id + ' · order #' + r.no + ' · ' + r.reason, by: MEI }))));
+      const nG = lines.reduce((a, l) => a + l.good, 0), nD = lines.reduce((a, l) => a + l.dmg, 0); const amt = lines.reduce((a, l) => a + l.qty * l.each, 0);
+      try { const all = (JSON.parse(window.localStorage.getItem('ecompos.returnReqs') || '[]') || []).map(x => x.id === r.id ? Object.assign({}, x, { status: 'received', receivedAt: at, receivedBy: MEI, lines }) : x); window.localStorage.setItem('ecompos.returnReqs', JSON.stringify(all)); window.dispatchEvent(new CustomEvent('ecompos:returns', { detail: all })); } catch (e) {}
+      try { const RT = JSON.parse(window.localStorage.getItem('ecompos.returns') || '[]') || []; RT.unshift({ id: 'RT-' + String(Date.now()).slice(-5), key: 'W' + r.no, src: 'Online order #' + r.no, at, ts: Date.now(), lines: lines.map(l => ({ name: l.name, qty: l.qty, each: l.each, good: l.good, dmg: l.dmg })), amount: amt, mode: 'refund', method: 'original', how: 'Refund to the original payment', reason: r.reason, cond: nD === 0 ? 'restock' : nG === 0 ? 'writeoff' : 'mixed', by: MEI, branch: r.br }); window.localStorage.setItem('ecompos.returns', JSON.stringify(RT)); } catch (e) {}
+      try { const U = JSON.parse(window.localStorage.getItem('ecompos.shopUsers') || 'null'); if (Array.isArray(U)) { const U2 = U.map(u => (u.orders || []).some(o => o.no === r.no) ? Object.assign({}, u, { orders: u.orders.map(o => o.no === r.no ? Object.assign({}, o, { status: 'Returned' }) : o), inbox: [{ id: 'rr-' + r.id, kind: 'msg', no: r.no, title: 'Return received for order #' + r.no, body: 'The ' + (BRNI[r.br] || 'branch') + ' branch received your return on ' + at + '. Your refund of ' + money(amt) + ' goes back to your original payment method.', at, read: false }].concat(u.inbox || []) }) : u); window.localStorage.setItem('ecompos.shopUsers', JSON.stringify(U2)); window.dispatchEvent(new CustomEvent('ecompos:shopUsers', { detail: U2 })); } } catch (e) {}
+      try { const W = JSON.parse(window.localStorage.getItem('ecompos.webOrders') || '[]') || []; if (W.some(o => o.id === '#' + r.no)) { const W2 = W.map(o => o.id === '#' + r.no ? Object.assign({}, o, { returned: { at, by: MEI, good: nG, dmg: nD }, track: (o.track || []).concat([{ label: 'Return received · ' + nG + ' back in stock' + (nD ? ', ' + nD + ' damaged' : ''), at, by: MEI, role: 'Branch' }]) }) : o); window.localStorage.setItem('ecompos.webOrders', JSON.stringify(W2)); } } catch (e) {}
+      set({ rrDmg: Object.assign({}, RQ, { [r.id]: {} }), invMsg: r.id + ' received · ' + nG + ' item' + (nG === 1 ? '' : 's') + ' back in stock' + (nD ? ', ' + nD + ' damaged and logged' : '') + '. ' + r.who + ' was told the refund is on its way.' }); };
+    const rrOpen = rrMine.filter(r => r.status === 'requested');
+    const rrList = rrOpen.map(r => { const dm = RQ[r.id] || {}; const lines = r.items.map((it, k) => { const d = Math.min(it.qty, dm[k] || 0); return { qty: it.qty, name: it.name, dmg: String(d), txt: (it.qty - d) + ' back to stock' + (d ? ' · ' + d + ' damaged, not restocked' : ''), c: d ? '#a8492a' : '#1f7a2a', dec: () => set({ rrDmg: Object.assign({}, RQ, { [r.id]: Object.assign({}, dm, { [k]: Math.max(0, d - 1) }) }) }), inc: () => set({ rrDmg: Object.assign({}, RQ, { [r.id]: Object.assign({}, dm, { [k]: Math.min(it.qty, d + 1) }) }) }) }; });
+      const g = r.items.reduce((a, it, k) => a + it.qty - Math.min(it.qty, dm[k] || 0), 0), dd = r.items.reduce((a, it, k) => a + Math.min(it.qty, dm[k] || 0), 0);
+      return { id: r.id, no: r.no, who: r.who, reason: r.reason, sub: (r.phone ? r.phone + ' · ' : '') + 'requested ' + r.at + ' · ' + (BRNI[r.br] || r.br) + ' branch · ' + money(r.total || 0), lines, sum: g + ' back to stock · ' + dd + ' damaged', receive: () => rrReceive(r) }; });
+    let SLG = []; try { SLG = JSON.parse(window.localStorage.getItem('ecompos.stockLog') || '[]') || []; } catch (e) {}
+    const slMine = SLG.filter(e => !LOCKI || e.br === LOCKI);
+    const today0 = new Date(); today0.setHours(0, 0, 0, 0); const mon0 = new Date(today0.getFullYear(), today0.getMonth(), 1).getTime();
+    const T = [['TR-0091', 'East Legon → Osu', '24 × Vegetable oil 1L · 10 × Evaporated milk', 'In transit'], ['TR-0090', 'Osu → Adum', '2 cartons Instant noodles', 'In transit'], ['TR-0088', 'Adum → East Legon', '12 × Laundry detergent', 'Received']];
+    BRNEW.forEach(b => { if (BSTK[b.id]) T.unshift(['TR-' + b.code, 'Osu → ' + brShort(b), 'Opening stock · ' + P.length + ' products from the company catalogue', BSTK[b.id] === 'received' ? 'Received' : 'In transit', b.id]); });
+    let WMV = []; try { WMV = (JSON.parse(window.localStorage.getItem('ecompos.whMoves') || '[]') || []).filter(d => d.status === 'requested' || d.status === 'in_transit'); } catch (e) {}
+    const WLN = { wh: 'Warehouse' }; BRALL.forEach(b => { WLN[b.id] = brShort(b); });
+    const transfers = WMV.map(d => ({ id: d.id, route: (WLN[d.from] || d.from) + ' → ' + (WLN[d.to] || d.to), items: d.lines.map(l => l.qty + ' × ' + l.name).join(', '), status: d.status === 'in_transit' ? 'In transit' : 'Waiting for approval', stBg: d.status === 'in_transit' ? '#0b5c5c' : '#b26a00', stFg: '#ffffff', canReceive: false, receive: () => {} })).concat(T.map((t, k) => {
+      const st = S.received[k] ? 'Received' : t[3];
+      return { id: t[0], route: t[1], items: t[2], status: st, stBg: st === 'Received' ? '#f2f4f5' : '#000000', stFg: st === 'Received' ? '#000000' : '#ffffff', canReceive: st !== 'Received', receive: () => { if (t[4]) { saveBstk(Object.assign({}, BSTK, { [t[4]]: 'received' })); return; } set({ received: Object.assign({}, S.received, { [k]: true }) }); } };
+    }));
+    const G = [['Vegetable oil 1L', 'Sells 9 a day at Osu · 6 left'], ['Jasmine rice 5kg', '4 left at East Legon · 3-day lead time'], ['Instant noodles · carton', '2 cartons at Adum · sells 1 a day']];
+    const suggest = G.map((g, k) => ({ name: g[0], why: g[1], btn: S.added[k] ? 'On PO-0313' : 'Add to purchase order', bg: S.added[k] ? '#f2f4f5' : '#000000', fg: S.added[k] ? '#000000' : '#ffffff', add: () => set({ added: Object.assign({}, S.added, { [k]: true }) }) }));
+    const R = ['Damaged', 'Expired', 'Theft', 'Count correction', 'Own use'];
+    const reasons = R.map(r => Object.assign({ label: r, pick: () => set({ reason: r, saved: false }) }, pill(S.reason === r)));
+    const vals = ['FIFO', 'Weighted average'].map(v => Object.assign({ label: v, pick: () => set({ val: v }) }, pill(S.val === v)));
+    const ids = ['IN-01', 'IN-02', 'IN-03', 'IN-04', 'IN-05', 'IN-06', 'IN-07', 'IN-08', 'IN-09', 'IN-10', 'IN-11', 'IN-12', 'IN-13', 'IN-15', 'IN-16', 'IN-17', 'IN-18', 'RP-04'].map(t => ({ t }));
+    return {
+      brHeads: BRALL.map(b => ({ name: brShort(b), isNew: BRNEW.indexOf(b) >= 0 })),
+      openSugg: BRNEW.filter(b => !BSTK[b.id]).map(b => ({ name: b.name, send: () => saveBstk(Object.assign({}, BSTK, { [b.id]: 'sent' })) })),
+      rrList, rrNone: rrList.length === 0, rrCount: String(rrList.length), rrBadgeBg: rrList.length ? '#c62828' : '#9a9794', rrBd: rrList.length ? '#c62828' : '#ffffff', rrScope: LOCKI ? BRNI[LOCKI] + ' branch' : 'All branches',
+      rrHasDone: rrMine.some(r => r.status === 'received'), rrDone: rrMine.filter(r => r.status === 'received').slice(0, 3).map(r => ({ txt: r.id + ' · order #' + r.no + ' · ' + r.who + ' · received ' + (r.receivedAt || '') + ' by ' + (r.receivedBy || '') + ' · ' + (r.lines || []).reduce((a, l) => a + l.good, 0) + ' restocked, ' + (r.lines || []).reduce((a, l) => a + l.dmg, 0) + ' damaged' })),
+      hasInvMsg: !!S.invMsg, invMsg: S.invMsg || '', hideInvMsg: () => set({ invMsg: '' }),
+      moves: slMine.slice(0, 60).map(e => ({ at: e.at || '', name: e.name, br: BRNI[e.br] || e.br, q: e.qty ? (e.qty > 0 ? '+' : '−') + Math.abs(e.qty) : e.dmg ? '0 (' + e.dmg + ' damaged)' : '0', c: e.qty > 0 ? '#1f7a2a' : e.qty < 0 ? '#c62828' : '#a8492a', kind: e.kind, ref: e.ref || '', by: e.by || '' })), mvNone: slMine.length === 0,
+      mvKpis: [['Sold today (units)', slMine.filter(e => e.ts >= today0.getTime() && e.qty < 0 && /^Sold/.test(e.kind)).reduce((a, e) => a - e.qty, 0), '#c62828'], ['Back in stock this month', slMine.filter(e => e.ts >= mon0 && e.qty > 0).reduce((a, e) => a + e.qty, 0), '#1f7a2a'], ['Damaged returns this month', slMine.filter(e => e.ts >= mon0 && e.dmg).reduce((a, e) => a + e.dmg, 0), '#a8492a'], ['Movements logged', slMine.length, '#000000']].map(k => ({ k: k[0], v: String(k[1]), c: k[2] })),
+      dmgRet: money(slMine.filter(e => e.ts >= mon0 && e.dmg).reduce((a, e) => a + (e.value || 0), 0)),
+      adjBrs: BRALL.filter(b => !LOCKI || b.id === LOCKI).map(b => ({ id: b.id, name: brShort(b) })), adjBr: S.adjBr || LOCKI || 'osu', adjBrIn: e => set({ adjBr: e.target.value, saved: false }), adjQ: S.adjQ || '', adjQIn: e => set({ adjQ: e.target.value, saved: false, adjErr: '' }), adjHasErr: !!S.adjErr, adjErr: S.adjErr || '',
+      adjNow: (() => { const p = PX[S.adj] || PX[0]; const b = BRALL.find(x => x.id === (S.adjBr || LOCKI || 'osu')) || BRALL[0]; const v = qtyAt(p, b); return v === null ? 'Not stocked at ' + brShort(b) : 'Now ' + v + ' at ' + brShort(b) + ' · enter the difference you found on the shelf'; })(),
+      goTransfer: () => { try { window.localStorage.setItem('ecompos.whTab', 'br2br'); } catch (e) {} }, goWarehouse: () => { try { window.localStorage.setItem('ecompos.whTab', 'overview'); } catch (e) {} },
+      canAdj: CAN_ADJ, readOnly: !CAN_ADJ, roTxt: 'You can see stock at ' + (LOCKI ? (BRNI[LOCKI] || 'your branch') : 'every branch') + ', what has moved and what is on its way. Adjusting stock, purchase orders and stock takes are done by a Supervisor or Manager.',
+      tabs, stock, stockShown, iv, pv, transfers, suggest, reasons, vals, ids,
+      tabStock: S.tab === 'stock', tabMoves: S.tab === 'moves', tabTransfers: S.tab === 'transfers', tabPO: S.tab === 'po', tabCount: S.tab === 'count',
+      valueLine: S.role !== 'superuser' ? '' : ' · stock value at cost ' + (S.val === 'FIFO' ? 'GHS 184,320.00 (FIFO)' : 'GHS 182,960.00 (weighted average)'), isSu: S.role === 'superuser', notSu: S.role !== 'superuser',
+      adj: { name: (PX[S.adj] || P[0])[0] }, adjBtn: S.saved ? 'Saved: ' + S.reason.toLowerCase() + ' · stock updated' : 'Save adjustment', saveAdj: () => { const q = parseInt(String(S.adjQ || '').replace(/[−–]/g, '-').replace(/\s/g, ''), 10); if (!q) { set({ adjErr: 'Enter how many to add (e.g. 3) or remove (e.g. −2).' }); return; } const p = PX[S.adj] || PX[0]; const nm = p[6] ? p[6].name : p[0]; const br = S.adjBr || LOCKI || 'osu'; const b = BRALL.find(x => x.id === br); const cur = b ? qtyAt(p, b) : null; if (cur !== null && cur + q < 0) { set({ adjErr: 'Only ' + cur + ' in stock at ' + brShort(b) + '. You cannot remove more than that.' }); return; }
+        smvAdd([[nm, br, -q]]); slog([{ name: nm, br, qty: q, kind: 'Adjustment · ' + S.reason, ref: 'Inventory', by: MEI }]); set({ saved: true, adjQ: '', adjErr: '' }); },
+      countPct: S.counted ? 100 : 75, countDone: S.counted ? '4' : '3', lastCount: S.counted ? '23' : '—', lastVar: S.counted ? '−1 · GHS 32.00' : 'Not counted',
+      countBtn: S.counted ? 'Count posted · variance report saved' : 'Scan last item and post count', finishCount: () => set({ counted: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

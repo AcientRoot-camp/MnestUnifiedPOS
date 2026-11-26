@@ -1,0 +1,520 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AccountBar.dc.html": {
+      "h": 420,
+      "is_interactive": true,
+      "title": "Account bar (shared component)",
+      "w": 320,
+      "x": 5342,
+      "y": 1200
+    },
+    "Approvals.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Approvals, issues & notifications",
+      "w": 1440,
+      "x": 4560,
+      "y": 10100
+    },
+    "Audit.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Audit trail",
+      "w": 1440,
+      "x": 1520,
+      "y": 12100
+    },
+    "Backup.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "is_interactive": true,
+      "title": "Backup & restore",
+      "w": 1440,
+      "x": 3040,
+      "y": 12100
+    },
+    "Branches.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Branches",
+      "w": 1440,
+      "x": 6080,
+      "y": 12100
+    },
+    "Categories.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Categories",
+      "w": 1440,
+      "x": 4560,
+      "y": 12100
+    },
+    "Collect.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Collect orders (website pickups)",
+      "w": 1440,
+      "x": 0,
+      "y": 15800
+    },
+    "Contracts.dc.html": {
+      "expand": "fill",
+      "h": 1600,
+      "is_interactive": true,
+      "title": "Contracts (subcontracting)",
+      "w": 1440,
+      "x": 1520,
+      "y": 10100
+    },
+    "Customers.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Customers & loyalty",
+      "w": 1440,
+      "x": 4560,
+      "y": 3100
+    },
+    "Damages.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "is_interactive": true,
+      "title": "Damages & suppliers",
+      "w": 1440,
+      "x": 3040,
+      "y": 14000
+    },
+    "Developer.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "is_interactive": true,
+      "title": "System developer console (anonymous)",
+      "w": 1440,
+      "x": 9120,
+      "y": 12100
+    },
+    "Documents.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Documents & stamp",
+      "w": 1440,
+      "x": 9140,
+      "y": 3100
+    },
+    "Expenses.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Expenses & approvals",
+      "w": 1440,
+      "x": 4560,
+      "y": 14000
+    },
+    "Finance.dc.html": {
+      "expand": "fill",
+      "h": 1600,
+      "is_interactive": true,
+      "title": "Finance",
+      "w": 1440,
+      "x": 9120,
+      "y": 14000
+    },
+    "HirePurchase.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Hire purchase (instalment credit)",
+      "w": 1440,
+      "x": 6080,
+      "y": 10100
+    },
+    "Hospitality.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Hospitality add-on",
+      "w": 1440,
+      "x": 1520,
+      "y": 8200
+    },
+    "Inventory.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Inventory & stock",
+      "w": 1440,
+      "x": 3040,
+      "y": 3100
+    },
+    "Invoices.dc.html": {
+      "expand": "fill",
+      "h": 1600,
+      "is_interactive": true,
+      "title": "Invoices \u00b7 sheet, saved, upload",
+      "w": 1440,
+      "x": 0,
+      "y": 10100
+    },
+    "Login.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "Sign in (staff accounts)",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Dashboard",
+      "w": 1440,
+      "x": 0,
+      "y": 1200
+    },
+    "Marketing.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "is_interactive": true,
+      "title": "Marketing & channels",
+      "w": 1440,
+      "x": 6080,
+      "y": 6400
+    },
+    "Messages.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "SMS & email messages",
+      "w": 1440,
+      "x": 6080,
+      "y": 3100
+    },
+    "MySales.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "My sales report",
+      "w": 1440,
+      "x": 7600,
+      "y": 14000
+    },
+    "Orders.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Orders & fulfilment",
+      "w": 1440,
+      "x": 3040,
+      "y": 1200
+    },
+    "POS.dc.html": {
+      "expand": "fill",
+      "h": 960,
+      "is_interactive": true,
+      "title": "Sell Now (POS)",
+      "w": 1440,
+      "x": 1520,
+      "y": 1200
+    },
+    "Payments.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "is_interactive": true,
+      "title": "Payments & gateways",
+      "w": 1440,
+      "x": 1520,
+      "y": 6400
+    },
+    "Payroll.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Store payroll",
+      "w": 1440,
+      "x": 3040,
+      "y": 8200
+    },
+    "ProForma.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "is_interactive": true,
+      "title": "Pro-forma invoices",
+      "w": 1440,
+      "x": 10640,
+      "y": 14000
+    },
+    "Products.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Products & catalogue",
+      "w": 1440,
+      "x": 1520,
+      "y": 3100
+    },
+    "Reports.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "is_interactive": true,
+      "title": "Reports",
+      "w": 1440,
+      "x": 4560,
+      "y": 6400
+    },
+    "Rider.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Rider app (phone)",
+      "w": 390,
+      "x": 4560,
+      "y": 1200
+    },
+    "SalesReturns.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "is_interactive": true,
+      "title": "Sales, returns & shifts",
+      "w": 1440,
+      "x": 3040,
+      "y": 10100
+    },
+    "SearchBar.dc.html": {
+      "h": 480,
+      "is_interactive": true,
+      "title": "Search bar (shared, per-screen)",
+      "w": 380,
+      "x": 5342,
+      "y": 1700
+    },
+    "Settings.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Settings, integrations & legal",
+      "w": 1440,
+      "x": 4560,
+      "y": 8200
+    },
+    "Shop.dc.html": {
+      "expand": "fill",
+      "h": 4300,
+      "is_interactive": true,
+      "title": "Online shop (customer view)",
+      "w": 1440,
+      "x": 0,
+      "y": 3100
+    },
+    "Sidebar.dc.html": {
+      "h": 1200,
+      "is_interactive": true,
+      "title": "Sidebar (shared component)",
+      "w": 232,
+      "x": 5030,
+      "y": 1200
+    },
+    "Staff.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "People & HR",
+      "w": 1440,
+      "x": 0,
+      "y": 8200
+    },
+    "Suppliers.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Supplier account",
+      "w": 1440,
+      "x": 6080,
+      "y": 14000
+    },
+    "Tax.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "is_interactive": true,
+      "title": "Tax & E-VAT",
+      "w": 1440,
+      "x": 3040,
+      "y": 6400
+    },
+    "Tickets.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Issue tickets",
+      "w": 1440,
+      "x": 7600,
+      "y": 12100
+    },
+    "Users.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Users, levels & permissions",
+      "w": 1440,
+      "x": 0,
+      "y": 12100
+    },
+    "Warehouse.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "is_interactive": true,
+      "title": "Warehouse & transfers",
+      "w": 1440,
+      "x": 1520,
+      "y": 14000
+    },
+    "WebContent.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "Post to online",
+      "w": 1440,
+      "x": 7600,
+      "y": 3100
+    },
+    "Security.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "Security centre",
+      "w": 1440,
+      "x": 10640,
+      "y": 12100
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-27T16:12:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "file": "Login.dc.html",
+    "view": "focused"
+  },
+  "notes": {
+    "r0": {
+      "kind": "title1",
+      "maxW": 5920,
+      "text": "Sign in \u00b7 every user starts here, then goes to their own screen",
+      "x": 0,
+      "y": -300
+    },
+    "r1": {
+      "kind": "title1",
+      "maxW": 5662,
+      "text": "Run the shop \u00b7 dashboard, till, orders, riders",
+      "x": 0,
+      "y": 900
+    },
+    "r2": {
+      "kind": "title1",
+      "maxW": 5920,
+      "text": "Sell & catalogue \u00b7 online shop, products, stock, customers",
+      "x": 0,
+      "y": 2800
+    },
+    "r3": {
+      "kind": "title1",
+      "maxW": 5920,
+      "text": "Money & growth \u00b7 payments, tax, reports, marketing",
+      "x": 0,
+      "y": 6100
+    },
+    "r4": {
+      "kind": "title1",
+      "maxW": 5920,
+      "text": "Team, add-ons & settings",
+      "x": 0,
+      "y": 7900
+    },
+    "r5": {
+      "kind": "title1",
+      "maxW": 7520,
+      "text": "Invoicing, contracts, sales, approvals & hire purchase",
+      "x": 0,
+      "y": 9800
+    },
+    "r6": {
+      "kind": "title1",
+      "maxW": 12080,
+      "text": "Admin \u00b7 users, audit, backup, categories, branches, tickets & security",
+      "x": 0,
+      "y": 11800
+    },
+    "r7": {
+      "kind": "title1",
+      "maxW": 5920,
+      "text": "Stock, money & sales \u00b7 warehouse, damages, expenses, suppliers, finance, pro-forma",
+      "x": 0,
+      "y": 13700
+    },
+    "r8": {
+      "kind": "title1",
+      "maxW": 5920,
+      "text": "Collect orders \u00b7 website pickups matched by code",
+      "x": 0,
+      "y": 15500
+    }
+  },
+  "order": [
+    "Login.dc.html",
+    "Main.dc.html",
+    "POS.dc.html",
+    "Orders.dc.html",
+    "Rider.dc.html",
+    "Sidebar.dc.html",
+    "AccountBar.dc.html",
+    "SearchBar.dc.html",
+    "Shop.dc.html",
+    "Products.dc.html",
+    "Categories.dc.html",
+    "Inventory.dc.html",
+    "Customers.dc.html",
+    "Payments.dc.html",
+    "Tax.dc.html",
+    "Reports.dc.html",
+    "Marketing.dc.html",
+    "Staff.dc.html",
+    "Hospitality.dc.html",
+    "Payroll.dc.html",
+    "Settings.dc.html",
+    "Invoices.dc.html",
+    "Contracts.dc.html",
+    "SalesReturns.dc.html",
+    "Approvals.dc.html",
+    "HirePurchase.dc.html",
+    "Branches.dc.html",
+    "Tickets.dc.html",
+    "Users.dc.html",
+    "Audit.dc.html",
+    "Backup.dc.html",
+    "Developer.dc.html",
+    "Collect.dc.html",
+    "Warehouse.dc.html",
+    "Damages.dc.html",
+    "Expenses.dc.html",
+    "Suppliers.dc.html",
+    "MySales.dc.html",
+    "Finance.dc.html",
+    "ProForma.dc.html",
+    "Messages.dc.html",
+    "WebContent.dc.html",
+    "Documents.dc.html",
+    "Security.dc.html"
+  ],
+  "pages": [],
+  "title": "eComPOS Prototype"
+}

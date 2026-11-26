@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS my sales</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5;overflow-wrap:break-word}
+a{color:#000000}a:hover{color:#0b5c5c}
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+@media print{.ms-noprint{display:none !important}main{padding:0 !important}}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div class="ms-noprint" style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="mysales" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div class="ms-noprint" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="sales" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">{{title}}</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{note}}</p>
+</div>
+<div class="ms-noprint" style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{csv}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 44px; border-radius: 9999px; border: 1px solid #000000; background: #ffffff; color: #000000; cursor: pointer">Download CSV</button>
+<button type="button" onClick="{{print}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Print report</button>
+</div>
+</header>
+
+<sc-if value="{{canPick}}" hint-placeholder-val="{{false}}">
+<section class="ms-noprint" aria-label="Whose sales" style="display: flex; flex-direction: column; gap: 8px; background: #ffffff; border-radius: 20px; padding: 14px 16px">
+<span style="font-size: 13px; color: #5f5c5a">{{pickNote}}</span>
+<div role="group" aria-label="Seller" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{people}}" as="p" hint-placeholder-count="4"><button type="button" onClick="{{p.pick}}" aria-pressed="{{p.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{p.bg}}; color: {{p.fg}}; border: 1px solid {{p.bd}}">{{p.label}}</button></sc-for></div>
+</section>
+</sc-if>
+
+<section aria-label="Period" class="ms-noprint" style="display: flex; flex-direction: column; gap: 10px">
+<div role="tablist" aria-label="Report period" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{periods}}" as="t" hint-placeholder-count="5"><button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; font-size: 14px; padding: 10px 18px; min-height: 44px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for></div>
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+<sc-if value="{{isStep}}" hint-placeholder-val="{{true}}"><div style="display: flex; align-items: center; gap: 6px"><button type="button" onClick="{{prev}}" aria-label="Previous period" style="font-family: inherit; font-size: 18px; width: 44px; height: 44px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">‹</button><strong style="font-size: 16px; font-weight: 600; min-width: 220px; text-align: center">{{rangeTxt}}</strong><button type="button" onClick="{{next}}" aria-label="Next period" aria-disabled="{{nextOff}}" style="font-family: inherit; font-size: 18px; width: 44px; height: 44px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer; opacity: {{nextOp}}">›</button><sc-if value="{{notNow}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{toNow}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">{{toNowTxt}}</button></sc-if></div></sc-if>
+<sc-if value="{{isCustom}}" hint-placeholder-val="{{false}}"><div style="display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">From<input type="date" value="{{from}}" max="{{todayIso}}" onChange="{{fromIn}}" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">To<input type="date" value="{{to}}" max="{{todayIso}}" onChange="{{toIn}}" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9"></label>
+<div role="group" aria-label="Quick ranges" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{quick}}" as="q" hint-placeholder-count="4"><button type="button" onClick="{{q.pick}}" style="font-family: inherit; font-size: 13px; padding: 8px 12px; min-height: 40px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">{{q.label}}</button></sc-for></div>
+<strong style="font-size: 14px; font-weight: 600; padding-bottom: 10px">{{rangeTxt}}</strong>
+</div></sc-if>
+<sc-if value="{{hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{err}}</span></sc-if>
+</div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="5"><div style="background: #ffffff; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5f5c5a">{{k.label}}</span><strong style="font-size: 24px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">{{k.value}}</strong><span style="font-size: 12px; color: {{k.subFg}}">{{k.sub}}</span></div></sc-for>
+</div>
+
+<section aria-labelledby="ch-h" style="background: #ffffff; border-radius: 24px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline"><h2 id="ch-h" style="margin: 0; font-size: 17px; font-weight: 600">{{chartTitle}}</h2><span style="font-size: 13px; color: #5f5c5a">{{chartNote}}</span></div>
+<div role="img" aria-label="{{chartAria}}" style="display: flex; align-items: flex-end; gap: 3px; height: 200px; padding-top: 18px; border-bottom: 1px solid #e1e4e6">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="12"><div title="{{b.tip}}" style="flex: 1 1 0px; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px"><span style="font-size: 10px; color: #5f5c5a; white-space: nowrap; font-variant-numeric: tabular-nums">{{b.top}}</span><div style="width: 100%; max-width: 46px; height: {{b.h}}%; min-height: {{b.min}}px; border-radius: 6px 6px 2px 2px; background: {{b.bg}}"></div></div></sc-for>
+</div>
+<div aria-hidden="true" style="display: flex; gap: 3px"><sc-for list="{{bars}}" as="b" hint-placeholder-count="12"><span style="flex: 1 1 0px; min-width: 0; text-align: center; font-size: 10.5px; color: #5f5c5a; white-space: nowrap; overflow: hidden">{{b.label}}</span></sc-for></div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px">
+<section aria-labelledby="pm-h" style="background: #ffffff; border-radius: 24px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 id="pm-h" style="margin: 0; font-size: 17px; font-weight: 600">How customers paid</h2>
+<sc-if value="{{noSales}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">No sales in this period.</span></sc-if>
+<sc-for list="{{methods}}" as="m" hint-placeholder-count="4"><div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between; gap: 8px; font-size: 14px"><span>{{m.label}} <span style="color: #5f5c5a">· {{m.count}}</span></span><strong style="font-weight: 600; font-variant-numeric: tabular-nums">{{m.total}}</strong></div><div style="height: 8px; border-radius: 9999px; background: #f2f4f5; overflow: hidden"><div style="height: 100%; width: {{m.pct}}%; background: {{m.bg}}; border-radius: 9999px"></div></div></div></sc-for>
+</section>
+<section aria-labelledby="tp-h" style="background: #ffffff; border-radius: 24px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+<h2 id="tp-h" style="margin: 0; font-size: 17px; font-weight: 600">What I sold most</h2>
+<sc-if value="{{noSales}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">No sales in this period.</span></sc-if>
+<sc-for list="{{top}}" as="t" hint-placeholder-count="6"><div style="display: flex; justify-content: space-between; gap: 10px; font-size: 14px; padding: 6px 0; border-bottom: 1px solid #f2f4f5"><span><span style="color: #5f5c5a; font-variant-numeric: tabular-nums">{{t.rank}}.</span> {{t.name}}</span><span style="white-space: nowrap; font-variant-numeric: tabular-nums"><span style="color: #5f5c5a">{{t.qty}} sold ·</span> <strong style="font-weight: 600">{{t.total}}</strong></span></div></sc-for>
+</section>
+</div>
+
+<section aria-labelledby="hs-h" style="background: #ffffff; border-radius: 24px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="hs-h" style="margin: 0; font-size: 17px; font-weight: 600">Sales history</h2><span style="font-size: 13px; color: #5f5c5a">{{histNote}}</span></div>
+<div class="ms-noprint" role="group" aria-label="History by" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{histBy}}" as="h" hint-placeholder-count="4"><button type="button" onClick="{{h.pick}}" aria-pressed="{{h.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{h.bg}}; color: {{h.fg}}; border: 1px solid {{h.bd}}">{{h.label}}</button></sc-for></div></div>
+<div style="overflow-x: auto"><table style="width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums">
+<thead><tr style="text-align: left; border-bottom: 1px solid #000000"><th scope="col" style="padding: 8px 6px; font-weight: 600">{{histCol}}</th><th scope="col" style="padding: 8px 6px; font-weight: 600; text-align: right">Sales</th><th scope="col" style="padding: 8px 6px; font-weight: 600; text-align: right">Items</th><th scope="col" style="padding: 8px 6px; font-weight: 600; text-align: right">Average sale</th><th scope="col" style="padding: 8px 6px; font-weight: 600; text-align: right">Total</th><th scope="col" style="padding: 8px 6px; font-weight: 600; text-align: right">Change</th><th scope="col" class="ms-noprint" style="padding: 8px 6px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Open</span></th></tr></thead>
+<tbody><sc-for list="{{hist}}" as="h" hint-placeholder-count="8"><tr style="border-bottom: 1px solid #f2f4f5; background: {{h.bg}}"><td style="padding: 9px 6px; font-weight: {{h.fw}}">{{h.label}}</td><td style="padding: 9px 6px; text-align: right">{{h.count}}</td><td style="padding: 9px 6px; text-align: right">{{h.items}}</td><td style="padding: 9px 6px; text-align: right">{{h.avg}}</td><td style="padding: 9px 6px; text-align: right; font-weight: 600">{{h.total}}</td><td style="padding: 9px 6px; text-align: right; color: {{h.chFg}}">{{h.change}}</td><td class="ms-noprint" style="padding: 4px 6px; text-align: right"><button type="button" onClick="{{h.open}}" style="font-family: inherit; font-size: 12.5px; padding: 6px 12px; min-height: 34px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">View</button></td></tr></sc-for></tbody>
+</table></div>
+</section>
+
+<section aria-labelledby="ls-h" style="background: #ffffff; border-radius: 24px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="ls-h" style="margin: 0; font-size: 17px; font-weight: 600">Every sale in this period</h2><span style="font-size: 13px; color: #5f5c5a">{{listNote}}</span></div>
+<label class="ms-noprint" style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">Search sale no., customer or item<input type="search" value="{{q}}" onInput="{{qIn}}" placeholder="e.g. 1182, Mensah, rice" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9; width: 260px"></label></div>
+<sc-if value="{{noList}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a; padding: 8px 0">{{noListTxt}}</span></sc-if>
+<div style="overflow-x: auto"><table style="width: 100%; border-collapse: collapse; font-size: 13.5px">
+<thead><tr style="text-align: left; border-bottom: 1px solid #000000"><th scope="col" style="padding: 8px 6px; font-weight: 600">Sale</th><th scope="col" style="padding: 8px 6px; font-weight: 600">When</th><th scope="col" style="padding: 8px 6px; font-weight: 600">Items</th><th scope="col" style="padding: 8px 6px; font-weight: 600">Customer</th><th scope="col" style="padding: 8px 6px; font-weight: 600">Paid by</th><th scope="col" style="padding: 8px 6px; font-weight: 600; text-align: right">Total</th></tr></thead>
+<tbody><sc-for list="{{list}}" as="s" hint-placeholder-count="8"><tr style="border-bottom: 1px solid #f2f4f5; vertical-align: top"><td style="padding: 9px 6px; font-weight: 600; white-space: nowrap">#{{s.no}}</td><td style="padding: 9px 6px; white-space: nowrap; color: #3d3a38">{{s.when}}</td><td style="padding: 9px 6px">{{s.items}}</td><td style="padding: 9px 6px; color: #3d3a38">{{s.cust}}</td><td style="padding: 9px 6px; white-space: nowrap"><span style="padding: 2px 8px; border-radius: 9999px; background: {{s.mBg}}; color: {{s.mFg}}; font-size: 12px">{{s.method}}</span></td><td style="padding: 9px 6px; text-align: right; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums">{{s.total}}</td></tr></sc-for></tbody>
+</table></div>
+<sc-if value="{{more}}" hint-placeholder-val="{{false}}"><button type="button" class="ms-noprint" onClick="{{showMore}}" style="align-self: center; font-family: inherit; font-size: 14px; padding: 10px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #000000; background: #ffffff; cursor: pointer">{{moreTxt}}</button></sc-if>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/dc-script" data-dc-script>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let role = 'superuser'; try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {}
+    let per = 'day'; try { per = window.localStorage.getItem('ecompos.mySalesPeriod') || 'day'; } catch (e) {}
+    this.state = { role, per, off: 0, who: '', q: '', shown: 25, histBy: '' };
+    this.onAny = () => this.setState({ tick: Date.now() });
+    this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser', who: '' });
+  }
+  componentDidMount() { try { ['ecompos:sales', 'ecompos:session', 'storage', 'focus'].forEach(n => window.addEventListener(n, this.onAny)); window.addEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  componentWillUnmount() { try { ['ecompos:sales', 'ecompos:session', 'storage', 'focus'].forEach(n => window.removeEventListener(n, this.onAny)); window.removeEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'MySales'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const LS = window.localStorage;
+    const rd = (k, d) => { try { const v = JSON.parse(LS.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const money = n => 'GHS ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const short = n => { const v = Number(n || 0); return v >= 10000 ? (v / 1000).toFixed(v >= 100000 ? 0 : 1) + 'k' : Math.round(v).toLocaleString('en-GB'); };
+    const NOW = new Date();
+    const DAY = 86400000;
+    const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const sod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const fromIso = s => { const p = String(s || '').split('-').map(Number); return p.length === 3 && p[0] ? new Date(p[0], p[1] - 1, p[2]) : null; };
+    const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dTxt = d => d.getDate() + ' ' + MON[d.getMonth()] + ' ' + d.getFullYear();
+
+    // ---------- who is looking, and whose sales ----------
+    const ROLE = ['superuser', 'manager', 'supervisor', 'staff'].indexOf(S.role) >= 0 ? S.role : 'superuser';
+    const PERSONA = { superuser: ['Kofi Adom', 'Superuser'], manager: ['Ama Darko', 'Manager'], supervisor: ['Kwame Asante', 'Supervisor'], staff: ['Akua Kyei', 'Sales staff'] };
+    const ses = rd('ecompos.session', null);
+    const ME = ses && ses.name && (ses.id === ROLE || !ses.id) ? ses.name : PERSONA[ROLE][0];
+    const LIVE = (rd('ecompos.sales', []) || []).filter(x => x && x.staff);
+    const KNOWN = { 'Kofi Adom': 'Superuser', 'Ama Darko': 'Manager', 'Kwame Asante': 'Supervisor', 'Akua Kyei': 'Sales staff' };
+    LIVE.forEach(x => { if (!KNOWN[x.staff]) KNOWN[x.staff] = x.level || 'Sales staff'; });
+    const canPick = ROLE === 'superuser' || ROLE === 'manager';
+    const pickable = Object.keys(KNOWN).filter(n => ROLE === 'superuser' || (KNOWN[n] !== 'Superuser' && KNOWN[n] !== 'Manager') || n === ME);
+    const WHO = canPick && S.who && pickable.indexOf(S.who) >= 0 ? S.who : ME;
+    const MINE = WHO === ME;
+
+    // ---------- history: earlier trading days (stable demo history) plus live till sales ----------
+    const CAT = [['Jasmine rice 5kg', 145], ['Vegetable oil 1L', 38], ['Laundry detergent 1kg', 32], ['Malt drink 330ml', 9], ['Sugar 1kg', 18], ['Milo 400g', 52], ['Tomato paste 400g', 14], ['Bottled water 1.5L', 6], ['Bluetooth speaker', 420], ['Standing fan 16"', 690], ['Electric iron', 260], ['Blender 1.5L', 540], ['Extension board 4-way', 95], ['LED bulb 12W', 25], ['32" Smart TV', 2650], ['Rice cooker 1.8L', 480]];
+    const PM = [['Cash', 46], ['Mobile Money (MTN)', 30], ['Mobile Money (Telecel)', 8], ['GhPay (GhIPSS)', 7], ['Cash + MoMo (MTN)', 5], ['CREDIT SALE · balance on account', 4]];
+    const CUST = ['', '', '', 'Ama Owusu', 'Yaw Mensah', 'Esi Owusu', 'Kojo Asare', 'Abena Ofori', 'Nana Yeboah', 'Efua Danso'];
+    const RATE = { Superuser: 1.2, Manager: 2, Supervisor: 3, 'Sales staff': 4.5 };
+    const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+    const rng = seed => { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+    const pickW = (r, L) => { const tot = L.reduce((a, x) => a + x[1], 0); let v = r() * tot; for (let i = 0; i < L.length; i++) { v -= L[i][1]; if (v <= 0) return L[i][0]; } return L[0][0]; };
+    const histFor = (name, a, b) => { // a..b ms, whole days
+      const out = []; const rate = RATE[KNOWN[name]] || 3;
+      for (let t = sod(new Date(a)).getTime(); t < b; t += DAY) {
+        const d = new Date(t); const r = rng(hash(name + iso(d)));
+        if (d.getDay() === 0 && r() < 0.6) continue;
+        const busy = (d.getDay() === 5 || d.getDay() === 6 ? 1.35 : 1) * (d.getMonth() === 11 ? 1.4 : 1);
+        const n = Math.max(0, Math.round(rate * busy * (0.5 + r())));
+        for (let k = 0; k < n; k++) {
+          const ts = t + (8 * 3600 + Math.floor(r() * 12 * 3600)) * 1000;
+          if (ts > NOW.getTime() || ts < a || ts >= b) continue;
+          const nl = 1 + Math.floor(r() * 3); const lines = []; let total = 0;
+          for (let j = 0; j < nl; j++) { const c = CAT[Math.floor(Math.pow(r(), 2.6) * CAT.length)]; const big = c[1] > 200; const qty = big ? 1 : 1 + Math.floor(r() * 4); if (lines.some(l => l.name === c[0])) continue; lines.push({ name: c[0], qty, each: c[1] }); total += qty * c[1]; }
+          out.push({ no: String(1000 + (hash(name + ts) % 9000)), ts, staff: name, lines, items: lines.map(l => l.qty + ' × ' + l.name).join(', '), total, method: pickW(r, PM), customer: CUST[Math.floor(r() * CUST.length)], hist: true });
+        }
+      }
+      return out;
+    };
+    // earlier days come from the kept history; today is exactly what was rung up at the till
+    const salesIn = (a, b) => {
+      const live = LIVE.filter(x => x.staff === WHO && (x.ts || 0) >= a && (x.ts || 0) < b);
+      const hist = histFor(WHO, a, Math.min(b, sod(NOW).getTime()));
+      return live.concat(hist.filter(h => !live.some(l => l.no === h.no))).sort((x, y) => y.ts - x.ts);
+    };
+    const linesOf = s => Array.isArray(s.lines) && s.lines.length ? s.lines.map(l => ({ name: l.name, qty: Number(l.qty) || 0, total: (Number(l.qty) || 0) * (Number(l.each) || 0) })) : String(s.items || '').split(', ').map(x => { const m = x.match(/^(\d+)\s*×\s*(.+)$/); return m ? { name: m[2], qty: Number(m[1]), total: 0 } : null; }).filter(Boolean);
+    const itemsOf = s => linesOf(s).reduce((a, l) => a + l.qty, 0);
+    const methodKey = m => { const s = String(m || ''); return /CREDIT/i.test(s) ? 'Credit sale' : /^Cash \+|Split/i.test(s) ? 'Split payment' : /^Cash/i.test(s) ? 'Cash' : /Mobile Money|MoMo/i.test(s) ? 'Mobile Money' : /GhPay/i.test(s) ? 'GhPay' : /Hire/i.test(s) ? 'Hire purchase' : /account/i.test(s) ? 'On account' : 'Other'; };
+    const MCOL = { Cash: '#1f7a2a', 'Mobile Money': '#b26a00', GhPay: '#0b6bcb', 'Split payment': '#6b6866', 'Credit sale': '#0b5c5c', 'Hire purchase': '#a8492a', 'On account': '#3d3a38', Other: '#8a8786' };
+
+    // ---------- the period ----------
+    const PER = ['day', 'week', 'month', 'year', 'custom'].indexOf(S.per) >= 0 ? S.per : 'day';
+    const off = Math.min(0, S.off || 0);
+    const range = (per, o) => {
+      const t = sod(NOW);
+      if (per === 'day') { const a = new Date(t.getTime() + o * DAY); return [a, new Date(a.getTime() + DAY)]; }
+      if (per === 'week') { const mon = new Date(t.getTime() - ((t.getDay() + 6) % 7) * DAY); const a = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + o * 7); return [a, new Date(a.getFullYear(), a.getMonth(), a.getDate() + 7)]; }
+      if (per === 'month') { const a = new Date(t.getFullYear(), t.getMonth() + o, 1); return [a, new Date(a.getFullYear(), a.getMonth() + 1, 1)]; }
+      if (per === 'year') { const a = new Date(t.getFullYear() + o, 0, 1); return [a, new Date(a.getFullYear() + 1, 0, 1)]; }
+      return null;
+    };
+    let err = '';
+    let A, B;
+    if (PER === 'custom') {
+      let f = fromIso(S.from) || new Date(sod(NOW).getTime() - 6 * DAY); let tt = fromIso(S.to) || sod(NOW);
+      if (f > tt) { err = 'The "From" date is after the "To" date — showing them the other way round.'; const x = f; f = tt; tt = x; }
+      if (tt > sod(NOW)) tt = sod(NOW);
+      if (f > tt) f = tt;
+      if ((tt - f) / DAY > 731) { err = 'Custom ranges are limited to two years — showing the last two years of that range.'; f = new Date(tt.getTime() - 731 * DAY); }
+      A = f; B = new Date(tt.getFullYear(), tt.getMonth(), tt.getDate() + 1);
+    } else { const r = range(PER, off); A = r[0]; B = r[1]; }
+    const span = B - A;
+    const PA = PER === 'custom' ? new Date(A.getTime() - span) : range(PER, off - 1)[0];
+    const PB = PER === 'custom' ? A : range(PER, off - 1)[1];
+    const rangeTxt = PER === 'day' ? (off === 0 ? 'Today · ' : off === -1 ? 'Yesterday · ' : WD[A.getDay()] + ' · ') + dTxt(A)
+      : PER === 'week' ? (off === 0 ? 'This week · ' : off === -1 ? 'Last week · ' : '') + A.getDate() + ' ' + MON[A.getMonth()] + ' – ' + dTxt(new Date(B.getTime() - DAY))
+      : PER === 'month' ? MON[A.getMonth()] + ' ' + A.getFullYear() + (off === 0 ? ' · this month' : '')
+      : PER === 'year' ? String(A.getFullYear()) + (off === 0 ? ' · this year so far' : '')
+      : dTxt(A) + ' – ' + dTxt(new Date(B.getTime() - DAY)) + ' · ' + Math.round(span / DAY) + (Math.round(span / DAY) === 1 ? ' day' : ' days');
+
+    const SL = salesIn(A.getTime(), B.getTime());
+    const PL = salesIn(PA.getTime(), PB.getTime());
+    const sum = L => L.reduce((a, s) => a + (Number(s.total) || 0), 0);
+    const TOT = sum(SL), PTOT = sum(PL), N = SL.length, ITEMS = SL.reduce((a, s) => a + itemsOf(s), 0);
+    const pctTxt = (a, b) => b > 0 ? (a >= b ? '▲ ' : '▼ ') + Math.abs(Math.round((a - b) / b * 100)) + '%' : a > 0 ? 'new' : '—';
+    const prevName = PER === 'day' ? 'the day before' : PER === 'week' ? 'last week' : PER === 'month' ? 'last month' : PER === 'year' ? 'last year' : 'the same length before';
+    const CR = SL.filter(s => methodKey(s.method) === 'Credit sale');
+
+    // ---------- chart buckets ----------
+    let buckets = [];
+    const days = Math.round(span / DAY);
+    if (PER === 'day') { for (let h = 7; h <= 21; h++) buckets.push({ a: A.getTime() + h * 3600000, b: A.getTime() + (h + 1) * 3600000, label: (h % 12 || 12) + (h < 12 ? 'a' : 'p'), tip: (h % 12 || 12) + (h < 12 ? 'am' : 'pm') }); }
+    else if (PER === 'year' || (PER === 'custom' && days > 62)) { let d = new Date(A.getFullYear(), A.getMonth(), 1); while (d < B) { const e = new Date(d.getFullYear(), d.getMonth() + 1, 1); buckets.push({ a: Math.max(d.getTime(), A.getTime()), b: Math.min(e.getTime(), B.getTime()), label: MON[d.getMonth()] + (PER === 'custom' && d.getMonth() === 0 ? ' ' + String(d.getFullYear()).slice(2) : ''), tip: MON[d.getMonth()] + ' ' + d.getFullYear() }); d = e; } }
+    else { for (let t = A.getTime(); t < B.getTime(); t += DAY) { const d = new Date(t); buckets.push({ a: t, b: t + DAY, label: PER === 'week' ? WD[d.getDay()] : String(d.getDate()), tip: WD[d.getDay()] + ' ' + dTxt(d) }); } }
+    buckets.forEach(k => { const L = SL.filter(s => s.ts >= k.a && s.ts < k.b); k.total = sum(L); k.n = L.length; });
+    const MAXB = Math.max(1, ...buckets.map(k => k.total));
+    const best = buckets.reduce((m, k) => k.total > m.total ? k : m, { total: 0, tip: '' });
+    const futureB = k => k.a > NOW.getTime();
+    const bars = buckets.map(k => ({ h: Math.round(k.total / MAXB * 100), min: k.total > 0 ? 3 : 0, bg: k === best && k.total > 0 ? '#0b5c5c' : futureB(k) ? '#ebebeb' : '#000000', label: buckets.length > 20 && buckets.indexOf(k) % 2 ? '' : k.label, top: buckets.length <= 16 && k.total > 0 ? short(k.total) : '', tip: k.tip + ' — ' + money(k.total) + ' from ' + k.n + (k.n === 1 ? ' sale' : ' sales') }));
+
+    // ---------- payment methods, top items ----------
+    const MM = {}; SL.forEach(s => { const k = methodKey(s.method); MM[k] = MM[k] || { n: 0, t: 0 }; MM[k].n++; MM[k].t += Number(s.total) || 0; });
+    const methods = Object.keys(MM).sort((a, b) => MM[b].t - MM[a].t).map(k => ({ label: k, count: MM[k].n + (MM[k].n === 1 ? ' sale' : ' sales'), total: money(MM[k].t), pct: TOT ? Math.max(2, Math.round(MM[k].t / TOT * 100)) : 0, bg: MCOL[k] || '#000000' }));
+    const TP = {}; SL.forEach(s => linesOf(s).forEach(l => { TP[l.name] = TP[l.name] || { q: 0, t: 0 }; TP[l.name].q += l.qty; TP[l.name].t += l.total; }));
+    const top = Object.keys(TP).sort((a, b) => (TP[b].t - TP[a].t) || (TP[b].q - TP[a].q)).slice(0, 8).map((k, i) => ({ rank: i + 1, name: k, qty: TP[k].q, total: TP[k].t ? money(TP[k].t) : '—' }));
+
+    // ---------- history table ----------
+    const HB = S.histBy || ({ day: 'day', week: 'week', month: 'month', year: 'year', custom: 'day' })[PER];
+    const HN = { day: 14, week: 12, month: 12, year: 5 }[HB];
+    const hRows = [];
+    for (let i = 0; i < HN; i++) { const r = range(HB, -i); hRows.push({ o: -i, a: r[0], b: r[1] }); }
+    const allHist = salesIn(hRows[hRows.length - 1].a.getTime(), hRows[0].b.getTime());
+    hRows.forEach(r => { const L = allHist.filter(s => s.ts >= r.a.getTime() && s.ts < r.b.getTime()); r.t = sum(L); r.n = L.length; r.i = L.reduce((a, s) => a + itemsOf(s), 0); });
+    const hLabel = (hb, r) => hb === 'day' ? (r.o === 0 ? 'Today' : r.o === -1 ? 'Yesterday' : WD[r.a.getDay()]) + ', ' + dTxt(r.a) : hb === 'week' ? (r.o === 0 ? 'This week · ' : '') + r.a.getDate() + ' ' + MON[r.a.getMonth()] + ' – ' + dTxt(new Date(r.b.getTime() - DAY)) : hb === 'month' ? MON[r.a.getMonth()] + ' ' + r.a.getFullYear() : String(r.a.getFullYear());
+    const isCur = r => HB === PER && r.o === off;
+    const hist = hRows.map((r, i) => { const pr = hRows[i + 1]; const ch = pr ? pctTxt(r.t, pr.t) : '—';
+      return { label: hLabel(HB, r) + (r.o === 0 && HB !== 'week' ? ' (so far)' : ''), count: r.n, items: r.i, avg: r.n ? money(r.t / r.n) : '—', total: money(r.t), change: ch, chFg: /▲/.test(ch) ? '#1f7a2a' : /▼/.test(ch) ? '#c62828' : '#5f5c5a', bg: isCur(r) ? '#e7f2f2' : 'transparent', fw: isCur(r) ? '600' : '400', open: () => set({ per: HB, off: r.o, shown: 25 }) }; });
+
+    // ---------- the list ----------
+    const q = String(S.q || '').trim().toLowerCase();
+    const LF = q ? SL.filter(s => (String(s.no) + ' ' + (s.customer || '') + ' ' + (s.items || '') + ' ' + (s.method || '')).toLowerCase().indexOf(q) >= 0) : SL;
+    const shown = S.shown || 25;
+    const whenTxt = ts => { const d = new Date(ts); return (PER === 'day' ? '' : d.getDate() + ' ' + MON[d.getMonth()] + (d.getFullYear() !== NOW.getFullYear() ? ' ' + d.getFullYear() : '') + ', ') + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    const list = LF.slice(0, shown).map(s => { const k = methodKey(s.method); return { no: s.no, when: whenTxt(s.ts), items: s.items || linesOf(s).map(l => l.qty + ' × ' + l.name).join(', '), cust: String(s.customer || '').split(' · ')[0] || 'Walk-in', method: k, mBg: k === 'Credit sale' ? '#e7f2f2' : '#f2f4f5', mFg: k === 'Credit sale' ? '#0b5c5c' : '#3d3a38', total: money(s.total) }; });
+
+    // ---------- export ----------
+    const csv = () => { try {
+      const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+      const rows = [['Sale', 'Date', 'Time', 'Seller', 'Items', 'Customer', 'Paid by', 'Total (GHS)']].concat(LF.map(s => { const d = new Date(s.ts); return [s.no, iso(d), String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'), WHO, s.items || linesOf(s).map(l => l.qty + ' x ' + l.name).join('; '), String(s.customer || '').split(' · ')[0], s.method, Number(s.total || 0).toFixed(2)]; }));
+      rows.push(['', '', '', '', '', '', 'TOTAL', TOT.toFixed(2)]);
+      const blob = new Blob([rows.map(r => r.map(esc).join(',')).join('\r\n')], { type: 'text/csv' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'my-sales-' + WHO.replace(/\s+/g, '-').toLowerCase() + '-' + iso(A) + '-to-' + iso(new Date(B.getTime() - DAY)) + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+    } catch (e) {} };
+
+    const PN = { day: 'Day', week: 'Week', month: 'Month', year: 'Year', custom: 'Custom' };
+    return {
+      title: MINE ? 'My sales' : WHO + '’s sales',
+      note: (MINE ? 'Everything you sold at the till' : 'Everything ' + WHO + ' (' + KNOWN[WHO] + ') sold at the till') + ' — by day, week, month, year or any dates you choose. History is kept for every trading day.',
+      canPick, pickNote: ROLE === 'superuser' ? 'You are looking at your own sales. As Admin you can open anyone’s sales history.' : 'You can also open the sales history of the Supervisors and Sales staff at your branch.',
+      people: pickable.map(n => Object.assign({ label: (n === ME ? 'Me · ' : '') + n + ' (' + KNOWN[n] + ')', pick: () => set({ who: n === ME ? '' : n, shown: 25 }) }, pill(WHO === n))),
+      periods: ['day', 'week', 'month', 'year', 'custom'].map(p => Object.assign({ label: PN[p], pick: () => { try { LS.setItem('ecompos.mySalesPeriod', p); } catch (e) {} set({ per: p, off: 0, shown: 25, histBy: '' }); } }, pill(PER === p))),
+      isStep: PER !== 'custom', isCustom: PER === 'custom', rangeTxt,
+      prev: () => set({ off: off - 1, shown: 25 }), next: () => { if (off < 0) set({ off: off + 1, shown: 25 }); }, nextOff: off >= 0 ? 'true' : 'false', nextOp: off >= 0 ? '0.35' : '1',
+      notNow: off < 0, toNow: () => set({ off: 0, shown: 25 }), toNowTxt: { day: 'Back to today', week: 'Back to this week', month: 'Back to this month', year: 'Back to this year' }[PER] || '',
+      from: iso(A), to: iso(new Date(B.getTime() - DAY)), todayIso: iso(NOW),
+      fromIn: e => set({ from: e.target.value, shown: 25 }), toIn: e => set({ to: e.target.value, shown: 25 }),
+      quick: [['Last 7 days', 6], ['Last 30 days', 29], ['Last 90 days', 89], ['Last 12 months', 364]].map(x => ({ label: x[0], pick: () => set({ from: iso(new Date(sod(NOW).getTime() - x[1] * DAY)), to: iso(NOW), shown: 25 }) })),
+      hasErr: !!err, err,
+      kpis: [
+        { label: 'Total sold', value: money(TOT), sub: pctTxt(TOT, PTOT) + ' vs ' + prevName + ' (' + money(PTOT) + ')', subFg: TOT >= PTOT ? '#1f7a2a' : '#c62828' },
+        { label: 'Number of sales', value: String(N), sub: pctTxt(N, PL.length) + ' vs ' + prevName, subFg: N >= PL.length ? '#1f7a2a' : '#c62828' },
+        { label: 'Items sold', value: ITEMS.toLocaleString('en-GB'), sub: N ? (ITEMS / N).toFixed(1) + ' items per sale' : 'No sales yet', subFg: '#5f5c5a' },
+        { label: 'Average sale', value: N ? money(TOT / N) : '—', sub: PL.length ? 'was ' + money(PTOT / PL.length) : '', subFg: '#5f5c5a' },
+        { label: 'On credit', value: money(sum(CR)), sub: CR.length + (CR.length === 1 ? ' credit sale' : ' credit sales'), subFg: CR.length ? '#0b5c5c' : '#5f5c5a' },
+        { label: PER === 'day' ? 'Busiest hour' : PER === 'year' || (PER === 'custom' && days > 62) ? 'Best month' : 'Best day', value: best.total ? best.tip.replace(/ \d{4}$/, '') : '—', sub: best.total ? money(best.total) : 'No sales yet', subFg: '#5f5c5a' }
+      ],
+      chartTitle: PER === 'day' ? 'Sales by hour' : PER === 'year' || (PER === 'custom' && days > 62) ? 'Sales by month' : 'Sales by day',
+      chartNote: rangeTxt, chartAria: 'Bar chart of sales in ' + rangeTxt + '. Highest: ' + (best.tip || 'none') + ' at ' + money(best.total) + '.', bars,
+      methods, top, noSales: N === 0,
+      histBy: [['day', 'Daily'], ['week', 'Weekly'], ['month', 'Monthly'], ['year', 'Yearly']].map(h => Object.assign({ label: h[1], pick: () => set({ histBy: h[0] }) }, pill(HB === h[0]))),
+      histCol: { day: 'Day', week: 'Week', month: 'Month', year: 'Year' }[HB],
+      histNote: 'Last ' + HN + ' ' + { day: 'days', week: 'weeks', month: 'months', year: 'years' }[HB] + ' · tap View to open any of them',
+      hist,
+      listNote: LF.length + (LF.length === 1 ? ' sale' : ' sales') + ' · ' + money(sum(LF)) + (q ? ' matching “' + S.q + '”' : '') + ' · newest first',
+      q: S.q || '', qIn: e => set({ q: e.target.value, shown: 25 }),
+      list, noList: LF.length === 0, noListTxt: q ? 'No sale matches “' + S.q + '” in this period.' : 'No sales in this period.',
+      more: LF.length > shown, moreTxt: 'Show ' + Math.min(50, LF.length - shown) + ' more of ' + (LF.length - shown), showMore: () => set({ shown: shown + 50 }),
+      csv, print: () => { try { window.print(); } catch (e) {} }
+    };
+  }
+}
+
+</script>
+</body>
+</html>

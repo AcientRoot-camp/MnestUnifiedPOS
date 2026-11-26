@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS finance</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5;overflow-wrap:break-word}
+a{color:#000000}a:hover{color:#0b5c5c}
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+@media print{.fi-noprint{display:none !important}main{padding:0 !important}.fi-card{break-inside:avoid;box-shadow:none !important;border:1px solid #d9d9d9}}
+.fi-in{font:inherit;font-size:16px;padding:10px 12px;min-height:44px;box-sizing:border-box;border-radius:12px;border:1px solid #d9d9d9;background:#ffffff;width:100%}
+.fi-lb{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#3d3a38;min-width:0}
+.fi-card{background:#ffffff;border-radius:24px;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.fi-pill{font-family:inherit;font-size:13px;padding:8px 14px;min-height:40px;border-radius:9999px;cursor:pointer}
+.fi-btn{font-family:inherit;font-size:14px;font-weight:600;padding:11px 18px;min-height:46px;border-radius:9999px;border:0;background:#000000;color:#ffffff;cursor:pointer}
+.fi-btn2{font-family:inherit;font-size:13px;padding:8px 14px;min-height:40px;border-radius:9999px;border:1px solid #d9d9d9;background:#ffffff;color:#000000;cursor:pointer}
+.fi-t{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.fi-t th{text-align:left;padding:8px 6px;font-weight:600;border-bottom:1px solid #000000;white-space:nowrap}
+.fi-t td{padding:9px 6px;border-bottom:1px solid #f2f4f5;vertical-align:top}
+.fi-r{text-align:right !important}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div class="fi-noprint" style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="finance" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="sales" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">{{title}}</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{note}}</p>
+</div>
+<span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 12px; color: #5f5c5a"><span>{{who}}</span><span>{{asOf}}</span></span>
+</header>
+
+<div role="tablist" aria-label="Finance views" style="display: flex; gap: 5px; flex-wrap: wrap">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="6"><button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 44px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}; display: inline-flex; gap: 6px; align-items: center">{{t.label}}<sc-if value="{{t.hasN}}" hint-placeholder-val="{{false}}"><span style="font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 9999px; background: #a8492a; color: #ffffff">{{t.n}}</span></sc-if></button></sc-for>
+</div>
+
+<sc-if value="{{hasMsg}}" hint-placeholder-val="{{false}}"><div role="status" aria-live="polite" style="padding: 12px 16px; border-radius: 16px; background: {{msgBg}}; border: 1.5px solid {{msgBd}}; font-size: 14px; display: flex; justify-content: space-between; gap: 10px; align-items: center"><span>{{msg}}</span><button type="button" onClick="{{msgX}}" aria-label="Dismiss" class="fi-btn2" style="min-height: 34px; padding: 4px 12px">Close</button></div></sc-if>
+
+<sc-if value="{{showScope}}" hint-placeholder-val="{{true}}"><div role="group" aria-label="Branch" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{scopes}}" as="b" hint-placeholder-count="4"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></sc-if>
+
+<!-- ==================== OVERVIEW ==================== -->
+<sc-if value="{{tOver}}" hint-placeholder-val="{{true}}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="6"><button type="button" onClick="{{k.go}}" style="text-align: left; font-family: inherit; color: #000000; background: #ffffff; border: 0; border-radius: 22px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; cursor: pointer; box-shadow: inset 0 0 0 2px {{k.ring}}"><span style="font-size: 13px; color: #5f5c5a">{{k.label}}</span><strong style="font-size: 24px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">{{k.value}}</strong><span style="font-size: 12px; color: {{k.subFg}}">{{k.sub}}</span></button></sc-for>
+</div>
+
+<sc-if value="{{isSU}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="ai-h" class="fi-card" style="background: #0f0d1f; color: #ffffff">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center"><div style="display: flex; gap: 10px; align-items: center"><span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #0b5c5c, #4aa3a3); display: flex; align-items: center; justify-content: center; font-size: 17px">✦</span><div style="display: flex; flex-direction: column"><h2 id="ai-h" style="margin: 0; font-size: 17px; font-weight: 600">Finance assistant</h2><span style="font-size: 12.5px; color: #b9b4d6">{{aiSub}}</span></div></div><button type="button" onClick="{{openAi}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #2f7a7a; background: transparent; color: #ffffff; cursor: pointer">See all {{aiCount}} insights</button></div>
+<sc-for list="{{aiTop}}" as="i" hint-placeholder-count="3"><div style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 16px; background: #1c1938; flex-wrap: wrap"><span style="font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 9999px; background: {{i.bg}}; color: #ffffff; white-space: nowrap">{{i.sev}}</span><div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 3px"><strong style="font-size: 14.5px; font-weight: 600">{{i.title}}</strong><span style="font-size: 13px; color: #bcd7d7">{{i.body}}</span></div><sc-if value="{{i.hasAct}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{i.go}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #ffffff; color: #000000; cursor: pointer">{{i.act}}</button></sc-if></div></sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{showBrTable}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="br-h" class="fi-card">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline"><h2 id="br-h" style="margin: 0; font-size: 17px; font-weight: 600">Every branch today</h2><span style="font-size: 13px; color: #5f5c5a">Live from the tills · tap a branch to focus on it</span></div>
+<div style="overflow-x: auto"><table class="fi-t"><thead><tr><th scope="col">Branch</th><th scope="col" class="fi-r">Takings today</th><th scope="col" class="fi-r">Cash</th><th scope="col" class="fi-r">MoMo</th><th scope="col" class="fi-r">Not yet banked</th><th scope="col">Cash-up</th><th scope="col">Status</th></tr></thead>
+<tbody><sc-for list="{{brRows}}" as="b" hint-placeholder-count="3"><tr><td><button type="button" onClick="{{b.pick}}" style="font: inherit; font-weight: 600; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px">{{b.name}}</button><br><span style="font-size: 12px; color: #5f5c5a">{{b.lead}}</span></td><td class="fi-r" style="font-weight: 600">{{b.today}}</td><td class="fi-r">{{b.cash}}</td><td class="fi-r">{{b.momo}}</td><td class="fi-r" style="color: {{b.outFg}}; font-weight: 600">{{b.out}}</td><td>{{b.cu}}</td><td><span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; background: {{b.stBg}}; color: #ffffff; white-space: nowrap">{{b.st}}</span></td></tr></sc-for>
+<tr style="background: #f6f7f8"><td style="font-weight: 700">All branches</td><td class="fi-r" style="font-weight: 700">{{brTot.today}}</td><td class="fi-r">{{brTot.cash}}</td><td class="fi-r">{{brTot.momo}}</td><td class="fi-r" style="font-weight: 700">{{brTot.out}}</td><td></td><td></td></tr></tbody></table></div>
+</section>
+</sc-if>
+
+<sc-if value="{{xShow}}" hint-placeholder-val="{{true}}">
+<div class="fi-noprint" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end"><button type="button" onClick="{{xCsv}}" class="fi-btn2">Download finance report (CSV)</button><button type="button" onClick="{{xPrint}}" class="fi-btn2" style="background: #000000; color: #ffffff; border-color: #000000">Print finance report</button></div>
+
+<section aria-labelledby="cp-h" class="fi-card">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="cp-h" style="margin: 0; font-size: 17px; font-weight: 600">Credit payments collected · last 7 days</h2><span style="font-size: 13px; color: #5f5c5a">Part payments from credit customers. They are added to what each branch must bank.</span></div><strong style="font-size: 16px; color: #1f7a2a; font-variant-numeric: tabular-nums">{{cpTotal}}</strong></div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{cpBy}}" as="m" hint-placeholder-count="3"><span style="font-size: 12.5px; padding: 6px 12px; border-radius: 9999px; background: #f2f4f5">{{m.k}} <strong style="font-weight: 600">{{m.v}}</strong></span></sc-for></div>
+<sc-if value="{{cpNone}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">No credit payments collected in the last 7 days.</span></sc-if>
+<div style="overflow-x: auto"><table class="fi-t"><thead><tr><th scope="col">When</th><th scope="col">Branch</th><th scope="col">Customer</th><th scope="col">Sale</th><th scope="col">Paid by</th><th scope="col">Taken by</th><th scope="col" class="fi-r">Amount</th></tr></thead>
+<tbody><sc-for list="{{cpRows}}" as="r" hint-placeholder-count="3"><tr><td style="white-space: nowrap">{{r.when}}</td><td>{{r.br}}</td><td style="font-weight: 600">{{r.cust}}</td><td>#{{r.no}}</td><td>{{r.meth}}</td><td>{{r.by}}</td><td class="fi-r" style="font-weight: 600; color: #1f7a2a">{{r.amt}}</td></tr></sc-for></tbody></table></div>
+</section>
+
+<section aria-labelledby="ex-h" class="fi-card">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="ex-h" style="margin: 0; font-size: 17px; font-weight: 600">Expenses per branch · {{exMonth}}</h2><span style="font-size: 13px; color: #5f5c5a">Approved and paid expenses from the Expenses module against each branch's takings this month.</span></div>
+<div style="overflow-x: auto"><table class="fi-t"><thead><tr><th scope="col">Branch</th><th scope="col" class="fi-r">Takings this month</th><th scope="col" class="fi-r">Expenses</th><th scope="col" class="fi-r">Expenses %</th><th scope="col" class="fi-r">After expenses</th></tr></thead>
+<tbody><sc-for list="{{exRows}}" as="r" hint-placeholder-count="3"><tr style="background: {{r.bg}}"><td style="font-weight: {{r.fw}}">{{r.br}}</td><td class="fi-r">{{r.tk}}</td><td class="fi-r" style="color: #c62828">{{r.ex}}</td><td class="fi-r" style="color: {{r.pctFg}}; font-weight: 600">{{r.pct}}</td><td class="fi-r" style="font-weight: 600">{{r.net}}</td></tr></sc-for></tbody></table></div>
+<span style="font-size: 12px; color: #5f5c5a">Guide: keep expenses under 12% of takings. Red means a branch is above it.</span>
+</section>
+
+<section aria-labelledby="dh-h" class="fi-card">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="dh-h" style="margin: 0; font-size: 17px; font-weight: 600">Daily branch history</h2><span style="font-size: 13px; color: #5f5c5a">{{dhNote}}</span></div><div class="fi-noprint" role="group" aria-label="How many days" style="display: flex; gap: 5px"><sc-for list="{{dhDays}}" as="t" hint-placeholder-count="3"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" class="fi-pill" style="background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for></div></div>
+<div style="overflow-x: auto"><table class="fi-t"><thead><tr><sc-for list="{{dhHead}}" as="h" hint-placeholder-count="5"><th scope="col" style="text-align: {{h.al}}">{{h.t}}</th></sc-for></tr></thead>
+<tbody><sc-for list="{{dhRows}}" as="r" hint-placeholder-count="7"><tr style="background: {{r.bg}}"><sc-for list="{{r.cells}}" as="c" hint-placeholder-count="5"><td style="text-align: {{c.al}}; color: {{c.fg}}; font-weight: {{c.fw}}; white-space: nowrap">{{c.t}}<sc-if value="{{c.hasSub}}" hint-placeholder-val="{{false}}"><br><span style="font-size: 11.5px; font-weight: 400; color: {{c.subFg}}">{{c.sub}}</span></sc-if></td></sc-for></tr></sc-for></tbody></table></div>
+</section>
+</sc-if>
+
+<section aria-labelledby="ch-h" class="fi-card">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline"><h2 id="ch-h" style="margin: 0; font-size: 17px; font-weight: 600">{{chTitle}}</h2><span style="display: flex; gap: 14px; font-size: 12.5px; color: #3d3a38"><span style="display: inline-flex; gap: 6px; align-items: center"><span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 3px; background: #000000"></span>Cash, MoMo &amp; GhPay taken</span><span style="display: inline-flex; gap: 6px; align-items: center"><span aria-hidden="true" style="width: 10px; height: 10px; border-radius: 3px; background: #1f9d55"></span>Banked</span></span></div>
+<div role="img" aria-label="{{chAria}}" style="display: flex; align-items: flex-end; gap: 10px; height: 190px; border-bottom: 1px solid #e1e4e6; padding-top: 16px">
+<sc-for list="{{chBars}}" as="b" hint-placeholder-count="7"><div title="{{b.tip}}" style="flex: 1 1 0px; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px"><div style="width: 42%; max-width: 30px; height: {{b.h1}}%; background: #000000; border-radius: 5px 5px 2px 2px"></div><div style="width: 42%; max-width: 30px; height: {{b.h2}}%; background: {{b.c2}}; border-radius: 5px 5px 2px 2px"></div></div></sc-for>
+</div>
+<div aria-hidden="true" style="display: flex; gap: 10px"><sc-for list="{{chBars}}" as="b" hint-placeholder-count="7"><span style="flex: 1 1 0px; min-width: 0; text-align: center; font-size: 11.5px; color: #5f5c5a">{{b.label}}<br><span style="color: {{b.gapFg}}">{{b.gap}}</span></span></sc-for></div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px">
+<section aria-labelledby="mix-h" class="fi-card"><h2 id="mix-h" style="margin: 0; font-size: 17px; font-weight: 600">{{mixTitle}}</h2>
+<sc-for list="{{mix}}" as="m" hint-placeholder-count="5"><div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between; gap: 8px; font-size: 14px"><span>{{m.label}} <span style="color: #5f5c5a">· {{m.where}}</span></span><strong style="font-weight: 600; font-variant-numeric: tabular-nums">{{m.v}}</strong></div><div style="height: 8px; border-radius: 9999px; background: #f2f4f5; overflow: hidden"><div style="height: 100%; width: {{m.pct}}%; background: {{m.bg}}; border-radius: 9999px"></div></div></div></sc-for>
+</section>
+<section aria-labelledby="todo-h" class="fi-card"><h2 id="todo-h" style="margin: 0; font-size: 17px; font-weight: 600">{{todoTitle}}</h2>
+<sc-for list="{{todo}}" as="t" hint-placeholder-count="4"><div style="display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: {{t.bg}}; flex-wrap: wrap"><span aria-hidden="true" style="width: 24px; height: 24px; flex: none; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: {{t.dotBg}}; color: #ffffff">{{t.mark}}</span><div style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 1px"><strong style="font-size: 14px; font-weight: 600">{{t.title}}</strong><span style="font-size: 12.5px; color: #3d3a38">{{t.body}}</span></div><sc-if value="{{t.hasGo}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{t.go}}" class="fi-btn2">{{t.cta}}</button></sc-if></div></sc-for>
+</section>
+</div>
+</sc-if>
+
+<!-- ==================== CASH-UP ==================== -->
+<sc-if value="{{tCash}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; align-items: start">
+<section aria-labelledby="cu-h" class="fi-card">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="cu-h" style="margin: 0; font-size: 17px; font-weight: 600">Count the drawer</h2><span style="font-size: 13px; color: #5f5c5a">{{cu.where}}</span></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px">
+<sc-for list="{{cu.notes}}" as="n" hint-placeholder-count="9"><label class="fi-lb"><span>{{n.label}} <span style="color: #5f5c5a">= {{n.sub}}</span></span><input type="text" inputMode="numeric" value="{{n.v}}" onInput="{{n.in}}" placeholder="0" class="fi-in"></label></sc-for>
+</div>
+<div style="display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; padding: 14px; border-radius: 16px; background: #f6f7f8; font-variant-numeric: tabular-nums; font-size: 14px">
+<span>Counted in the drawer</span><strong style="text-align: right">{{cu.counted}}</strong>
+<span>Opening float</span><span style="text-align: right">{{cu.float}}</span>
+<span>Cash sales today</span><span style="text-align: right">{{cu.cashSales}}</span>
+<span>Expected in the drawer</span><strong style="text-align: right">{{cu.expected}}</strong>
+<strong style="border-top: 1px solid #000000; padding-top: 6px; color: {{cu.varFg}}">{{cu.varLabel}}</strong><strong style="text-align: right; border-top: 1px solid #000000; padding-top: 6px; color: {{cu.varFg}}">{{cu.variance}}</strong>
+</div>
+<sc-if value="{{cu.needWhy}}" hint-placeholder-val="{{false}}"><label class="fi-lb">Why is it different? (needed)<input type="text" value="{{cu.note}}" onInput="{{cu.noteIn}}" placeholder="e.g. gave GHS 20 change twice" class="fi-in"></label></sc-if>
+<sc-if value="{{cu.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{cu.err}}</span></sc-if>
+<button type="button" onClick="{{cu.go}}" class="fi-btn">{{cu.cta}}</button>
+<span style="font-size: 12px; color: #5f5c5a">After the count, eComPOS works out what to bank and fills in the deposit for you. The float stays in the drawer for tomorrow.</span>
+</section>
+<section aria-labelledby="cul-h" class="fi-card">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="cul-h" style="margin: 0; font-size: 17px; font-weight: 600">Cash-up history</h2><span style="font-size: 13px; color: #5f5c5a">{{cuListNote}}</span></div>
+<div style="overflow-x: auto"><table class="fi-t"><thead><tr><th scope="col">Day</th><th scope="col">Branch · till</th><th scope="col" class="fi-r">Expected</th><th scope="col" class="fi-r">Counted</th><th scope="col" class="fi-r">Difference</th></tr></thead>
+<tbody><sc-for list="{{cuList}}" as="c" hint-placeholder-count="6"><tr><td style="white-space: nowrap">{{c.day}}<br><span style="font-size: 12px; color: #5f5c5a">{{c.by}}</span></td><td>{{c.where}}<sc-if value="{{c.hasNote}}" hint-placeholder-val="{{false}}"><br><span style="font-size: 12px; color: #5f5c5a">“{{c.note}}”</span></sc-if></td><td class="fi-r">{{c.expected}}</td><td class="fi-r">{{c.counted}}</td><td class="fi-r" style="font-weight: 600; color: {{c.fg}}">{{c.variance}}</td></tr></sc-for></tbody></table></div>
+<sc-if value="{{cuNone}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">No cash-ups yet.</span></sc-if>
+</section>
+</div>
+</sc-if>
+
+<!-- ==================== DEPOSITS ==================== -->
+<sc-if value="{{tDep}}" hint-placeholder-val="{{false}}">
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; align-items: start">
+<sc-if value="{{hasOut}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="out-h" class="fi-card" style="box-shadow: inset 0 0 0 2px #a8492a">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="out-h" style="margin: 0; font-size: 17px; font-weight: 600">Waiting to be banked · {{outTotal}}</h2><span style="font-size: 13px; color: #5f5c5a">Money taken at the tills that has not reached the bank yet. Tap Bank this to record the deposit.</span></div>
+<div style="overflow-x: auto"><table class="fi-t"><thead><tr><th scope="col">Takings day</th><th scope="col">Branch</th><th scope="col">What</th><th scope="col" class="fi-r">Amount</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Action</span></th></tr></thead>
+<tbody><sc-for list="{{outList}}" as="o" hint-placeholder-count="4"><tr><td style="white-space: nowrap; font-weight: {{o.fw}}; color: {{o.fg}}">{{o.day}}</td><td>{{o.br}}</td><td>{{o.what}}</td><td class="fi-r" style="font-weight: 600">{{o.amount}}</td><td class="fi-r"><button type="button" onClick="{{o.pick}}" class="fi-btn2">Bank this</button></td></tr></sc-for></tbody></table></div>
+</section>
+</sc-if>
+<div style="{{dfOv}}"><div style="{{dfBox}}" role="{{dfRole}}" aria-modal="{{dfModal}}" aria-labelledby="df-h"><section aria-labelledby="df-h" class="fi-card" style="{{dfCardSt}}">
+<div style="display: flex; justify-content: space-between; gap: 12px; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="df-h" style="margin: 0; font-size: 17px; font-weight: 600">Move takings to the bank</h2><span style="font-size: 13px; color: #5f5c5a">{{df.sub}}</span></div><sc-if value="{{dfPop}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{dfClose}}" aria-label="Close" style="flex: none; width: 38px; height: 38px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; font-size: 18px; cursor: pointer">×</button></sc-if></div>
+<sc-if value="{{df.pickBr}}" hint-placeholder-val="{{true}}"><div role="group" aria-label="Branch" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{df.brs}}" as="b" hint-placeholder-count="3"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></sc-if>
+<div role="group" aria-label="Which days" style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Which days are you sending</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{df.modes}}" as="b" hint-placeholder-count="5"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div>
+<div role="group" aria-label="What are you banking" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{df.srcs}}" as="b" hint-placeholder-count="3"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px">
+<sc-if value="{{df.oneDay}}" hint-placeholder-val="{{true}}"><label class="fi-lb">Takings from (day)<input type="date" value="{{df.day}}" max="{{todayIso}}" onChange="{{df.dayIn}}" class="fi-in"></label></sc-if><sc-if value="{{df.isRange}}" hint-placeholder-val="{{false}}"><label class="fi-lb">From<input type="date" value="{{df.from}}" max="{{todayIso}}" onChange="{{df.fromIn}}" class="fi-in"></label><label class="fi-lb">To<input type="date" value="{{df.to}}" max="{{todayIso}}" onChange="{{df.toIn}}" class="fi-in"></label></sc-if><sc-if value="{{df.isPreset}}" hint-placeholder-val="{{false}}"><span class="fi-lb">Days included<span style="font-size: 14px; font-weight: 600; padding: 10px 0">{{df.rangeTxt}}</span></span></sc-if>
+<label class="fi-lb">Amount (GHS)<input type="text" inputMode="decimal" value="{{df.amount}}" onInput="{{df.amountIn}}" placeholder="0.00" class="fi-in"></label>
+</div>
+<span style="font-size: 12.5px; color: #3d3a38">{{df.hint}}</span>
+<sc-if value="{{df.hasBreak}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 14px; background: #f6f7f8; max-height: 180px; overflow: auto"><sc-for list="{{df.breakdown}}" as="x" hint-placeholder-count="3"><div style="display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px"><span>{{x.day}}</span><span style="font-variant-numeric: tabular-nums; font-weight: {{x.fw}}">{{x.amt}}</span></div></sc-for></div></sc-if>
+<div role="group" aria-label="Into which account" style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Send to the bank or keep at the store</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{df.accs}}" as="b" hint-placeholder-count="2"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px">
+<label class="fi-lb">{{df.slipLabel}}<input type="text" value="{{df.slip}}" onInput="{{df.slipIn}}" placeholder="{{df.slipPh}}" class="fi-in"></label>
+<label class="fi-lb">Note (optional)<input type="text" value="{{df.note}}" onInput="{{df.noteIn}}" class="fi-in"></label>
+</div>
+<sc-if value="{{df.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{df.err}}</span></sc-if>
+<button type="button" onClick="{{df.go}}" class="fi-btn">{{df.cta}}</button>
+</section></div></div>
+<section aria-labelledby="dl-h" class="fi-card">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="dl-h" style="margin: 0; font-size: 17px; font-weight: 600">Deposits</h2><span style="font-size: 13px; color: #5f5c5a">{{dlNote}}</span></div><button type="button" onClick="{{dfOpen}}" class="fi-btn" style="min-height: 40px; padding: 8px 16px; font-size: 13px">+ Record a deposit</button><div role="group" aria-label="Show" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{dlTabs}}" as="t" hint-placeholder-count="4"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" class="fi-pill" style="background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for></div></div>
+<sc-if value="{{dlNone}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">Nothing here.</span></sc-if>
+<sc-for list="{{dl}}" as="d" hint-placeholder-count="4"><article style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 16px; background: #f6f7f8">
+<div style="display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap"><span style="font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 9999px; background: {{d.stBg}}; color: #ffffff; white-space: nowrap">{{d.st}}</span><div style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 14px; font-weight: 600">{{d.title}}</strong><span style="font-size: 12.5px; color: #5f5c5a">{{d.meta}}</span><sc-if value="{{d.hasNote}}" hint-placeholder-val="{{false}}"><span style="font-size: 12.5px; color: #a8492a">{{d.note}}</span></sc-if></div><strong style="font-size: 15px; font-variant-numeric: tabular-nums">{{d.amount}}</strong></div>
+<sc-if value="{{d.can}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center"><button type="button" onClick="{{d.ok}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Matches the statement</button><button type="button" onClick="{{d.flag}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #c62828; background: #ffffff; color: #c62828; cursor: pointer">Does not match</button><input type="text" value="{{d.why}}" onInput="{{d.whyIn}}" placeholder="Note for the branch (needed to flag)" aria-label="Note for the branch" class="fi-in" style="flex: 1 1 200px; width: auto; min-height: 40px; padding: 8px 12px"></div></sc-if>
+</article></sc-for>
+<sc-if value="{{dlMore}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{dlShowMore}}" class="fi-btn2" style="align-self: center">Show more</button></sc-if>
+</section>
+</div>
+</sc-if>
+
+<!-- ==================== MONEY MOVEMENTS ==================== -->
+<sc-if value="{{tMove}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; align-items: start">
+<section aria-labelledby="mf-h" class="fi-card">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="mf-h" style="margin: 0; font-size: 17px; font-weight: 600">Record a money movement</h2><span style="font-size: 13px; color: #5f5c5a">{{mf.sub}}</span></div>
+<div role="group" aria-label="Type" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{mf.types}}" as="b" hint-placeholder-count="5"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div>
+<span style="font-size: 13px; color: #3d3a38; padding: 10px 12px; border-radius: 12px; background: #f6f7f8">{{mf.help}}</span>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px">
+<label class="fi-lb">Amount (GHS)<input type="text" inputMode="decimal" value="{{mf.amount}}" onInput="{{mf.amountIn}}" placeholder="0.00" class="fi-in"></label>
+<label class="fi-lb">{{mf.refLabel}}<input type="text" value="{{mf.ref}}" onInput="{{mf.refIn}}" placeholder="{{mf.refPh}}" class="fi-in"></label>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">From</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{mf.froms}}" as="b" hint-placeholder-count="3"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">To</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{mf.tos}}" as="b" hint-placeholder-count="3"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div>
+<label class="fi-lb">Note (optional)<input type="text" value="{{mf.note}}" onInput="{{mf.noteIn}}" class="fi-in"></label>
+<sc-if value="{{mf.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{mf.err}}</span></sc-if>
+<button type="button" onClick="{{mf.go}}" class="fi-btn">{{mf.cta}}</button>
+</section>
+<section aria-labelledby="ml-h" class="fi-card">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="ml-h" style="margin: 0; font-size: 17px; font-weight: 600">Movements</h2><span style="font-size: 13px; color: #5f5c5a">{{mlNote}}</span></div>
+<sc-if value="{{mlNone}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">No movements recorded yet.</span></sc-if>
+<sc-for list="{{ml}}" as="m" hint-placeholder-count="4"><article style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 16px; background: #f6f7f8">
+<div style="display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap"><span style="font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 9999px; background: {{m.stBg}}; color: #ffffff; white-space: nowrap">{{m.st}}</span><div style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 14px; font-weight: 600">{{m.title}}</strong><span style="font-size: 12.5px; color: #5f5c5a">{{m.meta}}</span></div><strong style="font-size: 15px; font-variant-numeric: tabular-nums; color: {{m.fg}}">{{m.amount}}</strong></div>
+<sc-if value="{{m.can}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 6px; flex-wrap: wrap"><button type="button" onClick="{{m.ok}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Approve</button><button type="button" onClick="{{m.no}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #c62828; background: #ffffff; color: #c62828; cursor: pointer">Reject</button></div></sc-if>
+</article></sc-for>
+</section>
+</div>
+</sc-if>
+
+<!-- ==================== ACCOUNTS (Admin) ==================== -->
+<sc-if value="{{tAcc}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px">
+<sc-for list="{{accs}}" as="a" hint-placeholder-count="6"><article class="fi-card" style="gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #5f5c5a; text-transform: uppercase; letter-spacing: 0.05em">{{a.kind}}</span><strong style="font-size: 15px; font-weight: 600">{{a.name}}</strong><span style="font-size: 12.5px; color: #5f5c5a">{{a.number}}</span><strong style="font-size: 24px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">{{a.bal}}</strong><sc-if value="{{a.hasUnc}}" hint-placeholder-val="{{false}}"><span style="font-size: 12.5px; color: #b26a00">+ {{a.unc}} waiting for your check</span></sc-if></article></sc-for>
+</div>
+<section aria-labelledby="mw-h" class="fi-card">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="mw-h" style="margin: 0; font-size: 17px; font-weight: 600">MoMo wallets · {{mwCount}}</h2><span style="font-size: 13px; color: #5f5c5a">Mobile Money wallets the business receives and sweeps money through</span></div><strong style="font-size: 16px; font-variant-numeric: tabular-nums">{{mwTotal}}</strong></div>
+<div style="overflow-x: auto"><table class="fi-t"><thead><tr><th scope="col">Operator</th><th scope="col">Name on the wallet</th><th scope="col">Wallet number</th><th scope="col" class="fi-r">Opening balance</th><th scope="col" class="fi-r">Balance now</th></tr></thead>
+<tbody><sc-for list="{{mwRows}}" as="w" hint-placeholder-count="2"><tr><td><span style="font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; background: {{w.opBg}}; color: {{w.opFg}}">{{w.op}}</span></td><td style="font-weight: 600">{{w.holder}}<br><span style="font-size: 12px; font-weight: 400; color: #5f5c5a">{{w.type}}</span></td><td style="white-space: nowrap">{{w.number}}</td><td class="fi-r">{{w.opening}}</td><td class="fi-r" style="font-weight: 600">{{w.bal}}</td></tr></sc-for></tbody></table></div>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; border: 1px solid #ebebeb">
+<strong style="font-size: 15px; font-weight: 600">Add a MoMo wallet</strong>
+<div role="group" aria-label="Operator" style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Operator</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{mw.ops}}" as="b" hint-placeholder-count="4"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div>
+<sc-if value="{{mw.isOther}}" hint-placeholder-val="{{false}}"><label class="fi-lb">Operator name<input type="text" value="{{mw.opName}}" onInput="{{mw.opNameIn}}" placeholder="e.g. G-Money, Zeepay" class="fi-in"></label></sc-if>
+<div role="group" aria-label="Wallet holder" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{mw.types}}" as="b" hint-placeholder-count="2"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px">
+<label class="fi-lb">{{mw.holderLabel}}<input type="text" value="{{mw.holder}}" onInput="{{mw.holderIn}}" placeholder="{{mw.holderPh}}" class="fi-in"></label>
+<label class="fi-lb">Wallet number<input type="tel" inputMode="numeric" value="{{mw.number}}" onInput="{{mw.numberIn}}" placeholder="{{mw.numberPh}}" class="fi-in"></label>
+<label class="fi-lb">Opening balance (GHS)<input type="text" inputMode="decimal" value="{{mw.opening}}" onInput="{{mw.openingIn}}" placeholder="0.00" class="fi-in"></label>
+</div>
+<sc-if value="{{mw.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{mw.err}}</span></sc-if>
+<button type="button" onClick="{{mw.go}}" class="fi-btn" style="align-self: flex-start">Add MoMo wallet</button>
+</div>
+</section>
+
+<section aria-labelledby="af-h" class="fi-card">
+<h2 id="af-h" style="margin: 0; font-size: 17px; font-weight: 600">Add a bank account, safe or settlement account</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px">
+<label class="fi-lb">Name<input type="text" value="{{af.name}}" onInput="{{af.nameIn}}" placeholder="e.g. Fidelity Bank · Savings" class="fi-in"></label>
+<label class="fi-lb">Account number<input type="text" value="{{af.number}}" onInput="{{af.numberIn}}" class="fi-in"></label>
+<label class="fi-lb">Opening balance (GHS)<input type="text" inputMode="decimal" value="{{af.opening}}" onInput="{{af.openingIn}}" placeholder="0.00" class="fi-in"></label>
+</div>
+<div role="group" aria-label="Kind" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{af.kinds}}" as="b" hint-placeholder-count="4"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" class="fi-pill" style="background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div>
+<sc-if value="{{af.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{af.err}}</span></sc-if>
+<button type="button" onClick="{{af.go}}" class="fi-btn" style="align-self: flex-start">Add account</button>
+</section>
+</sc-if>
+
+<!-- ==================== FINANCE ASSISTANT (Admin) ==================== -->
+<sc-if value="{{tRf}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="rf-h" class="fi-card">
+<div style="display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap"><div style="display: flex; flex-direction: column; gap: 2px"><h2 id="rf-h" style="margin: 0; font-size: 17px; font-weight: 600">Refund requests</h2><span style="font-size: 13px; color: #5f5c5a">Every refund from cancelled online orders, returns and checkout cancellations. Approve it, pay it out, record the reference, and the customer gets an SMS at each step.</span></div><button type="button" onClick="{{rf.csv}}" class="fi-btn2">Download CSV</button></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px"><sc-for list="{{rf.kpis}}" as="k" hint-placeholder-count="4"><div style="padding: 14px; border-radius: 16px; background: #f6f7f8; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #5f5c5a">{{k.label}}</span><strong style="font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums">{{k.v}}</strong><span style="font-size: 12px; color: #5f5c5a">{{k.n}}</span></div></sc-for></div>
+<div role="group" aria-label="Filter refunds" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{rf.filters}}" as="f" hint-placeholder-count="5"><button type="button" onClick="{{f.pick}}" style="font-family: inherit; font-size: 13px; padding: 7px 13px; min-height: 36px; border-radius: 9999px; cursor: pointer; background: {{f.bg}}; color: {{f.fg}}; border: 1px solid {{f.bd}}">{{f.label}}</button></sc-for></div>
+<sc-if value="{{rf.none}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 16px; border-radius: 16px; background: #f6f7f8; font-size: 14px; color: #5f5c5a">No refund requests here.</p></sc-if>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px"><sc-for list="{{rf.rows}}" as="r" hint-placeholder-count="3"><li style="border: 1px solid #ebebeb; border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap"><div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 3px"><div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><strong style="font-size: 15px; font-weight: 600">{{r.id}}</strong><span style="font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; background: {{r.stBg}}; color: {{r.stFg}}">{{r.st}}</span><span style="font-size: 12.5px; color: #5f5c5a">{{r.when}}</span></div><span style="font-size: 14px">{{r.who}} · {{r.phone}} · <strong style="font-weight: 600">{{r.amt}}</strong> to {{r.via}}</span><span style="font-size: 12.5px; color: #5f5c5a">{{r.src}} · {{r.reason}}</span><sc-if value="{{r.hasPaidLine}}" hint-placeholder-val="{{false}}"><span style="font-size: 12.5px; font-weight: 600; color: {{r.stFg}}">{{r.paidLine}}</span></sc-if></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-if value="{{r.canApprove}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{r.approve}}" class="fi-btn" style="min-height: 40px; padding: 8px 16px; font-size: 13px">Approve</button></sc-if><button type="button" onClick="{{r.toggle}}" aria-expanded="{{r.open}}" class="fi-btn2">{{r.togLbl}}</button></div></div>
+<sc-if value="{{r.open}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 14px; background: #f6f7f8">
+<sc-if value="{{r.isRejected}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; font-weight: 600; color: #c62828">This refund was rejected. Reopen it to continue.</span></sc-if>
+<ol aria-label="Refund progress" style="list-style: none; margin: 0; padding: 4px 0; display: flex; align-items: flex-start"><sc-for list="{{r.stages}}" as="g" hint-placeholder-count="4"><li style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative"><span aria-hidden="true" style="width: 16px; height: 16px; border-radius: 9999px; background: {{g.dot}}; box-shadow: 0 0 0 4px #f6f7f8; z-index: 1"></span><span style="font-size: 12px; font-weight: {{g.w}}; color: {{g.fg}}; text-align: center">{{g.label}}</span><sc-if value="{{g.last}}" hint-placeholder-val="{{false}}"><span></span></sc-if></li></sc-for></ol>
+<sc-if value="{{r.hasPayRef}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px">{{r.payRef}}</span></sc-if>
+<sc-if value="{{r.canPay}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 600">Pay out the refund</span><div role="group" aria-label="Refund method" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{r.methods}}" as="m" hint-placeholder-count="5"><button type="button" onClick="{{m.pick}}" style="font-family: inherit; font-size: 13px; padding: 7px 12px; min-height: 36px; border-radius: 9999px; cursor: pointer; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.bd}}">{{m.label}}</button></sc-for></div><div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end"><label class="fi-lb" style="flex: 1 1 220px">Transaction reference<input class="fi-in" value="{{r.ref}}" onInput="{{r.refIn}}" placeholder="e.g. MoMo ID 7741203398"></label><button type="button" onClick="{{r.pay}}" class="fi-btn" style="background: #4527a0">Send payment</button></div></div></sc-if>
+<sc-if value="{{r.canConfirm}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; background: #ffffff; border: 1px solid #d9d9d9"><span style="flex: 1 1 220px; font-size: 13px">{{r.paidLine}}. When the customer confirms they received the money, complete the refund.</span><button type="button" onClick="{{r.confirm}}" class="fi-btn" style="background: #1f7a2a">Confirm refund complete</button></div></sc-if>
+<sc-if value="{{r.canReject}}" hint-placeholder-val="{{true}}"><div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end"><label class="fi-lb" style="flex: 1 1 220px">Reason for rejecting<input class="fi-in" value="{{r.why}}" onInput="{{r.whyIn}}" placeholder="e.g. Items not returned"></label><button type="button" onClick="{{r.reject}}" class="fi-btn2" style="border-color: #c62828; color: #c62828">Reject refund</button></div></sc-if>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end"><label class="fi-lb" style="flex: 1 1 220px">Add a note<input class="fi-in" value="{{r.note}}" onInput="{{r.noteIn}}" placeholder="e.g. Customer called, will pick up cash"></label><button type="button" onClick="{{r.addNote}}" class="fi-btn2">Save note</button></div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: #ffffff; border: 1px solid #d9d9d9"><span style="font-size: 13px; font-weight: 600">SMS update to the customer</span><div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start"><label class="fi-lb" style="flex: 1 1 260px">Message (edit before sending)<textarea class="fi-in" rows="4" value="{{r.smsTxt}}" onInput="{{r.smsIn}}" style="resize: vertical; min-height: 96px"></textarea><span>{{r.smsLen}}</span></label><div aria-label="SMS preview" style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Preview · to {{r.smsTo}}</span><div style="align-self: flex-start; max-width: 100%; padding: 10px 12px; border-radius: 16px 16px 16px 4px; background: #e9e9eb; font-size: 13.5px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere">{{r.smsTxt}}</div></div></div><div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{r.notify}}" class="fi-btn" style="min-height: 40px; padding: 8px 16px; font-size: 13px">Send SMS update</button><button type="button" onClick="{{r.smsReset}}" class="fi-btn2">Use the message for this stage</button></div></div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><sc-if value="{{r.hasOrder}}" hint-placeholder-val="{{true}}"><a href="{{r.orderHref}}" onClick="{{r.goOrder}}" class="fi-btn2" style="text-decoration: none; display: inline-flex; align-items: center">View order</a></sc-if><sc-if value="{{r.canReopen}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{r.reopen}}" class="fi-btn2">Reopen</button></sc-if></div>
+<sc-if value="{{r.viewOnly}}" hint-placeholder-val="{{false}}"><span style="font-size: 12.5px; color: #5f5c5a">Approving and paying refunds is done by a Supervisor, Manager or the Admin.</span></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #5f5c5a; text-transform: uppercase; letter-spacing: 0.06em">Activity &amp; messages · {{r.smsN}} SMS sent</span><sc-for list="{{r.acts}}" as="l" hint-placeholder-count="2"><div style="display: flex; gap: 8px; align-items: flex-start"><span style="flex: none; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; background: {{l.kBg}}">{{l.kind}}</span><span style="font-size: 12.5px">{{l.t}} <span style="color: #5f5c5a">· {{l.meta}}</span></span></div></sc-for></div>
+</div></sc-if>
+</li></sc-for></ul>
+</section>
+</sc-if>
+
+<sc-if value="{{tAi}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="ask-h" class="fi-card" style="background: #0f0d1f; color: #ffffff">
+<div style="display: flex; gap: 10px; align-items: center"><span aria-hidden="true" style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #0b5c5c, #4aa3a3); display: flex; align-items: center; justify-content: center; font-size: 19px">✦</span><div style="display: flex; flex-direction: column"><h2 id="ask-h" style="margin: 0; font-size: 18px; font-weight: 600">Ask the finance assistant</h2><span style="font-size: 12.5px; color: #b9b4d6">It reads takings, banking, cash-ups, expenses and credit from every branch, then answers in plain words.</span></div></div>
+<div role="group" aria-label="Questions" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{asks}}" as="q" hint-placeholder-count="6"><button type="button" onClick="{{q.pick}}" aria-pressed="{{q.pressed}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{q.bg}}; color: {{q.fg}}; border: 1px solid #2f7a7a">{{q.label}}</button></sc-for></div>
+<sc-if value="{{hasAnswer}}" hint-placeholder-val="{{true}}"><div role="status" aria-live="polite" style="padding: 18px; border-radius: 18px; background: #1c1938; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9fc9c9">You asked · {{av.q}}</span><strong style="font-size: 19px; font-weight: 600; line-height: 1.3">{{av.title}}</strong><sc-if value="{{av.hasBig}}" hint-placeholder-val="{{true}}"><span style="align-self: flex-start; margin-top: 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.03em; padding: 6px 14px; border-radius: 14px; background: #0b5c5c; color: #ffffff; font-variant-numeric: tabular-nums">{{av.big}}</span></sc-if><span style="font-size: 12.5px; font-weight: 600; color: {{av.sumFg}}">{{av.summary}}</span></div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px"><sc-for list="{{av.lines}}" as="l" hint-placeholder-count="3"><li style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: #24204a; border-left: 4px solid {{l.bar}}"><span style="flex: none; font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: {{l.tagBg}}; color: {{l.tagFg}}; border: 1px solid {{l.tagFg}}; margin-top: 1px">{{l.tag}}</span><span style="font-size: 14px; color: #d9e9e9; line-height: 1.5"><sc-if value="{{l.hasLabel}}" hint-placeholder-val="{{true}}"><strong style="font-weight: 700; color: #ffffff">{{l.label}}</strong> · </sc-if><sc-for list="{{l.segs}}" as="g" hint-placeholder-count="2"><span style="font-weight: {{g.w}}; color: {{g.c}}">{{g.t}}</span></sc-for></span></li></sc-for></ul>
+<sc-if value="{{av.hasNext}}" hint-placeholder-val="{{true}}"><div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 12px 14px; border-radius: 14px; background: #0b5c5c"><span aria-hidden="true" style="font-size: 18px">→</span><span style="flex: 1 1 240px; font-size: 14px; line-height: 1.45"><strong style="font-weight: 700">What to do next:</strong> {{av.next}}</span><sc-if value="{{av.hasNextBtn}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{av.goNext}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; min-height: 38px; border-radius: 9999px; border: 0; background: #ffffff; color: #0b5c5c; cursor: pointer">{{av.nextLbl}}</button></sc-if></div></sc-if>
+<span style="font-size: 11.5px; color: #8f8ab5">{{av.asOf}}</span>
+</div></sc-if>
+</section>
+<section aria-labelledby="ins-h" class="fi-card">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="ins-h" style="margin: 0; font-size: 17px; font-weight: 600">Everything the assistant noticed</h2><span style="font-size: 13px; color: #5f5c5a">{{aiCount}} · most urgent first · refreshed every time a branch records a sale, deposit or cash-up</span></div>
+<sc-for list="{{aiGroups}}" as="g" hint-placeholder-count="3"><div style="display: flex; flex-direction: column; gap: 8px"><div style="display: flex; align-items: baseline; gap: 8px; padding-bottom: 6px; border-bottom: 2px solid {{g.color}}"><strong style="font-size: 15px; font-weight: 700; color: {{g.color}}">{{g.name}}</strong><span style="font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 9999px; background: {{g.color}}; color: #ffffff">{{g.n}}</span><span style="font-size: 12.5px; color: #5f5c5a">{{g.note}}</span></div>
+<sc-for list="{{g.items}}" as="i" hint-placeholder-count="2"><div style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: #f6f7f8; border-left: 4px solid {{i.bg}}; flex-wrap: wrap"><div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px"><strong style="font-size: 14.5px; font-weight: 600; line-height: 1.35">{{i.title}}</strong><span style="font-size: 13.5px; color: #3d3a38; line-height: 1.5">{{i.body}}</span></div><sc-if value="{{i.hasAct}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{i.go}}" class="fi-btn2">{{i.act}} →</button></sc-if></div></sc-for></div></sc-for>
+</section>
+</sc-if>
+
+</main>
+</div>
+</x-dc>
+<script type="text/dc-script" data-dc-script>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let role = 'superuser'; try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {}
+    let tab0 = 'overview'; try { tab0 = window.localStorage.getItem('ecompos.finTab') || 'overview'; } catch (e) {}
+    this.state = { role, tab: tab0, scope: 'all', df: {}, cu: {}, mf: {}, af: {}, dlTab: 'all', dlN: 8, why: {}, ask: 'bank', msg: '' };
+    this.onAny = () => this.setState({ tick: Date.now() });
+    this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser', scope: 'all' });
+    this.onTab = e => this.setState({ tab: (e && e.detail) || 'overview', msg: '' });
+  }
+  componentDidMount() { try { ['ecompos:sales', 'ecompos:fin', 'ecompos:expenses', 'ecompos:customers', 'ecompos:branches', 'storage'].forEach(n => window.addEventListener(n, this.onAny)); window.addEventListener('ecompos:role', this.onRole); window.addEventListener('ecompos:finTab', this.onTab); } catch (e) {} }
+  componentWillUnmount() { try { ['ecompos:sales', 'ecompos:fin', 'ecompos:expenses', 'ecompos:customers', 'ecompos:branches', 'storage'].forEach(n => window.removeEventListener(n, this.onAny)); window.removeEventListener('ecompos:role', this.onRole); window.removeEventListener('ecompos:finTab', this.onTab); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Finance'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    // FIN-ENGINE-START (shared by Finance, Home dashboard and reminders)
+    const FIN = (function (LS) {
+      const rd = (k, d) => { try { const v = JSON.parse(LS.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+      const wr = (k, v, ev) => { try { LS.setItem(k, JSON.stringify(v)); if (ev) window.dispatchEvent(new CustomEvent(ev, { detail: v })); } catch (e) {} };
+      const DAY = 86400000; const NOW = new Date();
+      const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const TODAY = iso(NOW);
+      const dAgo = n => iso(new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate() - n));
+      const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayTxt = day => { const d = new Date(day + 'T12:00:00'); return day === TODAY ? 'Today' : day === dAgo(1) ? 'Yesterday' : WD[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()]; };
+      const BX = rd('ecompos.branches', null);
+      const BR = (Array.isArray(BX) && BX.length ? BX : [{ id: 'osu', name: 'Osu branch' }, { id: 'legon', name: 'East Legon branch' }, { id: 'adum', name: 'Adum branch' }]).filter(b => b && b.status !== 'archived');
+      const bName = id => { const b = BR.find(x => x.id === id); return b ? String(b.name || id).replace(/\s*branch$/i, '') : id; };
+      const LEAD = { osu: 'Ama Darko', legon: 'Yaw Boateng', adum: 'Efua Mensah' };
+      const BASE = { osu: 9200, legon: 7400, adum: 6100 };
+      const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+      const rng = seed => { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+      const r2 = n => Math.round(n * 100) / 100;
+      const frac = (() => { const h = NOW.getHours() + NOW.getMinutes() / 60; return Math.max(0, Math.min(1, (h - 8) / 12)); })();
+      const LIVE = rd('ecompos.sales', []) || [];
+      const srcOf = m => { const s = String(m || ''); return /CREDIT|account|Hire/i.test(s) ? 'credit' : /^Cash \+|Split/i.test(s) ? 'split' : /^Cash/i.test(s) ? 'cash' : /Mobile Money|MoMo/i.test(s) ? 'momo' : /GhPay/i.test(s) ? 'ghpay' : 'card'; };
+      const CACHE = {};
+      // takings per branch per day, by how customers paid
+      const takings = (br, day) => {
+        const key = br + '|' + day; if (CACHE[key]) return CACHE[key];
+        const r = rng(hash('fin' + br + day)); const d = new Date(day + 'T12:00:00');
+        let base = (BASE[br] || 5000) * (0.75 + r() * 0.5) * (d.getDay() === 0 ? 0.45 : d.getDay() >= 5 ? 1.25 : 1) * (d.getMonth() === 11 ? 1.35 : 1);
+        if (day === TODAY) base *= frac;
+        const t = { cash: 0, momo: 0, ghpay: 0, credit: 0, card: 0, n: Math.round(base / 180) };
+        [['cash', 0.44], ['momo', 0.37], ['ghpay', 0.07], ['credit', 0.06], ['card', 0.06]].forEach(m => { t[m[0]] = Math.round(base * m[1] * (0.85 + r() * 0.3)); });
+        if (day === TODAY) { const bn = bName(br).toLowerCase().split(' ')[0]; LIVE.filter(x => x && x.ts && iso(new Date(x.ts)) === day && String(x.branch || 'Osu').toLowerCase().indexOf(bn) === 0).forEach(x => { const s = srcOf(x.method); const tot = Number(x.total) || 0; if (s === 'split') { t.cash += tot / 2; t.momo += tot / 2; } else if (s === 'credit') { const paid = x.credit ? Number(x.credit.paid) || 0 : 0; t.credit += tot - paid; t.cash += paid; } else t[s] += tot; t.n++; }); }
+        t.total = r2(t.cash + t.momo + t.ghpay + t.credit + t.card);
+        return (CACHE[key] = t);
+      };
+      const ACC0 = [{ id: 'gcb', name: 'GCB Bank · Business current', kind: 'bank', number: '1021 3300 4471', opening: 184500 }, { id: 'eco', name: 'Ecobank · Collections', kind: 'bank', number: '0441 2290 1180', opening: 96200 }, { id: 'mtn', name: 'MTN MoMo merchant wallet', kind: 'momo', operator: 'MTN', holder: 'Ofori Electronics & Supermarket', holderType: 'Business', number: '0244 000 111', opening: 3200 }, { id: 'tel', name: 'Telecel Cash merchant wallet', kind: 'momo', operator: 'Telecel', holder: 'Ofori Electronics & Supermarket', holderType: 'Business', number: '0204 000 111', opening: 850 }, { id: 'ghipss', name: 'GhIPSS settlement', kind: 'clearing', number: 'GHP-SET-0042', opening: 0 }, { id: 'safe', name: 'Head office safe', kind: 'safe', number: 'Osu HQ', opening: 12000 }];
+      let ACC = rd('ecompos.finAccounts', null); if (!Array.isArray(ACC) || !ACC.length) ACC = ACC0;
+      ACC = ACC.map(a => a.kind === 'momo' && !a.operator ? Object.assign({}, a, { operator: /telecel|vodafone/i.test(a.name) ? 'Telecel' : /airtel|tigo/i.test(a.name) ? 'AirtelTigo' : /mtn/i.test(a.name) ? 'MTN' : 'Other', holder: a.holder || 'Ofori Electronics & Supermarket', holderType: a.holderType || 'Business' }) : a);
+      const SRC = { cash: 'Cash from the till', momo: 'MoMo wallet sweep', ghpay: 'GhPay settlement' };
+      const SRCACC = { cash: 'gcb', momo: 'eco', ghpay: 'gcb' };
+      // seed a week of banking history once (so the dashboard has real-looking movement)
+      if (!rd('ecompos.finSeeded', false)) {
+        const D = []; const C = [];
+        for (let i = 6; i >= 1; i--) BR.forEach(b => { const day = dAgo(i); const t = takings(b.id, day); const by = LEAD[b.id] || 'Branch manager';
+          const d0 = new Date(day + 'T12:00:00'); const atD = new Date(d0.getTime() + DAY); const at = atD.getDate() + ' ' + MON[atD.getMonth()] + ', 10:' + String(10 + (hash(b.id + day) % 40)).padStart(2, '0');
+          ['cash', 'momo', 'ghpay'].forEach(src => { let amt = t[src]; let status = 'verified'; let note = '';
+            if (b.id === 'adum' && i === 1 && src === 'cash') return;
+            if (b.id === 'legon' && i === 1 && src === 'momo') status = 'pending';
+            if (b.id === 'osu' && i === 2 && src === 'cash') { amt -= 50; status = 'flagged'; note = 'Bank credited GHS 50.00 less than the cash-up. Ask the depositor.'; }
+            D.push({ id: 'DEP-' + (2000 + D.length), br: b.id, day, src, acc: SRCACC[src], amount: r2(amt), slip: (src === 'cash' ? 'SLIP-' : src === 'momo' ? 'MOMO-' : 'GHP-') + (hash(b.id + day + src) % 900000 + 100000), by, at, ts: atD.getTime() + 36000000, status, verifiedBy: status === 'verified' ? 'Kofi Adom (Admin)' : '', note, seed: true }); });
+          const exp = r2(t.cash + 500); const varc = (b.id === 'adum' && i <= 3) ? -[20, 35, 15][i - 1] : (hash(b.id + day + 'v') % 7 === 0 ? -10 : 0);
+          C.push({ id: 'CU-' + (5000 + C.length), br: b.id, till: 'Till 1', day, by, expected: exp, counted: r2(exp + varc), variance: varc, float: 500, note: varc ? 'Counted twice, still short' : '', at, ts: atD.getTime() - 50000000, seed: true });
+        });
+        wr('ecompos.finDeposits', D); wr('ecompos.finCashups', C); wr('ecompos.finSeeded', true);
+      }
+      // credit payments collected from customers count towards what a branch must bank
+      if (!rd('ecompos.finCpSeeded', false)) { const CP0 = rd('ecompos.creditPayments', []) || []; const t0 = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate(), 9, 30).getTime();
+        const S0 = [['legon', 'Yaw Owusu-Ansah', '33102284', 300, 'Cash', '', 'Yaw Boateng', 1], ['adum', 'Comfort Nyarko', '33099170', 450, 'Mobile Money', '52811904', 'Efua Mensah', 2], ['osu', 'Mansa Boateng', '34410021', 150, 'Cash', '', 'Ama Darko', 3]].filter(x => BR.some(b => b.id === x[0]));
+        wr('ecompos.creditPayments', CP0.concat(S0.map(x => ({ customer: x[1], saleNo: x[2], amt: x[3], method: x[4], ref: x[5], by: x[6], branch: x[0], ts: t0 + x[7] * 3600000, at: NOW.getDate() + ' ' + MON[NOW.getMonth()] + ' ' + NOW.getFullYear() + ', ' + String(9 + x[7]).padStart(2, '0') + ':30', seed: true })))); wr('ecompos.finCpSeeded', true); }
+      const CP = (rd('ecompos.creditPayments', []) || []).filter(x => x && x.ts);
+      const cpSrc = m => /GhPay/i.test(m || '') ? 'ghpay' : /Mobile|MoMo/i.test(m || '') ? 'momo' : 'cash';
+      const collOf = (br, day, src) => CP.filter(x => (x.branch || 'osu') === br && iso(new Date(x.ts)) === day && (!src || cpSrc(x.method) === src)).reduce((a, x) => a + (Number(x.amt) || 0), 0);
+      const DEP = rd('ecompos.finDeposits', []) || [];
+      const CUS = rd('ecompos.finCashups', []) || [];
+      const MOV = rd('ecompos.finMoves', []) || [];
+      const DAYS = []; for (let i = 6; i >= 0; i--) DAYS.push(dAgo(i));
+      const dueOf = (br, day, src) => { const t = takings(br, day); return r2((src === 'cash' ? t.cash : src === 'momo' ? t.momo : t.ghpay) + collOf(br, day, src)); };
+      const depOf = (br, day, src) => DEP.filter(d => d.br === br && d.day === day && (!src || d.src === src) && d.status !== 'rejected');
+      const outOf = (br, day, src) => Math.max(0, r2(dueOf(br, day, src) - depOf(br, day, src).reduce((a, d) => a + (Number(d.amount) || 0), 0)));
+      const OUT = []; // everything not yet banked, oldest first
+      DAYS.forEach(day => BR.forEach(b => ['cash', 'momo', 'ghpay'].forEach(src => { const o = outOf(b.id, day, src); if (o >= 1) OUT.push({ br: b.id, day, src, amount: o, late: day < TODAY, short: depOf(b.id, day, src).length > 0 }); })));
+      const balOf = id => { const a = ACC.find(x => x.id === id) || { opening: 0 }; let b = Number(a.opening) || 0; let unc = 0;
+        DEP.forEach(d => { if (d.acc !== id) return; if (d.status === 'verified' || d.status === 'flagged') b += Number(d.amount) || 0; else if (d.status === 'pending') unc += Number(d.amount) || 0; });
+        MOV.forEach(m => { if (m.status !== 'done') return; if (m.to === id) b += Number(m.amount) || 0; if (m.from === id) b -= Number(m.amount) || 0; });
+        return { bal: r2(b), unc: r2(unc) }; };
+      const EXP = (rd('ecompos.expenses', []) || []).filter(x => x && (x.status === 'approved' || x.status === 'paid'));
+      const expIn = (br, a, b) => EXP.filter(x => { const d = new Date(x.date || x.ts || 0); if (isNaN(d)) return false; const k = iso(d); return k >= a && k <= b && (!br || x.br === br); }).reduce((s, x) => s + (Number(x.amount) || 0), 0);
+      const CU = rd('ecompos.customers', []) || [];
+      const owed = r2(CU.reduce((a, c) => a + (Number(c.owed) || 0), 0));
+      const overdueCredit = r2(CU.reduce((a, c) => a + (c.credits || []).filter(k => k && k.status === 'owing' && k.due && k.due < TODAY).reduce((s, k) => s + (Number(k.owed) || 0), 0), 0));
+      const sumT = (br, days, f) => days.reduce((a, day) => a + (br ? [br] : BR.map(b => b.id)).reduce((s, id) => s + f(takings(id, day)), 0), 0);
+      const range = (a, n) => { const L = []; for (let i = n - 1; i >= 0; i--) L.push(dAgo(i + a)); return L; };
+      const mStart = iso(new Date(NOW.getFullYear(), NOW.getMonth(), 1));
+      const mDays = (() => { const L = []; for (let d = new Date(NOW.getFullYear(), NOW.getMonth(), 1); iso(d) <= TODAY; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) L.push(iso(d)); return L; })();
+      const daysInMonth = new Date(NOW.getFullYear(), NOW.getMonth() + 1, 0).getDate();
+      const money = n => 'GHS ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      // ---------- the finance assistant: reads every branch and says what to do ----------
+      const insights = scope => {
+        const L = []; const add = (sev, title, body, act, tab, pre) => L.push({ sev, title, body, act: act || '', tab: tab || '', pre: pre || null });
+        const brs = scope && scope !== 'all' ? [scope] : BR.map(b => b.id);
+        brs.forEach(id => { const late = OUT.filter(o => o.br === id && o.late); if (!late.length) return; const tot = late.reduce((a, o) => a + o.amount, 0); const old = late[0];
+          add(late.some(o => o.short) ? 'high' : 'high', bName(id) + ' has ' + money(tot) + ' not yet banked', late.map(o => dayTxt(o.day) + ' · ' + SRC[o.src].toLowerCase() + ' ' + money(o.amount) + (o.short ? ' (deposit came up short)' : '')).join('; ') + '. Bank it before midday or ask ' + (LEAD[id] || 'the branch manager') + ' what happened.', 'Record the deposit', 'deposits', { br: id, day: old.day, src: old.src, amount: String(old.amount) }); });
+        const pend = DEP.filter(d => d.status === 'pending' && brs.indexOf(d.br) >= 0);
+        if (pend.length) add('mid', pend.length + (pend.length === 1 ? ' deposit is' : ' deposits are') + ' waiting for your check', money(pend.reduce((a, d) => a + d.amount, 0)) + ' recorded by the branches. Tick each one off against the bank or MoMo statement.', 'Check deposits', 'deposits', { filter: 'pending' });
+        const flag = DEP.filter(d => d.status === 'flagged' && brs.indexOf(d.br) >= 0);
+        flag.forEach(d => add('high', bName(d.br) + ' deposit ' + d.id + ' is flagged', d.note || 'The bank amount does not match.', 'Open deposits', 'deposits', { filter: 'flagged' }));
+        brs.forEach(id => { const t = takings(id, TODAY); if (t.cash > 4000) add('mid', bName(id) + ' is holding ' + money(t.cash) + ' cash in the till', 'That is above the GHS 4,000 cash-in-till limit. Do a mid-day bank run or move it to the safe.', 'Move cash to the safe', 'moves', { type: 'safe', br: id, amount: String(Math.floor((t.cash - 500) / 100) * 100) }); });
+        const mtn = balOf('mtn').bal; if ((!scope || scope === 'all') && mtn > 2000) add('low', 'The MTN MoMo merchant wallet holds ' + money(mtn), 'Sweep it to the bank to earn interest and limit wallet risk. Keep about GHS 500 for refunds.', 'Sweep MoMo to bank', 'moves', { type: 'sweep', from: 'mtn', to: 'eco', amount: String(Math.floor((mtn - 500) / 100) * 100) });
+        brs.forEach(id => { const cu = CUS.filter(c => c.br === id && c.day >= dAgo(6)); const neg = cu.filter(c => c.variance < 0); if (neg.length >= 2) add('mid', bName(id) + ' was short at cash-up ' + neg.length + ' times this week', 'Total ' + money(-neg.reduce((a, c) => a + c.variance, 0)) + ' missing. Check who counted, watch the drawer, and use the denomination counter every night.', 'See cash-ups', 'cashup', null); });
+        const mt = sumT(scope && scope !== 'all' ? scope : '', mDays, t => t.total); const avg = sumT(scope && scope !== 'all' ? scope : '', range(1, 14), t => t.total) / 14; const proj = mt + avg * (daysInMonth - mDays.length);
+        const ex = expIn(scope && scope !== 'all' ? scope : '', mStart, TODAY);
+        add('info', 'Month-end forecast: about ' + money(Math.round(proj / 100) * 100), 'Based on ' + money(mt) + ' so far and an average of ' + money(avg) + ' a day over the last 14 days. Expenses so far are ' + money(ex) + ' (' + (mt ? Math.round(ex / mt * 1000) / 10 : 0) + '% of takings' + (mt && ex / mt > 0.12 ? ' — above the 12% guide' : '') + ').', '', '', null);
+        if ((!scope || scope === 'all') && overdueCredit > 0) add('mid', money(overdueCredit) + ' of credit sales are overdue', 'Customers are past their due date. Chase them from Customers → Owing on credit.', '', '', null);
+        if (!scope || scope === 'all') { const wk = BR.map(b => ({ id: b.id, now: sumT(b.id, range(0, 7), t => t.total), was: sumT(b.id, range(7, 7), t => t.total) })); const best = wk.slice().sort((a, b) => (b.now / (b.was || 1)) - (a.now / (a.was || 1)))[0]; const worst = wk.slice().sort((a, b) => (a.now / (a.was || 1)) - (b.now / (b.was || 1)))[0];
+          if (best && worst && best.id !== worst.id) add('info', bName(best.id) + ' is growing fastest this week', bName(best.id) + ' ' + (best.now >= best.was ? 'up ' : 'down ') + Math.abs(Math.round((best.now - best.was) / (best.was || 1) * 100)) + '% on last week; ' + bName(worst.id) + ' ' + (worst.now >= worst.was ? 'up ' : 'down ') + Math.abs(Math.round((worst.now - worst.was) / (worst.was || 1) * 100)) + '%.', '', '', null); }
+        const ord = { high: 0, mid: 1, low: 2, info: 3 };
+        return L.sort((a, b) => ord[a.sev] - ord[b.sev]);
+      };
+      return { CP, cpSrc, collOf, EXP, rd, wr, DAY, NOW, iso, TODAY, dAgo, dayTxt, MON, WD, BR, bName, LEAD, takings, ACC, SRC, SRCACC, DEP, CUS, MOV, DAYS, dueOf, depOf, outOf, OUT, balOf, expIn, owed, overdueCredit, sumT, range, mStart, mDays, daysInMonth, insights, money, r2, hash };
+    })(window.localStorage);
+    // FIN-ENGINE-END
+    const F = FIN; const money = F.money; const r2 = F.r2;
+    const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n; };
+    const stamp = () => { const d = new Date(); return d.getDate() + ' ' + F.MON[d.getMonth()] + ', ' + d.toTimeString().slice(0, 5); };
+
+    // ---------- who is here ----------
+    const ROLE = ['superuser', 'manager', 'supervisor', 'staff'].indexOf(S.role) >= 0 ? S.role : 'superuser';
+    const SU = ROLE === 'superuser';
+    const ses = F.rd('ecompos.session', null);
+    const PERS = { superuser: 'Kofi Adom', manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei' };
+    const LVLS = { superuser: 'Superuser', manager: 'Manager', supervisor: 'Supervisor', staff: 'Sales staff' };
+    const ME = ses && ses.name && ses.id === ROLE ? ses.name : PERS[ROLE];
+    const LVL = LVLS[ROLE];
+    const MYBR = 'osu';
+    const scope = SU ? (S.scope === 'all' || F.BR.some(b => b.id === S.scope) ? S.scope : 'all') : MYBR;
+    const brs = scope === 'all' ? F.BR.map(b => b.id) : [scope];
+    const flash = (msg, bad) => set({ msg, msgBad: !!bad, tick: Date.now() });
+    const bump = () => { try { window.dispatchEvent(new CustomEvent('ecompos:fin')); } catch (e) {} };
+    const tabsFor = SU ? ['overview', 'cashup', 'deposits', 'moves', 'refunds', 'accounts', 'assistant'] : ['overview', 'cashup', 'deposits', 'moves', 'refunds'];
+    const TAB = tabsFor.indexOf(S.tab) >= 0 ? S.tab : 'overview';
+    const goTab = (t, extra) => { try { window.localStorage.setItem('ecompos.finTab', t); } catch (e) {} set(Object.assign({ tab: t, msg: '' }, extra || {})); };
+
+    // ---------- shared numbers ----------
+    const T0 = brs.reduce((a, id) => { const t = F.takings(id, F.TODAY); ['cash', 'momo', 'ghpay', 'credit', 'card', 'total'].forEach(k => a[k] += t[k]); return a; }, { cash: 0, momo: 0, ghpay: 0, credit: 0, card: 0, total: 0 });
+    const OUTS = F.OUT.filter(o => brs.indexOf(o.br) >= 0);
+    const OUTL = OUTS.filter(o => o.late);
+    const outLate = OUTL.reduce((a, o) => a + o.amount, 0);
+    const outAll = OUTS.reduce((a, o) => a + o.amount, 0);
+    const DEPS = F.DEP.filter(d => brs.indexOf(d.br) >= 0);
+    const bankedToday = DEPS.filter(d => { const k = F.iso(new Date(d.ts || 0)); return k === F.TODAY && d.status !== 'rejected'; }).reduce((a, d) => a + d.amount, 0);
+    const pendDep = F.DEP.filter(d => d.status === 'pending');
+    const pendMov = F.MOV.filter(m => m.status === 'pending');
+    const cuToday = id => F.CUS.filter(c => c.br === id && c.day === F.TODAY);
+    const INS = SU ? F.insights(scope) : [];
+    const SEV = { high: ['Act now', '#c62828'], mid: ['Soon', '#b26a00'], low: ['Tip', '#0b6bcb'], info: ['Insight', '#0b5c5c'] };
+    const insRow = i => ({ sev: SEV[i.sev][0], bg: SEV[i.sev][1], title: i.title, body: i.body, act: i.act, hasAct: !!i.act, go: () => { const p = i.pre || {}; if (i.tab === 'deposits') goTab('deposits', { df: p.filter ? S.df : Object.assign({}, p, { touched: true }), dlTab: p.filter || S.dlTab }); else if (i.tab === 'moves') goTab('moves', { mf: Object.assign({}, p) }); else if (i.tab) goTab(i.tab); } });
+
+    // ---------- OVERVIEW ----------
+    const accTotal = F.ACC.reduce((a, x) => a + F.balOf(x.id).bal, 0);
+    const mt = F.sumT(scope === 'all' ? '' : scope, F.mDays, t => t.total);
+    const exM = F.expIn(scope === 'all' ? '' : scope, F.mStart, F.TODAY);
+    const staffT = (() => { const L = (F.rd('ecompos.sales', []) || []).filter(x => x && x.ts && F.iso(new Date(x.ts)) === F.TODAY && x.staff === ME); const t = { cash: 0, momo: 0, total: 0, n: L.length }; L.forEach(x => { const s = String(x.method || ''); const v = Number(x.total) || 0; t.total += v; if (/CREDIT/i.test(s)) t.cash += x.credit ? Number(x.credit.paid) || 0 : 0; else if (/^Cash \+/i.test(s)) { t.cash += v / 2; t.momo += v / 2; } else if (/^Cash/i.test(s)) t.cash += v; else if (/MoMo|Mobile/i.test(s)) t.momo += v; }); return t; })();
+    const isStaff = ROLE === 'staff';
+    const kpis = SU ? [
+      { label: scope === 'all' ? 'Takings today · all branches' : 'Takings today · ' + F.bName(scope), value: money(T0.total), sub: T0.cash ? money(T0.cash) + ' cash · ' + money(T0.momo) + ' MoMo' : 'No sales yet today', subFg: '#5f5c5a', ring: 'transparent', go: () => {} },
+      { label: 'Banked today', value: money(bankedToday), sub: DEPS.filter(d => F.iso(new Date(d.ts || 0)) === F.TODAY).length + ' deposits recorded today', subFg: '#1f7a2a', ring: 'transparent', go: () => goTab('deposits') },
+      { label: 'Overdue for the bank', value: money(outLate), sub: outLate ? OUTL.length + ' items from earlier days' : 'Every earlier day is banked', subFg: outLate ? '#c62828' : '#1f7a2a', ring: outLate ? '#c62828' : 'transparent', go: () => goTab('deposits') },
+      { label: 'Waiting for your check', value: String(pendDep.length + pendMov.length), sub: pendDep.length + ' deposits · ' + pendMov.length + ' movements', subFg: pendDep.length + pendMov.length ? '#b26a00' : '#5f5c5a', ring: pendDep.length + pendMov.length ? '#b26a00' : 'transparent', go: () => goTab('deposits', { dlTab: 'pending' }) },
+      { label: 'In banks, wallets & safe', value: money(accTotal), sub: F.ACC.length + ' accounts', subFg: '#5f5c5a', ring: 'transparent', go: () => goTab('accounts') },
+      { label: 'Owed to the business', value: money(F.owed), sub: F.overdueCredit ? money(F.overdueCredit) + ' overdue' : 'Nothing overdue', subFg: F.overdueCredit ? '#c62828' : '#5f5c5a', ring: 'transparent', go: () => {} }
+    ] : isStaff ? [
+      { label: 'My till today', value: money(staffT.total), sub: staffT.n + (staffT.n === 1 ? ' sale' : ' sales') + ' by you', subFg: '#5f5c5a', ring: 'transparent', go: () => {} },
+      { label: 'Cash I took', value: money(staffT.cash), sub: 'Plus the GHS 500.00 float in the drawer', subFg: '#5f5c5a', ring: 'transparent', go: () => goTab('cashup') },
+      { label: 'MoMo I took', value: money(staffT.momo), sub: 'Goes straight to the merchant wallet', subFg: '#5f5c5a', ring: 'transparent', go: () => {} },
+      { label: 'My cash-up today', value: F.CUS.some(c => c.day === F.TODAY && c.by === ME) ? 'Done' : 'Not yet', sub: 'Count the drawer before you leave', subFg: '#5f5c5a', ring: 'transparent', go: () => goTab('cashup') }
+    ] : [
+      { label: 'Takings today · ' + F.bName(MYBR), value: money(T0.total), sub: money(T0.cash) + ' cash · ' + money(T0.momo) + ' MoMo', subFg: '#5f5c5a', ring: 'transparent', go: () => {} },
+      { label: 'Cash to bank today', value: money(Math.max(0, T0.cash)), sub: 'After closing, keep the float', subFg: '#5f5c5a', ring: 'transparent', go: () => goTab('deposits') },
+      { label: 'Overdue for the bank', value: money(outLate), sub: outLate ? 'From earlier days at ' + F.bName(MYBR) : 'Every earlier day is banked', subFg: outLate ? '#c62828' : '#1f7a2a', ring: outLate ? '#c62828' : 'transparent', go: () => goTab('deposits') },
+      { label: 'Cash-up today', value: cuToday(MYBR).length ? 'Done' : 'Not yet', sub: cuToday(MYBR).length ? 'Counted by ' + cuToday(MYBR)[0].by : 'Count the drawer at closing', subFg: '#5f5c5a', ring: 'transparent', go: () => goTab('cashup') }
+    ];
+    const brRows = F.BR.map(b => { const t = F.takings(b.id, F.TODAY); const late = F.OUT.filter(o => o.br === b.id && o.late); const lt = late.reduce((a, o) => a + o.amount, 0); const cu = cuToday(b.id); const flagged = F.DEP.some(d => d.br === b.id && d.status === 'flagged'); const pend = F.DEP.some(d => d.br === b.id && d.status === 'pending');
+      const st = flagged ? ['Deposit short', '#c62828'] : lt ? ['Overdue banking', '#c62828'] : pend ? ['Waiting for check', '#b26a00'] : ['On track', '#1f7a2a'];
+      return { name: F.bName(b.id), lead: F.LEAD[b.id] || '', today: money(t.total), cash: money(t.cash), momo: money(t.momo), out: lt ? money(lt) : '—', outFg: lt ? '#c62828' : '#5f5c5a', cu: cu.length ? 'Done · ' + (cu[0].variance ? money(cu[0].variance) : 'exact') : 'At closing', st: st[0], stBg: st[1], pick: () => set({ scope: b.id }) }; });
+    const brTot = { today: money(F.BR.reduce((a, b) => a + F.takings(b.id, F.TODAY).total, 0)), cash: money(F.BR.reduce((a, b) => a + F.takings(b.id, F.TODAY).cash, 0)), momo: money(F.BR.reduce((a, b) => a + F.takings(b.id, F.TODAY).momo, 0)), out: money(F.OUT.filter(o => o.late).reduce((a, o) => a + o.amount, 0)) };
+    const chDays = F.DAYS;
+    const chData = chDays.map(day => { const tk = brs.reduce((a, id) => { const t = F.takings(id, day); return a + t.cash + t.momo + t.ghpay; }, 0); const bk = F.DEP.filter(d => d.day === day && brs.indexOf(d.br) >= 0 && d.status !== 'rejected').reduce((a, d) => a + d.amount, 0); return { day, tk, bk }; });
+    const chMax = Math.max(1, ...chData.map(c => Math.max(c.tk, c.bk)));
+    const chBars = chData.map(c => { const gap = r2(c.tk - c.bk); return { h1: Math.round(c.tk / chMax * 100), h2: Math.round(c.bk / chMax * 100), c2: gap > 1 && c.day < F.TODAY ? '#c62828' : '#1f9d55', label: F.dayTxt(c.day).replace('Yesterday', 'Yest.'), gap: c.day === F.TODAY ? 'open' : gap > 1 ? '−' + Math.round(gap).toLocaleString('en-GB') : '✓', gapFg: c.day === F.TODAY ? '#5f5c5a' : gap > 1 ? '#c62828' : '#1f7a2a', tip: F.dayTxt(c.day) + ': taken ' + money(c.tk) + ', banked ' + money(c.bk) }; });
+    const mixBase = isStaff ? [['Cash', staffT.cash, 'in your drawer', '#1f7a2a'], ['Mobile Money', staffT.momo, 'merchant wallet', '#b26a00']] : [['Cash', T0.cash, 'in the tills', '#1f7a2a'], ['Mobile Money', T0.momo, 'merchant wallets', '#b26a00'], ['GhPay', T0.ghpay, 'settles next day', '#0b6bcb'], ['Card', T0.card, 'settles to GCB', '#6b6866'], ['Credit sales', T0.credit, 'owed by customers', '#0b5c5c']];
+    const mixTot = Math.max(1, mixBase.reduce((a, m) => a + m[1], 0));
+    const mix = mixBase.map(m => ({ label: m[0], where: m[2], v: money(m[1]), pct: Math.max(m[1] ? 2 : 0, Math.round(m[1] / mixTot * 100)), bg: m[3] }));
+    const todo = (() => { const L = []; const add = (done, title, body, cta, go) => L.push({ mark: done ? '✓' : '!', dotBg: done ? '#1f7a2a' : '#b26a00', bg: done ? '#f1f8f2' : '#fff6ec', title, body, cta: cta || '', hasGo: !!cta && !done, go: go || (() => {}) });
+      if (SU) {
+        add(!pendDep.length, pendDep.length ? 'Check ' + pendDep.length + ' deposits against the bank statement' : 'All deposits checked', pendDep.length ? money(pendDep.reduce((a, d) => a + d.amount, 0)) + ' recorded by the branches' : 'Nothing waiting', 'Check now', () => goTab('deposits', { dlTab: 'pending' }));
+        add(!pendMov.length, pendMov.length ? 'Approve ' + pendMov.length + ' money movements' : 'No movements waiting', pendMov.length ? 'Requested by managers and supervisors' : 'Nothing waiting', 'Review', () => goTab('moves'));
+        add(!F.OUT.some(o => o.late), F.OUT.some(o => o.late) ? 'Chase overdue banking' : 'Every earlier day is banked', F.OUT.some(o => o.late) ? Array.from(new Set(F.OUT.filter(o => o.late).map(o => F.bName(o.br)))).join(', ') + ' still owe the bank' : 'All branches are up to date', 'See what is owed', () => goTab('deposits'));
+        add(F.BR.every(b => cuToday(b.id).length), 'Cash-ups at closing', F.BR.filter(b => cuToday(b.id).length).length + ' of ' + F.BR.length + ' branches have counted today', 'Open cash-ups', () => goTab('cashup'));
+      } else {
+        const done = isStaff ? F.CUS.some(c => c.day === F.TODAY && c.by === ME) : cuToday(MYBR).length > 0;
+        add(done, 'Count the drawer', done ? 'Cash-up done for today' : 'Use the note counter at closing', 'Start cash-up', () => goTab('cashup'));
+        add(!OUTL.length, OUTL.length ? 'Bank ' + money(outLate) + ' from earlier days' : 'Earlier days are banked', OUTL.length ? OUTL.map(o => F.dayTxt(o.day) + ' ' + F.SRC[o.src].toLowerCase()).join(', ') : 'Nothing overdue', 'Record deposit', () => { const o = OUTL[0]; goTab('deposits', { df: { br: o.br, day: o.day, src: o.src, amount: String(o.amount), touched: true } }); });
+        if (!isStaff) add(false, 'Sweep the MoMo wallet', 'Move today’s MoMo (' + money(T0.momo) + ') to the bank after closing', 'Sweep MoMo', () => goTab('moves', { mf: { type: 'sweep', amount: String(Math.floor(T0.momo)) } }));
+      }
+      return L; })();
+
+    // ---------- CASH-UP ----------
+    const NOTES = [['200', 200], ['100', 100], ['50', 50], ['20', 20], ['10', 10], ['5', 5], ['2', 2], ['1', 1], ['Coins (GHS total)', 0]];
+    const cuS = S.cu || {}; const cuBr = SU && scope !== 'all' ? scope : MYBR;
+    const counted = r2(NOTES.reduce((a, n) => a + (n[1] ? n[1] * num(cuS['n' + n[0]]) : num(cuS.coins)), 0));
+    const cashSales = isStaff ? r2(staffT.cash) : r2(F.takings(cuBr, F.TODAY).cash);
+    const FLOAT = 500; const expected = r2(FLOAT + cashSales); const variance = r2(counted - expected);
+    const anyCount = NOTES.some(n => n[1] ? num(cuS['n' + n[0]]) > 0 : num(cuS.coins) > 0);
+    const cu = { where: (isStaff ? 'Your till' : F.bName(cuBr) + ' · Till 1') + ' · ' + F.dayTxt(F.TODAY) + ' · type how many of each note you have',
+      notes: NOTES.map(n => ({ label: n[1] ? 'GHS ' + n[0] : n[0], sub: n[1] ? money(n[1] * num(cuS['n' + n[0]])) : money(num(cuS.coins)), v: n[1] ? (cuS['n' + n[0]] || '') : (cuS.coins || ''), in: e => set({ cu: Object.assign({}, cuS, n[1] ? { ['n' + n[0]]: String(e.target.value).replace(/\D/g, '').slice(0, 5) } : { coins: String(e.target.value).replace(/[^0-9.]/g, '').slice(0, 8) }, { err: '' }) }) })),
+      counted: money(counted), float: money(FLOAT), cashSales: money(cashSales), expected: money(expected), variance: (variance > 0 ? '+ ' : variance < 0 ? '− ' : '') + money(Math.abs(variance)),
+      varLabel: !anyCount ? 'Difference' : Math.abs(variance) < 0.005 ? 'Exact — well done' : variance < 0 ? 'Short' : 'Over', varFg: !anyCount ? '#000000' : Math.abs(variance) < 0.005 ? '#1f7a2a' : variance < 0 ? '#c62828' : '#b26a00',
+      needWhy: anyCount && Math.abs(variance) >= 1, note: cuS.note || '', noteIn: e => set({ cu: Object.assign({}, cuS, { note: e.target.value, err: '' }) }),
+      err: cuS.err || '', hasErr: !!cuS.err, cta: 'Submit cash-up · ' + money(counted),
+      go: () => { if (!anyCount) { set({ cu: Object.assign({}, cuS, { err: 'Type how many of each note is in the drawer first.' }) }); return; }
+        if (Math.abs(variance) >= 1 && !String(cuS.note || '').trim()) { set({ cu: Object.assign({}, cuS, { err: 'The count is ' + (variance < 0 ? 'short' : 'over') + ' by ' + money(Math.abs(variance)) + '. Say why before you submit.' }) }); return; }
+        const L = F.rd('ecompos.finCashups', []) || []; const rec = { id: 'CU-' + String(Date.now()).slice(-6), br: cuBr, till: 'Till 1', day: F.TODAY, by: ME, level: LVL, expected, counted, variance, float: FLOAT, note: String(cuS.note || '').trim(), at: stamp(), ts: Date.now() };
+        F.wr('ecompos.finCashups', [rec].concat(L)); bump();
+        const toBank = Math.max(0, r2(counted - FLOAT));
+        goTab('deposits', { cu: {}, df: { br: cuBr, day: F.TODAY, src: 'cash', amount: String(toBank), touched: true }, msg: 'Cash-up saved' + (variance ? ' — ' + (variance < 0 ? 'short' : 'over') + ' by ' + money(Math.abs(variance)) : ' — exact') + '. Keep the ' + money(FLOAT) + ' float and bank ' + money(toBank) + '. The deposit is filled in below.', msgBad: false }); } };
+    const cuAll = F.CUS.filter(c => SU ? brs.indexOf(c.br) >= 0 : isStaff ? c.by === ME : c.br === MYBR).slice().sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 25);
+    const cuList = cuAll.map(c => ({ day: F.dayTxt(c.day), by: c.by, where: F.bName(c.br) + ' · ' + (c.till || 'Till 1'), hasNote: !!c.note, note: c.note, expected: money(c.expected), counted: money(c.counted), variance: Math.abs(c.variance) < 0.005 ? 'Exact' : (c.variance < 0 ? '− ' : '+ ') + money(Math.abs(c.variance)), fg: Math.abs(c.variance) < 0.005 ? '#1f7a2a' : c.variance < 0 ? '#c62828' : '#b26a00' }));
+
+    // ---------- DEPOSITS ----------
+    const dfS = S.df || {};
+    const dfBr = SU ? (dfS.br || (scope !== 'all' ? scope : (OUTS[0] || {}).br || F.BR[0].id)) : MYBR;
+    const dfSrc = ['cash', 'momo', 'ghpay'].indexOf(dfS.src) >= 0 ? dfS.src : 'cash';
+    const firstOut = F.OUT.filter(o => o.br === dfBr && o.src === dfSrc)[0];
+    const dfMode = ['day', 'today', 'week', 'mid', 'range'].indexOf(dfS.mode) >= 0 ? dfS.mode : 'day';
+    const dfDay = dfMode === 'today' ? F.TODAY : (dfS.day || (firstOut ? firstOut.day : F.TODAY));
+    const isoD = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const T0d = new Date(F.TODAY + 'T12:00:00'); const MON = new Date(T0d); MON.setDate(T0d.getDate() - ((T0d.getDay() + 6) % 7));
+    const span = (a, b) => { const out = []; if (!a || !b) return out; let x = new Date(a + 'T12:00:00'), y = new Date(b + 'T12:00:00'); if (x > y) { const t = x; x = y; y = t; } if (y > T0d) y = T0d; let n = 0; while (x <= y && n < 62) { out.push(isoD(x)); x.setDate(x.getDate() + 1); n++; } return out; };
+    const WED = new Date(MON); WED.setDate(MON.getDate() + 2);
+    const dfFrom = dfS.from || isoD(MON), dfTo = dfS.to || F.TODAY;
+    const dfDays = dfMode === 'week' ? span(isoD(MON), F.TODAY) : dfMode === 'mid' ? span(isoD(MON), isoD(WED)) : dfMode === 'range' ? span(dfFrom, dfTo) : [dfDay];
+    const dfOut = r2(dfDays.reduce((a, d) => a + F.outOf(dfBr, d, dfSrc), 0));
+    const dfAmt = dfS.touched ? (dfS.amount || '') : (dfOut ? String(dfOut) : '');
+    const bankAccs = F.ACC.filter(a => a.kind === 'bank' || a.kind === 'safe');
+    const dfAcc = dfS.acc && bankAccs.some(a => a.id === dfS.acc) ? dfS.acc : (bankAccs.find(a => a.id === F.SRCACC[dfSrc]) || bankAccs[0] || { id: '' }).id;
+    const setDf = p => set({ df: Object.assign({}, dfS, p, { err: '' }) });
+    const df = { sub: SU ? 'Record a deposit for any branch. Yours are marked checked straight away.' : 'Record the deposit after you pay in at the bank or sweep the wallet. The Admin checks it against the statement.',
+      pickBr: SU, brs: F.BR.map(b => Object.assign({ label: F.bName(b.id), pick: () => setDf({ br: b.id, day: '', touched: false }) }, pill(dfBr === b.id))),
+      srcs: [['cash', 'Cash from the till'], ['momo', 'MoMo wallet sweep'], ['ghpay', 'GhPay settlement']].map(x => Object.assign({ label: x[1], pick: () => setDf({ src: x[0], day: '', touched: false, acc: '' }) }, pill(dfSrc === x[0]))),
+      modes: [['day', 'One day'], ['today', 'Today'], ['week', 'This week so far'], ['mid', 'Midweek (Mon–Wed)'], ['range', 'Pick dates']].map(x => Object.assign({ label: x[1], pick: () => setDf({ mode: x[0], touched: false }) }, pill(dfMode === x[0]))),
+      oneDay: dfMode === 'day', isRange: dfMode === 'range', isPreset: dfMode === 'today' || dfMode === 'week' || dfMode === 'mid',
+      rangeTxt: dfDays.length ? (dfDays.length === 1 ? F.dayTxt(dfDays[0]) : F.dayTxt(dfDays[0]) + ' – ' + F.dayTxt(dfDays[dfDays.length - 1]) + ' (' + dfDays.length + ' days)') : 'No days',
+      from: dfFrom, to: dfTo, fromIn: e => setDf({ from: e.target.value, touched: false }), toIn: e => setDf({ to: e.target.value, touched: false }),
+      hasBreak: dfDays.length > 1, breakdown: dfDays.map(d => { const o = F.outOf(dfBr, d, dfSrc); return { day: F.dayTxt(d) + ' · taken ' + money(F.dueOf(dfBr, d, dfSrc)), amt: o ? money(o) + ' to send' : 'sent', fw: o ? '600' : '400' }; }),
+      day: dfDay, dayIn: e => setDf({ day: e.target.value, touched: false }), amount: dfAmt, amountIn: e => setDf({ amount: String(e.target.value).replace(/[^0-9.]/g, '').slice(0, 12), touched: true }),
+      hint: dfDays.length > 1 ? F.bName(dfBr) + ' · ' + dfDays.length + ' days: ' + F.SRC[dfSrc].toLowerCase() + ' taken ' + money(dfDays.reduce((a, d) => a + F.dueOf(dfBr, d, dfSrc), 0)) + ' → ' + (dfOut ? money(dfOut) + ' still to bank or keep in the safe.' : 'nothing left to send.') : F.bName(dfBr) + ' · ' + F.dayTxt(dfDay) + ': ' + F.SRC[dfSrc].toLowerCase() + ' taken ' + money(F.dueOf(dfBr, dfDay, dfSrc)) + ', already banked ' + money(F.depOf(dfBr, dfDay, dfSrc).reduce((a, d) => a + d.amount, 0)) + ' → ' + (dfOut ? money(dfOut) + ' still to bank.' : 'nothing left to bank.'),
+      accs: bankAccs.map(a => Object.assign({ label: a.kind === 'safe' ? 'Keep at the store · ' + a.name : a.name, pick: () => setDf({ acc: a.id }) }, pill(dfAcc === a.id))),
+      slipLabel: (F.ACC.find(a => a.id === dfAcc) || {}).kind === 'safe' ? 'Safe envelope or bag number' : dfSrc === 'cash' ? 'Bank deposit slip number' : dfSrc === 'momo' ? 'MoMo transfer reference' : 'GhPay settlement reference', slipPh: dfSrc === 'cash' ? 'e.g. 004471' : 'e.g. 52814736901',
+      slip: dfS.slip || '', slipIn: e => setDf({ slip: e.target.value }), note: dfS.note || '', noteIn: e => setDf({ note: e.target.value }),
+      err: dfS.err || '', hasErr: !!dfS.err, cta: 'Record deposit' + (num(dfAmt) ? ' · ' + money(num(dfAmt)) : ''),
+      go: () => { const a = r2(num(dfAmt)); if (!a) { setDf({}); set({ df: Object.assign({}, dfS, { err: 'Enter the amount you paid in.' }) }); return; }
+        if (!String(dfS.slip || '').trim()) { set({ df: Object.assign({}, dfS, { err: 'Enter the ' + (dfSrc === 'cash' ? 'deposit slip number' : 'reference') + ' so the Admin can match it to the statement.' }) }); return; }
+        if (dfDay > F.TODAY || dfDays.some(d => d > F.TODAY)) { set({ df: Object.assign({}, dfS, { err: 'The takings day cannot be in the future.' }) }); return; }
+        if (!dfDays.length) { set({ df: Object.assign({}, dfS, { err: 'Pick the days you are sending.' }) }); return; }
+        const kept = (F.ACC.find(x => x.id === dfAcc) || {}).kind === 'safe';
+        const L = F.rd('ecompos.finDeposits', []) || []; const bid = dfDays.length > 1 ? 'BAT-' + String(Date.now()).slice(-6) : ''; let left = a; const recs = [];
+        const owe = dfDays.map(d => ({ d, o: F.outOf(dfBr, d, dfSrc) })).filter(x => x.o > 0 || dfDays.length === 1);
+        (owe.length ? owe : [{ d: dfDays[dfDays.length - 1], o: a }]).forEach((x, i, arr) => { const part = i === arr.length - 1 ? r2(left) : r2(Math.min(left, x.o)); if (part <= 0) return; left = r2(left - part);
+          recs.push({ id: 'DEP-' + String(Date.now()).slice(-6) + (arr.length > 1 ? '-' + (i + 1) : ''), br: dfBr, day: x.d, src: dfSrc, acc: dfAcc, amount: part, slip: String(dfS.slip).trim(), by: ME, level: LVL, at: stamp(), ts: Date.now(), status: SU ? 'verified' : 'pending', verifiedBy: SU ? ME + ' (Admin)' : '', note: [kept ? 'Kept in the store safe' : '', bid ? 'Batch ' + bid + ' · ' + dfDays.length + ' days' : '', String(dfS.note || '').trim()].filter(Boolean).join(' · '), batch: bid, kept }); });
+        F.wr('ecompos.finDeposits', recs.concat(L)); bump();
+        set({ df: {}, dfPop: false, msg: money(a) + ' ' + F.SRC[dfSrc].toLowerCase() + ' for ' + F.bName(dfBr) + ' (' + (dfDays.length > 1 ? F.dayTxt(dfDays[0]) + ' – ' + F.dayTxt(dfDays[dfDays.length - 1]) : F.dayTxt(dfDay)) + ') ' + (kept ? 'kept in the store safe and ' : '') + 'recorded' + (SU ? ' and checked.' : '. The Admin will check it against the statement.') + (a < dfOut - 0.005 ? ' ' + money(dfOut - a) + ' of that day is still to bank.' : a > dfOut + 0.005 && dfOut ? ' That is ' + money(a - dfOut) + ' more than was owed — the Admin will see it.' : ''), msgBad: false, tick: Date.now() }); } };
+    const outList = OUTS.slice(0, 30).map(o => ({ day: F.dayTxt(o.day), fw: o.late ? '600' : '400', fg: o.late ? '#c62828' : '#000000', br: F.bName(o.br), what: F.SRC[o.src] + (o.short ? ' · deposit short' : ''), amount: money(o.amount), pick: () => set({ df: { br: o.br, day: o.day, src: o.src, amount: String(o.amount), touched: true }, dfPop: true }) }));
+    const DST = { pending: ['Waiting for check', '#b26a00'], verified: ['Checked', '#1f7a2a'], flagged: ['Does not match', '#c62828'], rejected: ['Rejected', '#6b6866'] };
+    const dlTab = S.dlTab || 'all';
+    const dlBase = F.DEP.filter(d => SU ? brs.indexOf(d.br) >= 0 : isStaff ? d.by === ME : d.br === MYBR).slice().sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const dlShown = dlBase.filter(d => dlTab === 'all' || d.status === dlTab);
+    const accName = id => (F.ACC.find(a => a.id === id) || { name: id }).name;
+    const decideDep = (d, ok) => { const why = String((S.why || {})[d.id] || '').trim(); if (!ok && !why) { flash('Say what does not match (for example "bank shows GHS 50 less") so the branch can sort it out.', true); return; }
+      const L = F.rd('ecompos.finDeposits', []) || []; F.wr('ecompos.finDeposits', L.map(x => x.id === d.id ? Object.assign({}, x, { status: ok ? 'verified' : 'flagged', verifiedBy: ME + ' (Admin)', checkedAt: stamp(), note: ok ? x.note : why }) : x)); bump();
+      flash(d.id + (ok ? (d.status === 'flagged' ? ' marked as sorted out.' : ' checked against the statement.') : ' flagged — ' + F.bName(d.br) + ' will see your note.'), !ok); };
+    const dl = dlShown.slice(0, S.dlN || 8).map(d => ({ st: (DST[d.status] || DST.pending)[0], stBg: (DST[d.status] || DST.pending)[1], title: F.bName(d.br) + ' · ' + F.SRC[d.src] + ' · ' + F.dayTxt(d.day), meta: d.id + ' · ' + accName(d.acc) + ' · ref ' + d.slip + ' · by ' + d.by + ' · ' + d.at + (d.verifiedBy && d.status === 'verified' ? ' · checked by ' + d.verifiedBy.replace(/ \((Admin|Superuser)\)/, '') : ''), hasNote: !!d.note, note: d.note, amount: money(d.amount),
+      can: SU && (d.status === 'pending' || d.status === 'flagged'), ok: () => decideDep(d, true), flag: () => decideDep(d, false), why: (S.why || {})[d.id] || '', whyIn: e => set({ why: Object.assign({}, S.why || {}, { [d.id]: e.target.value }) }) }));
+
+    // ---------- MONEY MOVEMENTS ----------
+    const MT = [
+      ['safe', 'Till cash → safe', 'staff', 'Move extra cash out of the drawer into the branch safe during the day.', 'till', 'safe'],
+      ['float', 'Float top-up', 'supervisor', 'Give a till more change from the safe.', 'safe', 'till'],
+      ['sweep', 'MoMo wallet → bank', 'supervisor', 'Sweep the merchant wallet to the bank. Keep about GHS 500 for refunds.', 'mtn', 'eco'],
+      ['branch', 'Branch cash → head office', 'manager', 'Send branch safe cash to the head office safe.', 'branchsafe', 'safe'],
+      ['transfer', 'Bank → bank', 'superuser', 'Move money between the business accounts.', 'gcb', 'eco'],
+      ['supplier', 'Pay a supplier', 'superuser', 'Pay a supplier from a business account.', 'gcb', 'payee'],
+      ['salary', 'Pay salaries', 'superuser', 'Pay the month’s salaries (see Payroll).', 'gcb', 'payee'],
+      ['tax', 'Pay GRA taxes', 'superuser', 'Pay VAT, NHIL, GETFund or PAYE to GRA.', 'gcb', 'payee'],
+      ['drawing', 'Owner drawing', 'superuser', 'Money the owner takes out of the business.', 'gcb', 'payee'],
+      ['capital', 'Owner puts money in', 'superuser', 'New capital or a loan coming into the business.', 'payer', 'gcb'],
+      ['loan', 'Loan repayment', 'superuser', 'Repay a bank or supplier loan.', 'gcb', 'payee']
+    ];
+    const RANK = { staff: 0, supervisor: 1, manager: 2, superuser: 3 };
+    const myTypes = MT.filter(t => RANK[ROLE] >= RANK[t[2]]);
+    const mfS = S.mf || {};
+    const mType = myTypes.find(t => t[0] === mfS.type) || myTypes[0];
+    const PLACES = [['till', 'Till drawer'], ['safe', 'Head office safe'], ['branchsafe', 'Branch safe']].concat(F.ACC.filter(a => a.id !== 'safe').map(a => [a.id, a.name])).concat([['payee', 'Someone outside the business'], ['payer', 'Owner / lender']]);
+    const placeName = id => (PLACES.find(p => p[0] === id) || [id, id])[1];
+    const mFrom = mfS.from || mType[4]; const mTo = mfS.to || mType[5];
+    const fromOpts = mType[4] === 'payer' ? ['payer'] : mType[0] === 'safe' ? ['till'] : mType[0] === 'float' ? ['branchsafe', 'safe'] : mType[0] === 'sweep' ? F.ACC.filter(a => a.kind === 'momo').map(a => a.id) : mType[0] === 'branch' ? ['branchsafe'] : F.ACC.map(a => a.id);
+    const toOpts = mType[5] === 'payee' ? ['payee'] : mType[0] === 'safe' ? ['branchsafe'] : mType[0] === 'float' ? ['till'] : mType[0] === 'sweep' ? bankAccs.map(a => a.id) : mType[0] === 'branch' ? ['safe'] : F.ACC.map(a => a.id).filter(x => x !== mFrom);
+    const mFrom2 = fromOpts.indexOf(mFrom) >= 0 ? mFrom : fromOpts[0]; const mTo2 = toOpts.indexOf(mTo) >= 0 ? mTo : toOpts[0];
+    const setMf = p => set({ mf: Object.assign({}, mfS, p, { err: '' }) });
+    const needsOk = !SU;
+    const mf = { sub: SU ? 'Every movement you record is final and updates the account balances.' : 'Your movement goes to the Admin to approve before balances change.',
+      types: myTypes.map(t => Object.assign({ label: t[1], pick: () => set({ mf: { type: t[0] } }) }, pill(mType[0] === t[0]))), help: mType[3],
+      amount: mfS.amount || '', amountIn: e => setMf({ amount: String(e.target.value).replace(/[^0-9.]/g, '').slice(0, 12) }),
+      refLabel: mType[5] === 'payee' ? 'Paid to (name) and reference' : 'Reference', refPh: mType[5] === 'payee' ? 'e.g. Volta Electronics · INV 2231' : 'e.g. slip or transfer ref',
+      ref: mfS.ref || '', refIn: e => setMf({ ref: e.target.value }), note: mfS.note || '', noteIn: e => setMf({ note: e.target.value }),
+      froms: fromOpts.map(id => Object.assign({ label: placeName(id), pick: () => setMf({ from: id }) }, pill(mFrom2 === id))),
+      tos: toOpts.map(id => Object.assign({ label: placeName(id), pick: () => setMf({ to: id }) }, pill(mTo2 === id))),
+      err: mfS.err || '', hasErr: !!mfS.err, cta: (needsOk ? 'Send for approval' : 'Record movement') + (num(mfS.amount) ? ' · ' + money(num(mfS.amount)) : ''),
+      go: () => { const a = r2(num(mfS.amount)); if (!a) { set({ mf: Object.assign({}, mfS, { err: 'Enter the amount.' }) }); return; }
+        if (mType[5] === 'payee' && !String(mfS.ref || '').trim()) { set({ mf: Object.assign({}, mfS, { err: 'Say who was paid, with the invoice or reference.' }) }); return; }
+        const fromAcc = F.ACC.find(x => x.id === mFrom2); if (fromAcc && SU && a > F.balOf(fromAcc.id).bal + 0.005) { set({ mf: Object.assign({}, mfS, { err: fromAcc.name + ' only has ' + money(F.balOf(fromAcc.id).bal) + '.' }) }); return; }
+        const L = F.rd('ecompos.finMoves', []) || []; const rec = { id: 'MV-' + String(Date.now()).slice(-6), type: mType[0], label: mType[1], from: mFrom2, to: mTo2, amount: a, br: SU ? (scope === 'all' ? '' : scope) : MYBR, ref: String(mfS.ref || '').trim(), note: String(mfS.note || '').trim(), by: ME, level: LVL, at: stamp(), ts: Date.now(), status: needsOk ? 'pending' : 'done', decidedBy: needsOk ? '' : ME + ' (Admin)' };
+        F.wr('ecompos.finMoves', [rec].concat(L)); bump();
+        set({ mf: { type: mType[0] }, msg: mType[1] + ' · ' + money(a) + (needsOk ? ' sent to the Admin for approval.' : ' recorded.'), msgBad: false, tick: Date.now() }); } };
+    const MST = { pending: ['Waiting for approval', '#b26a00'], done: ['Done', '#1f7a2a'], rejected: ['Rejected', '#c62828'] };
+    const OUTT = ['supplier', 'salary', 'tax', 'drawing', 'loan'];
+    const mlBase = F.MOV.filter(m => SU ? (scope === 'all' || !m.br || m.br === scope) : isStaff ? m.by === ME : m.br === MYBR).slice().sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 30);
+    const decideMv = (m, ok) => { const L = F.rd('ecompos.finMoves', []) || []; F.wr('ecompos.finMoves', L.map(x => x.id === m.id ? Object.assign({}, x, { status: ok ? 'done' : 'rejected', decidedBy: ME + ' (Admin)', decidedAt: stamp() }) : x)); bump(); flash(m.id + ' ' + (ok ? 'approved.' : 'rejected.'), !ok); };
+    const ml = mlBase.map(m => ({ st: (MST[m.status] || MST.pending)[0], stBg: (MST[m.status] || MST.pending)[1], title: m.label + ' · ' + placeName(m.from) + ' → ' + placeName(m.to), meta: m.id + (m.br ? ' · ' + F.bName(m.br) : '') + (m.ref ? ' · ' + m.ref : '') + ' · by ' + m.by + ' · ' + m.at + (m.note ? ' · “' + m.note + '”' : ''), amount: (OUTT.indexOf(m.type) >= 0 ? '− ' : m.type === 'capital' ? '+ ' : '') + money(m.amount), fg: OUTT.indexOf(m.type) >= 0 ? '#c62828' : m.type === 'capital' ? '#1f7a2a' : '#000000', can: SU && m.status === 'pending', ok: () => decideMv(m, true), no: () => decideMv(m, false) }));
+
+    // ---------- ACCOUNTS ----------
+    const KIND = { bank: 'Bank account', momo: 'Mobile Money wallet', clearing: 'Settlement', safe: 'Cash safe' };
+    const accs = F.ACC.map(a => { const b = F.balOf(a.id); return { kind: (KIND[a.kind] || a.kind) + (a.kind === 'momo' && a.operator ? ' \u00b7 ' + a.operator : ''), name: a.name, number: a.number + (a.kind === 'momo' && a.holder ? ' \u00b7 ' + a.holder : ''), bal: money(b.bal), hasUnc: b.unc > 0, unc: money(b.unc) }; });
+    const afS = S.af || {}; const setAf = p => set({ af: Object.assign({}, afS, p, { err: '' }) }); const afKind = ['bank', 'safe', 'clearing'].indexOf(afS.kind) >= 0 ? afS.kind : 'bank';
+    const af = { name: afS.name || '', nameIn: e => setAf({ name: e.target.value }), number: afS.number || '', numberIn: e => setAf({ number: e.target.value }), opening: afS.opening || '', openingIn: e => setAf({ opening: String(e.target.value).replace(/[^0-9.]/g, '') }),
+      kinds: [['bank', 'Bank account'], ['safe', 'Cash safe'], ['clearing', 'Settlement']].map(k => Object.assign({ label: k[1], pick: () => setAf({ kind: k[0] }) }, pill(afKind === k[0]))),
+      err: afS.err || '', hasErr: !!afS.err,
+      go: () => { if (!String(afS.name || '').trim()) { set({ af: Object.assign({}, afS, { err: 'Give the account a name.' }) }); return; } const L = F.ACC.concat([{ id: 'ac' + Date.now(), name: String(afS.name).trim(), kind: afKind, number: String(afS.number || '').trim(), opening: num(afS.opening) }]); F.wr('ecompos.finAccounts', L); bump(); set({ af: {}, msg: String(afS.name).trim() + ' added.', msgBad: false, tick: Date.now() }); } };
+
+
+    // ---------- MoMo wallets ----------
+    const OPS = { MTN: ['MTN MoMo', '#ffcb05', '#000000', ['024', '025', '053', '054', '055', '059']], Telecel: ['Telecel Cash', '#e60000', '#ffffff', ['020', '050']], AirtelTigo: ['AirtelTigo Money', '#0047ab', '#ffffff', ['026', '027', '056', '057']], Other: ['Other', '#6b6866', '#ffffff', []] };
+    const WAL = F.ACC.filter(a => a.kind === 'momo');
+    const mwRows = WAL.map(a => { const o = OPS[a.operator] || OPS.Other; return { op: a.operator === 'Other' || !OPS[a.operator] ? (a.opName || a.operator || 'Other') : o[0], opBg: o[1], opFg: o[2], holder: a.holder || a.name, type: (a.holderType || 'Business') + ' wallet', number: a.number, opening: money(Number(a.opening) || 0), bal: money(F.balOf(a.id).bal) }; });
+    const mwS = S.mw || {}; const setMw = p => set({ mw: Object.assign({}, mwS, p, { err: '' }) });
+    const mwOp = OPS[mwS.op] ? mwS.op : 'MTN'; const mwType = mwS.type === 'Individual' ? 'Individual' : 'Business';
+    const mw = { ops: Object.keys(OPS).map(k => Object.assign({ label: OPS[k][0], pick: () => setMw({ op: k }) }, pill(mwOp === k))), isOther: mwOp === 'Other', opName: mwS.opName || '', opNameIn: e => setMw({ opName: e.target.value }),
+      types: ['Business', 'Individual'].map(t => Object.assign({ label: t + ' wallet', pick: () => setMw({ type: t }) }, pill(mwType === t))),
+      holderLabel: mwType === 'Business' ? 'Business name on the MoMo wallet' : 'Individual’s name on the MoMo wallet', holderPh: mwType === 'Business' ? 'e.g. Ofori Electronics & Supermarket' : 'e.g. Kofi Adom',
+      holder: mwS.holder || '', holderIn: e => setMw({ holder: e.target.value }),
+      number: mwS.number || '', numberIn: e => setMw({ number: String(e.target.value).replace(/[^0-9 +]/g, '').slice(0, 16) }), numberPh: OPS[mwOp][3].length ? 'e.g. ' + OPS[mwOp][3][0] + '4 000 111' : 'e.g. 0244 000 111',
+      opening: mwS.opening || '', openingIn: e => setMw({ opening: String(e.target.value).replace(/[^0-9.]/g, '').slice(0, 12) }),
+      err: mwS.err || '', hasErr: !!mwS.err,
+      go: () => { const bad = m => set({ mw: Object.assign({}, mwS, { err: m }) });
+        if (mwOp === 'Other' && !String(mwS.opName || '').trim()) return bad('Type the operator’s name.');
+        if (!String(mwS.holder || '').trim()) return bad('Type the ' + (mwType === 'Business' ? 'business' : 'person’s') + ' name exactly as it shows on the MoMo wallet.');
+        let d = String(mwS.number || '').replace(/\D/g, ''); if (d.indexOf('233') === 0) d = '0' + d.slice(3);
+        if (!/^0\d{9}$/.test(d)) return bad('A Ghana MoMo number has 10 digits and starts with 0, e.g. 0244 000 111.');
+        if (OPS[mwOp][3].length && OPS[mwOp][3].indexOf(d.slice(0, 3)) < 0) return bad(d.slice(0, 3) + ' is not an ' + OPS[mwOp][0] + ' number. ' + OPS[mwOp][0] + ' numbers start with ' + OPS[mwOp][3].join(', ') + '.');
+        const pretty = d.replace(/^(\d{4})(\d{3})(\d{3})$/, '$1 $2 $3');
+        if (WAL.some(a => String(a.number).replace(/\D/g, '') === d)) return bad('Wallet ' + pretty + ' is already set up.');
+        const opLabel = mwOp === 'Other' ? String(mwS.opName).trim() : OPS[mwOp][0];
+        const rec = { id: 'mw' + Date.now(), kind: 'momo', operator: mwOp, opName: mwOp === 'Other' ? String(mwS.opName).trim() : '', holder: String(mwS.holder).trim(), holderType: mwType, name: opLabel + ' wallet · ' + String(mwS.holder).trim(), number: pretty, opening: num(mwS.opening) };
+        F.wr('ecompos.finAccounts', F.ACC.concat([rec])); bump(); set({ mw: {}, msg: opLabel + ' wallet ' + pretty + ' (' + rec.holder + ') added with an opening balance of ' + money(rec.opening) + '. You can now sweep it to the bank in Money movements.', msgBad: false, tick: Date.now() }); } };
+
+    // ---------- credit collections, expenses per branch, daily history, export ----------
+    const cpL = F.CP.filter(x => brs.indexOf(x.branch || 'osu') >= 0 && F.iso(new Date(x.ts)) >= F.dAgo(6)).slice().sort((a, b) => b.ts - a.ts);
+    const cpRows = cpL.map(x => ({ when: F.dayTxt(F.iso(new Date(x.ts))) + ', ' + new Date(x.ts).toTimeString().slice(0, 5), br: F.bName(x.branch || 'osu'), cust: x.customer, no: x.saleNo, meth: x.method + (x.ref ? ' (' + x.ref + ')' : ''), by: x.by, amt: money(x.amt) }));
+    const cpBy = ['cash', 'momo', 'ghpay'].map(k => ({ k: { cash: 'Cash', momo: 'MoMo', ghpay: 'GhPay' }[k], v: money(cpL.filter(x => F.cpSrc(x.method) === k).reduce((a, x) => a + (Number(x.amt) || 0), 0)) }));
+    const exRowsRaw = brs.map(id => { const tk = F.sumT(id, F.mDays, t => t.total); const ex = F.expIn(id, F.mStart, F.TODAY); return { id, tk, ex }; });
+    const exTot = exRowsRaw.reduce((a, r) => ({ tk: a.tk + r.tk, ex: a.ex + r.ex }), { tk: 0, ex: 0 });
+    const exRow = (name, r, tot) => { const pc = r.tk ? r.ex / r.tk * 100 : 0; return { br: name, tk: money(r.tk), ex: money(r.ex), pct: (Math.round(pc * 10) / 10) + '%', pctFg: pc > 12 ? '#c62828' : '#1f7a2a', net: money(r.tk - r.ex), bg: tot ? '#f6f7f8' : 'transparent', fw: tot ? '700' : '600' }; };
+    const exRows = exRowsRaw.map(r => exRow(F.bName(r.id), r, false)).concat(brs.length > 1 ? [exRow('All branches', exTot, true)] : []);
+    const dhN = [7, 14, 30].indexOf(S.dhN) >= 0 ? S.dhN : 7;
+    const dhList = F.range(0, dhN).slice().reverse();
+    const bankedOf = (id, day) => day < F.dAgo(6) ? ['cash', 'momo', 'ghpay'].reduce((a, s2) => a + F.dueOf(id, day, s2), 0) : F.DEP.filter(d => d.br === id && d.day === day && d.status !== 'rejected').reduce((a, d) => a + d.amount, 0);
+    const dueAll = (id, day) => ['cash', 'momo', 'ghpay'].reduce((a, s2) => a + F.dueOf(id, day, s2), 0);
+    const cell = (t, al, fg, fw, sub, subFg) => ({ t, al: al || 'right', fg: fg || '#000000', fw: fw || '400', hasSub: !!sub, sub: sub || '', subFg: subFg || '#5f5c5a' });
+    let dhHead, dhRows;
+    if (brs.length > 1) {
+      dhHead = [{ t: 'Day', al: 'left' }].concat(brs.map(id => ({ t: F.bName(id), al: 'right' }))).concat([{ t: 'All branches', al: 'right' }]);
+      dhRows = dhList.map(day => { let tot = 0; const cells = [cell(F.dayTxt(day), 'left', '#000000', '600')]; brs.forEach(id => { const tk = F.takings(id, day).total; tot += tk; const gap = Math.round((dueAll(id, day) - bankedOf(id, day)) * 100) / 100; cells.push(cell(money(tk), 'right', '#000000', '400', day === F.TODAY ? 'open' : gap > 1 ? '−' + money(gap) + ' not banked' : '✓ banked', day === F.TODAY ? '#5f5c5a' : gap > 1 ? '#c62828' : '#1f7a2a')); }); cells.push(cell(money(tot), 'right', '#000000', '700')); return { bg: day === F.TODAY ? '#f6f7f8' : 'transparent', cells }; });
+    } else {
+      const id = brs[0];
+      dhHead = [{ t: 'Day', al: 'left' }, { t: 'Cash', al: 'right' }, { t: 'MoMo', al: 'right' }, { t: 'GhPay', al: 'right' }, { t: 'Card', al: 'right' }, { t: 'Credit', al: 'right' }, { t: 'Collected', al: 'right' }, { t: 'Total', al: 'right' }, { t: 'Banked', al: 'right' }, { t: 'Cash-up', al: 'right' }];
+      dhRows = dhList.map(day => { const t = F.takings(id, day); const col = F.collOf(id, day); const gap = Math.round((dueAll(id, day) - bankedOf(id, day)) * 100) / 100; const cu = F.CUS.filter(c2 => c2.br === id && c2.day === day)[0];
+        return { bg: day === F.TODAY ? '#f6f7f8' : 'transparent', cells: [cell(F.dayTxt(day), 'left', '#000000', '600'), cell(money(t.cash)), cell(money(t.momo)), cell(money(t.ghpay)), cell(money(t.card)), cell(money(t.credit), 'right', '#0b5c5c'), cell(col ? money(col) : '—', 'right', col ? '#1f7a2a' : '#5f5c5a'), cell(money(t.total), 'right', '#000000', '700'), cell(money(bankedOf(id, day)), 'right', '#000000', '400', day === F.TODAY ? 'open' : gap > 1 ? '−' + money(gap) : '✓', day === F.TODAY ? '#5f5c5a' : gap > 1 ? '#c62828' : '#1f7a2a'), cell(cu ? (Math.abs(cu.variance) < 0.005 ? 'Exact' : (cu.variance < 0 ? '−' : '+') + money(Math.abs(cu.variance))) : '—', 'right', cu && cu.variance < 0 ? '#c62828' : '#000000')] }; });
+    }
+    const xCsv = () => { try { const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; const L = [];
+      L.push(['Finance report', scope === 'all' ? 'All branches' : F.bName(scope), 'Generated ' + stamp() + ' by ' + ME]); L.push([]);
+      L.push(['DAILY BRANCH HISTORY']); L.push(dhHead.map(h => h.t)); dhRows.forEach(r => L.push(r.cells.map(c2 => c2.t + (c2.sub && c2.sub !== 'open' ? ' (' + c2.sub + ')' : '')))); L.push([]);
+      L.push(['EXPENSES PER BRANCH (' + F.MON[F.NOW.getMonth()] + ')']); L.push(['Branch', 'Takings', 'Expenses', 'Expenses %', 'After expenses']); exRows.forEach(r => L.push([r.br, r.tk, r.ex, r.pct, r.net])); L.push([]);
+      L.push(['CREDIT PAYMENTS COLLECTED (last 7 days)']); L.push(['When', 'Branch', 'Customer', 'Sale', 'Paid by', 'Taken by', 'Amount']); cpRows.forEach(r => L.push([r.when, r.br, r.cust, r.no, r.meth, r.by, r.amt])); L.push([]);
+      if (SU && scope === 'all') { L.push(['EVERY BRANCH TODAY']); L.push(['Branch', 'Takings', 'Cash', 'MoMo', 'Not yet banked', 'Cash-up', 'Status']); brRows.forEach(b => L.push([b.name, b.today, b.cash, b.momo, b.out, b.cu, b.st])); }
+      const blob = new Blob([L.map(r => r.map(esc).join(',')).join('\r\n')], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'finance-report-' + (scope === 'all' ? 'all-branches' : scope) + '-' + F.TODAY + '.csv'; document.body.appendChild(a); a.click(); a.remove(); } catch (e) {} };
+    // ---------- ASSISTANT Q&A ----------
+    const avg14 = F.sumT('', F.range(1, 14), t => t.total) / 14;
+    const proj = mt + avg14 * (F.daysInMonth - F.mDays.length);
+    const ASK = {
+      bank: ['How much should be banked today?', () => { const L = F.BR.map(b => { const t = F.takings(b.id, F.TODAY); const late = F.OUT.filter(o => o.br === b.id && o.late).reduce((a, o) => a + o.amount, 0); return F.bName(b.id) + ': ' + money(t.cash) + ' cash' + (t.momo ? ' and ' + money(t.momo) + ' MoMo' : '') + ' from today so far' + (late ? ', plus ' + money(late) + ' overdue from earlier days' : '') + '.'; }); return ['About ' + money(F.BR.reduce((a, b) => a + F.takings(b.id, F.TODAY).cash + F.takings(b.id, F.TODAY).momo, 0) + F.OUT.filter(o => o.late).reduce((a, o) => a + o.amount, 0)) + ' needs to reach the bank by tomorrow morning', L.concat(['Each branch keeps its GHS 500.00 float in the drawer.'])]; }],
+      behind: ['Which branch is behind?', () => { const L = F.BR.map(b => ({ id: b.id, late: F.OUT.filter(o => o.br === b.id && o.late).reduce((a, o) => a + o.amount, 0), short: F.CUS.filter(c => c.br === b.id && c.day >= F.dAgo(6) && c.variance < 0).reduce((a, c) => a - c.variance, 0) })).sort((a, b) => (b.late + b.short) - (a.late + a.short)); const w = L[0]; return [w.late + w.short ? F.bName(w.id) + ' needs attention' : 'No branch is behind', L.map(x => F.bName(x.id) + ': ' + (x.late ? money(x.late) + ' not banked' : 'banking up to date') + (x.short ? ', ' + money(x.short) + ' short at cash-up this week' : ', cash-ups balanced') + '.')]; }],
+      month: ['What will this month look like?', () => ['Around ' + money(Math.round(proj / 100) * 100) + ' in takings by ' + F.daysInMonth + ' ' + F.MON[F.NOW.getMonth()], ['So far: ' + money(mt) + ' over ' + F.mDays.length + ' days.', 'Daily average (last 14 days): ' + money(avg14) + '.', 'Expenses so far: ' + money(exM) + ' — ' + (mt ? Math.round(exM / mt * 1000) / 10 : 0) + '% of takings' + (mt && exM / mt > 0.12 ? ', above the 12% guide.' : ', within the 12% guide.'), 'Expected to bank: about ' + money(Math.round(proj * 0.88 / 100) * 100) + ' (cash, MoMo and GhPay; card settles by itself).']]],
+      leak: ['Where could money be leaking?', () => { const L = []; F.BR.forEach(b => { const neg = F.CUS.filter(c => c.br === b.id && c.day >= F.dAgo(6) && c.variance < 0); if (neg.length) L.push(F.bName(b.id) + ': ' + neg.length + ' short cash-ups this week (' + money(-neg.reduce((a, c) => a + c.variance, 0)) + ').'); }); F.DEP.filter(d => d.status === 'flagged').forEach(d => L.push(F.bName(d.br) + ' deposit ' + d.id + ' came up short: ' + (d.note || ''))); if (F.overdueCredit) L.push(money(F.overdueCredit) + ' of credit sales are overdue.'); F.OUT.filter(o => o.late).forEach(o => L.push(F.bName(o.br) + ' still holds ' + money(o.amount) + ' ' + F.SRC[o.src].toLowerCase() + ' from ' + F.dayTxt(o.day).toLowerCase() + '.')); return [L.length ? L.length + ' things to look at' : 'Nothing looks wrong right now', L.length ? L : ['Cash-ups balance, deposits match and nothing is overdue.']]; }],
+      wallet: ['Should I sweep the MoMo wallets?', () => { const m = F.balOf('mtn').bal, t = F.balOf('tel').bal; return [m + t > 2500 ? 'Yes — sweep about ' + money(Math.floor((m + t - 1000) / 100) * 100) : 'Not yet', ['MTN merchant wallet: ' + money(m) + '.', 'Telecel Cash merchant wallet: ' + money(t) + '.', 'Keep about GHS 500 in each wallet for refunds and reversals.']]; }],
+      cash: ['How much cash is in the tills right now?', () => ['About ' + money(F.BR.reduce((a, b) => a + F.takings(b.id, F.TODAY).cash, 0) + 500 * F.BR.length) + ' across ' + F.BR.length + ' tills', F.BR.map(b => F.bName(b.id) + ': ' + money(F.takings(b.id, F.TODAY).cash + 500) + ' (including the float)' + (F.takings(b.id, F.TODAY).cash > 4000 ? ' — above the GHS 4,000 limit, move some to the safe.' : '.'))]]
+    };
+    const askK = ASK[S.ask] ? S.ask : 'bank'; const ans = ASK[askK][1]();
+    const ansV = (() => { const MON = /GHS\s?[\d,]+(?:\.\d{1,2})?/g; const segs = t => { const out = []; let last = 0; String(t).replace(MON, (m, i) => { if (i > last) out.push({ t: String(t).slice(last, i), w: '400', c: 'inherit' }); out.push({ t: m, w: '700', c: '#ffffff' }); last = i + m.length; return m; }); if (last < String(t).length) out.push({ t: String(t).slice(last), w: '400', c: 'inherit' }); return out; };
+      const BAD = /overdue|short|not banked|above|leak|needs attention|move some|came up short|still holds|flagged/i, OK = /up to date|balanced|within|match|nothing is overdue|keep about/i;
+      const lines = ans[1].map(t => { const m = String(t).match(/^([^:]{2,42}):\s+(.*)$/); const tone = BAD.test(t) ? ['Check', '#f2b705', '#2a2410'] : OK.test(t) ? ['Good', '#7fd6a3', '#10261c'] : ['Info', '#9fc9c9', '#16243a']; return { hasLabel: !!m, label: m ? m[1] : '', segs: segs(m ? m[2] : t), tag: tone[0], tagFg: tone[1], tagBg: tone[2], bar: tone[1] }; });
+      const nBad = lines.filter(l => l.tag === 'Check').length;
+      const big = (String(ans[0]).match(MON) || [''])[0];
+      const NEXT = { bank: ['Record each payment in Bank deposits as soon as it reaches the bank.', 'deposits', 'Open bank deposits'], behind: [nBad ? 'Call the manager of the branch at the top and go through its cash-ups and unbanked money together.' : 'Nothing to chase today. Keep checking cash-ups at closing.', 'cashup', 'Open cash-ups'], month: [mt && exM / mt > 0.12 ? 'Expenses are above the 12% guide. Review this month’s biggest expenses before approving more.' : 'You are on track. Keep banking daily so the forecast holds.', 'overview', 'Open overview'], leak: [nBad ? 'Work through each item below, starting with money not yet banked.' : 'Everything balances. No action needed.', 'deposits', 'Open bank deposits'], wallet: [/^Yes/.test(ans[0]) ? 'Move the money to the bank account and record it in Money movements.' : 'Leave the wallets as they are and check again tomorrow.', 'moves', 'Open money movements'], cash: [nBad ? 'Move cash above the GHS 4,000 limit to the safe and record it as a money movement.' : 'Till cash is within limits.', 'moves', 'Open money movements'] }[askK] || ['', '', ''];
+      const hasMv = tabsFor.indexOf(NEXT[1]) >= 0;
+      return { title: ans[0], big, hasBig: !!big, sub: big ? String(ans[0]).replace(big, '').replace(/^\s*(About|Around|Yes\s*—\s*sweep about)\s*/i, m => m).trim() : '', q: ASK[askK][0], lines, summary: lines.length + ' point' + (lines.length === 1 ? '' : 's') + (nBad ? ' · ' + nBad + ' need' + (nBad === 1 ? 's' : '') + ' attention' : ' · all looking fine'), sumFg: nBad ? '#f2b705' : '#7fd6a3', next: NEXT[0], hasNext: !!NEXT[0], nextLbl: NEXT[2], hasNextBtn: hasMv && !!NEXT[2], goNext: () => goTab(NEXT[1]), asOf: 'Based on live figures · ' + stamp() };
+    })();
+
+    // ---------- REFUNDS ----------
+    const rfV = (() => { const LS = window.localStorage; const rd = (k, d) => { try { const v = JSON.parse(LS.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+      const nowTxt = () => { const d = new Date(); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + d.toTimeString().slice(0, 5); };
+      let R = rd('ecompos.refunds', []); if (!Array.isArray(R)) R = []; let added = false;
+      const has = k => R.some(x => x.key === k || (x.orderId && x.orderId === k.split(':')[1] && x.src === k.split(':')[0]));
+      const W = rd('ecompos.webOrders', []) || [];
+      W.forEach(o => { if (o.status === 'Cancelled' && /paid/i.test(o.pay || '') && !/not paid/i.test(o.pay || '')) { const k = 'order:' + o.id; if (!has(k) && !R.some(x => x.payRef && String(o.pay || '').indexOf(x.payRef) >= 0)) { const amt = (o.items || []).reduce((a, i) => a + Number(i[0] || 0) * Number(i[2] || 0), 0) + Number(o.fee || 0); R.unshift({ id: 'RF-' + String(o.id).replace('#', '').slice(-6), key: k, src: 'order', orderId: o.id, via: String(o.pay || '').split(' · ')[0], amount: amt, amountTxt: money(amt), customer: o.who || 'Online customer', phone: o.phone || '', email: o.email || '', br: o.br || '', status: 'Refund initiated', at: Date.now(), source: 'Online store · cancelled order ' + o.id, reason: o.cancelReason || 'Order cancelled', log: [] }); added = true; } } });
+      (rd('ecompos.returnReqs', []) || []).forEach(r => { const k = 'return:' + r.id; if (!has(k)) { const amt = Number(r.total || 0); R.unshift({ id: 'RF-R' + String(r.id).slice(-5), key: k, src: 'return', orderId: '#' + String(r.no || '').replace('#', ''), via: 'Original payment', amount: amt, amountTxt: money(amt), customer: r.who || 'Online customer', phone: r.phone || '', email: r.email || '', br: r.br || '', status: r.status === 'received' ? 'Refund initiated' : 'Waiting for return', at: r.ts || Date.now(), source: 'Online store · return of order #' + String(r.no || '').replace('#', ''), reason: r.reason || 'Item returned', log: [] }); added = true; } else { const x = R.find(y => y.key === k); if (x && x.status === 'Waiting for return' && r.status === 'received') { x.status = 'Refund initiated'; added = true; } } });
+      if (added) { try { LS.setItem('ecompos.refunds', JSON.stringify(R.slice(0, 500))); } catch (e) {} }
+      const canAct = ROLE !== 'staff';
+      const save = (id, patch, msg, sms) => { try { const A = rd('ecompos.refunds', []) || []; const B = A.map(x => x.id === id ? Object.assign({}, x, patch, { log: (x.log || []).concat([{ t: msg, at: nowTxt(), by: ME + ' (' + LVL + ')' }]) }) : x); LS.setItem('ecompos.refunds', JSON.stringify(B)); const x = B.find(y => y.id === id); if (sms && x && x.phone) { const ob = rd('ecompos.msgOutbox', []) || []; ob.unshift({ id: 'm' + Date.now(), ev: 'refund', ch: 'sms', ts: Date.now(), by: ME, to: x.phone, vars: { name: x.customer, amount: x.amountTxt, ref: x.id }, text: sms }); LS.setItem('ecompos.msgOutbox', JSON.stringify(ob.slice(0, 3000))); window.dispatchEvent(new CustomEvent('ecompos:msg')); } window.dispatchEvent(new CustomEvent('ecompos:refunds')); } catch (e) {} set({ rfTick: Date.now(), msg: msg, msgBad: false }); };
+      const PEND = /initiated|requested|waiting/i; const TPL = (x, st) => st === 'Waiting for return' ? 'Hello ' + (x.customer || '') + ', we are waiting to receive your returned items for refund ' + x.id + '. Bring them to the branch with your receipt.' : PEND.test(st) ? 'Hello ' + (x.customer || '') + ', we have received your refund request ' + x.id + ' for ' + (x.amountTxt || '') + '. We are reviewing it and will update you shortly.' : st === 'Approved' ? 'Hello ' + (x.customer || '') + ', your refund ' + x.id + ' of ' + (x.amountTxt || '') + ' is approved. We are preparing the payment now.' : st === 'Payment sent' ? 'Hello ' + (x.customer || '') + ', your refund ' + x.id + ' of ' + (x.amountTxt || '') + ' has been sent' + (x.paidVia ? ' by ' + x.paidVia : '') + '. Please confirm when you receive it.' : st === 'Refunded' ? 'Hello ' + (x.customer || '') + ', your refund ' + x.id + ' of ' + (x.amountTxt || '') + ' is complete. Thank you.' : 'Hello ' + (x.customer || '') + ', about your refund ' + x.id + ': it was not approved' + (x.rejectReason ? ' (' + x.rejectReason + ')' : '') + '. Please contact us.';
+      const FL = { all: 'All', pending: 'To approve', approved: 'In progress', done: 'Refunded', rejected: 'Rejected' };
+      const inF = (x, f) => f === 'all' ? true : f === 'pending' ? PEND.test(x.status || '') : f === 'approved' ? (x.status === 'Approved' || x.status === 'Payment sent') : f === 'done' ? x.status === 'Refunded' : x.status === 'Rejected';
+      const F0 = S.rfF || 'all'; const RS = S.rfRows || {};
+      const sum = f => R.filter(x => inF(x, f)).reduce((a, x) => a + Number(x.amount || 0), 0);
+      const ST = { Refunded: ['#e6f4e8', '#1f7a2a'], Approved: ['#e3f2fd', '#0d47a1'], 'Payment sent': ['#ede7f6', '#4527a0'], Rejected: ['#fbeaea', '#c62828'], 'Waiting for return': ['#f2f4f5', '#5f5c5a'] };
+      const OB = rd('ecompos.msgOutbox', []) || [];
+      const STG = ['Requested', 'Approved', 'Payment sent', 'Refunded'];
+      const stIdx = st => st === 'Refunded' ? 3 : st === 'Payment sent' ? 2 : st === 'Approved' ? 1 : 0;
+      const rows = R.filter(x => inF(x, F0)).map(x => { const st = x.status || 'Refund initiated'; const c = ST[st] || ['#fff3e0', '#8a4b00']; const rs = RS[x.id] || {}; const up = p => set({ rfRows: Object.assign({}, RS, { [x.id]: Object.assign({}, rs, p) }) });
+        const isPend = PEND.test(st) && st !== 'Waiting for return'; const tpl = TPL(x, st);
+        return { id: x.id, who: x.customer || 'Customer', phone: x.phone || '—', amt: x.amountTxt || money(x.amount), via: x.via || '—', src: x.source || 'Online store', reason: x.reason || '', when: new Date(x.at || Date.now()).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }), payRef: x.payRef ? 'Payment ref ' + x.payRef : '', hasPayRef: !!x.payRef, st, stBg: c[0], stFg: c[1],
+          open: !!rs.open, toggle: () => up({ open: !rs.open }), togLbl: rs.open ? 'Hide' : (canAct ? 'Review & manage' : 'Preview'),
+          canApprove: canAct && isPend, canReject: canAct && (isPend || st === 'Approved' || st === 'Waiting for return'), canPay: canAct && (st === 'Approved' || isPend), canConfirm: canAct && st === 'Payment sent', isDone: st === 'Refunded' || st === 'Rejected', canReopen: canAct && st === 'Rejected', viewOnly: !canAct,
+          approve: () => save(x.id, { status: 'Approved', approvedBy: ME }, 'Refund ' + x.id + ' approved.', 'Good news ' + (x.customer || '') + ': your refund of ' + (x.amountTxt || '') + ' (ref ' + x.id + ') has been approved and will be paid shortly.'),
+          reject: () => { const why = String(rs.why || '').trim(); if (!why) { set({ msg: 'Type a reason before rejecting refund ' + x.id + '.', msgBad: true }); return; } save(x.id, { status: 'Rejected', rejectReason: why }, 'Refund ' + x.id + ' rejected.', 'About your refund ' + x.id + ': we could not approve it. Reason: ' + why + '. Please contact us if you have questions.'); },
+          methods: ['MoMo', 'Cash', 'Card reversal', 'Bank transfer', 'Store credit'].map(m => Object.assign({ label: m, pick: () => up({ m }) }, pill((rs.m || 'MoMo') === m))),
+          ref: rs.ref || '', refIn: e => up({ ref: e.target.value }), why: rs.why || '', whyIn: e => up({ why: e.target.value }), note: rs.note || '', noteIn: e => up({ note: e.target.value }),
+          pay: () => { const m = rs.m || 'MoMo'; if (m !== 'Cash' && m !== 'Store credit' && !String(rs.ref || '').trim()) { set({ msg: 'Add the transaction reference for the ' + m + ' refund first.', msgBad: true }); return; } save(x.id, { status: 'Payment sent', paidVia: m, paidRef: String(rs.ref || '').trim(), sentAt: Date.now(), paidBy: ME }, 'Payment of ' + (x.amountTxt || '') + ' sent by ' + m + (rs.ref ? ' · ' + rs.ref : '') + '.', 'Hello ' + (x.customer || '') + ', we have sent your refund of ' + (x.amountTxt || '') + ' by ' + m + (rs.ref ? ' (transaction ' + rs.ref + ')' : '') + '. Ref ' + x.id + '. Reply if you have not received it within 24 hours.'); },
+          confirm: () => save(x.id, { status: 'Refunded', doneAt: Date.now() }, 'Refund ' + x.id + ' completed · customer has the money.', 'Your refund ' + x.id + ' of ' + (x.amountTxt || '') + ' is complete. Thank you for shopping with us.'),
+          notify: () => { const t = String(rs.sms != null ? rs.sms : tpl).trim(); if (!x.phone) { set({ msg: 'There is no phone number on refund ' + x.id + ', so no SMS can be sent.', msgBad: true }); return; } if (!t) { set({ msg: 'Write the SMS first.', msgBad: true }); return; } save(x.id, {}, 'SMS update sent: “' + t.slice(0, 60) + (t.length > 60 ? '…' : '') + '”', t); up({ sms: null }); },
+          smsTxt: rs.sms != null ? rs.sms : tpl, smsIn: e => up({ sms: e.target.value }), smsReset: () => up({ sms: null }), smsLen: (() => { const n = String(rs.sms != null ? rs.sms : tpl).length; return n + ' characters · ' + Math.max(1, Math.ceil(n / 160)) + ' SMS'; })(), smsTo: x.phone || 'No phone number', canSms: !!x.phone,
+          stages: STG.map((g, i) => { const cur = st === 'Rejected' ? -1 : stIdx(st); return { label: g, dot: i < cur || (i === cur && st === 'Refunded') ? '#1f7a2a' : i === cur ? '#0b5c5c' : '#d9d9d9', fg: i <= cur ? '#000000' : '#8a8a8a', line: i < cur ? '#1f7a2a' : '#d9d9d9', last: i === 3, w: i === cur ? '600' : '400' }; }), isRejected: st === 'Rejected',
+          acts: (x.log || []).map(l => ({ t: l.t, meta: l.at + ' · ' + l.by, ts: 0, kind: 'Activity', kBg: '#f2f4f5' })).concat(OB.filter(m => m && ((m.vars && m.vars.ref === x.id) || String(m.text || '').indexOf(x.id) >= 0)).map(m => ({ t: m.text, meta: new Date(m.ts || Date.now()).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' · to ' + (m.to || '—') + ' · by ' + (m.by || 'eComPOS'), kind: 'SMS', kBg: '#e3f2fd' }))), smsN: OB.filter(m => m && ((m.vars && m.vars.ref === x.id) || String(m.text || '').indexOf(x.id) >= 0)).length,
+          addNote: () => { const n = String(rs.note || '').trim(); if (!n) return; save(x.id, {}, 'Note added to ' + x.id + ': ' + n); up({ note: '' }); },
+          reopen: () => save(x.id, { status: 'Refund initiated', rejectReason: '' }, 'Refund ' + x.id + ' reopened.'),
+          orderHref: 'Orders.dc.html', hasOrder: !!x.orderId, goOrder: () => { try { LS.setItem('ecompos.focus', JSON.stringify({ type: 'order', id: x.orderId, page: 'Orders.dc.html', at: Date.now() })); } catch (e) {} },
+          hasLog: (x.log || []).length > 0, log: (x.log || []).slice().reverse().map(l => ({ t: l.t, meta: l.at + ' · ' + l.by })),
+          paidLine: st === 'Refunded' || st === 'Payment sent' ? (st === 'Payment sent' ? 'Sent by ' : 'Paid by ') + '' + (x.paidVia || '—') + (x.paidRef ? ' · ' + x.paidRef : '') + (x.paidBy ? ' · ' + x.paidBy : '') : st === 'Rejected' ? 'Rejected: ' + (x.rejectReason || '') : '' , hasPaidLine: st === 'Refunded' || st === 'Payment sent' || st === 'Rejected' }; });
+      const csv = () => { try { const H = ['Ref', 'Customer', 'Phone', 'Amount', 'Paid with', 'Source', 'Reason', 'Status']; const L = [H].concat(R.filter(x => inF(x, F0)).map(x => [x.id, x.customer, x.phone, x.amount, x.via, x.source, x.reason, x.status])); const t = L.map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/csv' })); a.download = 'refunds.csv'; document.body.appendChild(a); a.click(); a.remove(); } catch (e) {} };
+      return { rows, none: rows.length === 0, canAct, filters: Object.keys(FL).map(f => Object.assign({ label: FL[f] + ' (' + R.filter(x => inF(x, f)).length + ')', pick: () => set({ rfF: f }) }, pill(F0 === f))),
+        kpis: [['To approve', sum('pending'), R.filter(x => inF(x, 'pending')).length], ['In progress', sum('approved'), R.filter(x => inF(x, 'approved')).length], ['Refunded', sum('done'), R.filter(x => inF(x, 'done')).length], ['Rejected', sum('rejected'), R.filter(x => inF(x, 'rejected')).length]].map(k => ({ label: k[0], v: money(k[1]), n: k[2] + ' request' + (k[2] === 1 ? '' : 's') })), csv, openN: R.filter(x => inF(x, 'pending') || inF(x, 'approved')).length };
+    })();
+    const TL = { overview: 'Overview', cashup: 'Cash-up', deposits: 'Bank deposits', moves: 'Money movements', accounts: 'Bank accounts', assistant: 'Finance assistant', refunds: 'Refunds' };
+    const TN = { refunds: rfV.openN, deposits: SU ? pendDep.length : OUTL.length, moves: SU ? pendMov.length : 0, assistant: SU ? INS.filter(i => i.sev === 'high').length : 0 };
+    const NAV = { overview: 'finance', cashup: 'fin:cashup', deposits: 'fin:deposits', moves: 'fin:moves', accounts: 'fin:accounts', assistant: 'fin:assistant', refunds: 'fin:refunds' };
+    return {
+      navActive: NAV[TAB],
+      title: SU ? 'Finance' : isStaff ? 'My till money' : 'Finance · ' + F.bName(MYBR) + ' branch',
+      note: SU ? 'Every branch’s takings, banking, cash-ups and money movements in one place. Only you see the totals across all branches.' : isStaff ? 'What you took today, your cash-up and the deposits you recorded.' : 'Your branch’s takings, cash-ups and banking. Company-wide totals are only visible to the Admin.',
+      who: ME + ' · ' + LVL, asOf: 'Live · ' + stamp(),
+      tabs: tabsFor.map(t => Object.assign({ label: TL[t], n: String(TN[t] || 0), hasN: !!TN[t], pick: () => goTab(t) }, pill(TAB === t))),
+      hasMsg: !!S.msg, msg: S.msg || '', msgBg: S.msgBad ? '#fbeaea' : '#e6f4e8', msgBd: S.msgBad ? '#c62828' : '#1f7a2a', msgX: () => set({ msg: '' }),
+      showScope: SU && TAB !== 'accounts' && TAB !== 'assistant', scopes: [['all', 'All branches']].concat(F.BR.map(b => [b.id, F.bName(b.id)])).map(b => Object.assign({ label: b[1], pick: () => set({ scope: b[0] }) }, pill(scope === b[0]))),
+      tOver: TAB === 'overview', tCash: TAB === 'cashup', tDep: TAB === 'deposits', tMove: TAB === 'moves', tAcc: TAB === 'accounts', tAi: TAB === 'assistant', dfPop: !!S.dfPop && TAB === 'deposits', dfClose: () => set({ dfPop: false }), dfOpen: () => set({ dfPop: true }), dfOv: S.dfPop && TAB === 'deposits' ? 'position: fixed; inset: 0; z-index: 600; background: rgba(0, 0, 0, 0.45); display: flex; justify-content: center; align-items: flex-start; padding: 24px 16px; overflow-y: auto' : 'display: none', dfBox: S.dfPop && TAB === 'deposits' ? 'width: 100%; max-width: 620px' : 'display: contents', dfRole: S.dfPop && TAB === 'deposits' ? 'dialog' : 'region', dfModal: S.dfPop && TAB === 'deposits' ? 'true' : 'false', dfCardSt: S.dfPop && TAB === 'deposits' ? 'box-shadow: rgba(0, 0, 0, 0.3) 0 16px 48px 0; border: 0' : '', tRf: TAB === 'refunds', rf: rfV,
+      isSU: SU, kpis, aiSub: INS.filter(i => i.sev === 'high').length + ' need action now · reading ' + (scope === 'all' ? F.BR.length + ' branches' : F.bName(scope)), aiCount: String(INS.length), aiTop: INS.slice(0, 3).map(insRow), openAi: () => goTab('assistant'),
+      showBrTable: SU && scope === 'all', brRows, brTot,
+      chTitle: 'Taken vs banked · last 7 days' + (scope === 'all' ? '' : ' · ' + F.bName(scope)), chAria: 'Takings and banking for the last 7 days. ' + chData.map(c => F.dayTxt(c.day) + ' taken ' + money(c.tk) + ' banked ' + money(c.bk)).join('; '), chBars,
+      mixTitle: isStaff ? 'How my customers paid today' : 'How customers paid today', mix, todoTitle: SU ? 'Your finance to-do' : 'What to do today', todo,
+      cu, cuList, cuNone: cuList.length === 0, cuListNote: SU ? 'All branches · newest first' : isStaff ? 'Your cash-ups' : F.bName(MYBR) + ' branch',
+      hasOut: OUTS.length > 0 && !isStaff, outTotal: money(outAll), outList, todayIso: F.TODAY, df,
+      dlTabs: [['all', 'All'], ['pending', 'Waiting'], ['verified', 'Checked'], ['flagged', 'Does not match']].map(t => Object.assign({ label: t[1] + ' · ' + (t[0] === 'all' ? dlBase.length : dlBase.filter(d => d.status === t[0]).length), pick: () => set({ dlTab: t[0], dlN: 8 }) }, pill(dlTab === t[0]))),
+      dl, dlNone: dl.length === 0, dlMore: dlShown.length > (S.dlN || 8), dlShowMore: () => set({ dlN: (S.dlN || 8) + 10 }), dlNote: SU ? 'Tick each one off against the bank or MoMo statement' : 'Deposits from ' + (isStaff ? 'you' : F.bName(MYBR)),
+      mf, ml, mlNone: ml.length === 0, mlNote: SU ? 'Approve what branches send you; yours are final' : 'Movements you and your branch recorded',
+      accs, af, mw, mwRows, mwCount: WAL.length + (WAL.length === 1 ? ' wallet' : ' wallets'), mwTotal: money(WAL.reduce((a, w) => a + F.balOf(w.id).bal, 0)),
+      xShow: SU || ROLE === 'manager' || ROLE === 'supervisor', xCsv, xPrint: () => { try { window.print(); } catch (e) {} },
+      cpRows, cpBy, cpNone: cpRows.length === 0, cpTotal: money(cpL.reduce((a, x) => a + (Number(x.amt) || 0), 0)),
+      exRows, exMonth: F.MON[F.NOW.getMonth()] + ' ' + F.NOW.getFullYear() + ' so far',
+      dhHead, dhRows, dhNote: (brs.length > 1 ? 'Takings per branch per day, and whether each day reached the bank' : F.bName(brs[0]) + ' \u00b7 takings by payment type, credit collected, banking and cash-up for each day'), dhDays: [7, 14, 30].map(n => Object.assign({ label: n + ' days', pick: () => set({ dhN: n }) }, pill(dhN === n))),
+      asks: Object.keys(ASK).map(k => Object.assign({ label: ASK[k][0], pick: () => set({ ask: k }) }, askK === k ? { bg: '#ffffff', fg: '#000000', pressed: 'true' } : { bg: 'transparent', fg: '#ffffff', pressed: 'false' })),
+      hasAnswer: true, av: ansV, answer: { title: ans[0], lines: ans[1].map(t => ({ t })) },
+      aiAll: INS.map(insRow), aiGroups: ['high', 'mid', 'low', 'info'].map(k => ({ k, name: { high: 'Act now', mid: 'Do soon', low: 'Tips to improve', info: 'Good to know' }[k], note: { high: 'Money at risk or overdue', mid: 'Worth doing this week', low: 'Small changes that help', info: 'How the business is doing' }[k], color: SEV[k][1], items: INS.filter(i => i.sev === k).map(insRow), n: String(INS.filter(i => i.sev === k).length) })).filter(g => g.items.length), aiCount: INS.length + ' finding' + (INS.length === 1 ? '' : 's')
+    };
+  }
+}
+
+</script>
+</body>
+</html>

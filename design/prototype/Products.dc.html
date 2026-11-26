@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS products</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="products" hint-size="232px,960px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="products" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Products</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">One catalogue for the till and the website</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" style="font-family: inherit; padding: 12px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; font-size: 14px; cursor: pointer">Import CSV / supplier list</button>
+<button type="button" onClick="{{toggleBulk}}" style="font-family: inherit; padding: 12px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: {{bulkBg}}; color: {{bulkFg}}; font-size: 14px; cursor: pointer">Bulk edit</button>
+<button type="button" style="font-family: inherit; padding: 12px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: rgba(69, 36, 219, 0.34) 0 4px 24px 0" onClick="{{openAdd}}" disabled="{{cantAdd}}" title="{{addTip}}">Add product</button>
+</div>
+</header>
+
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+<div role="search" style="flex: 1 1 280px; max-width: 420px"><label for="pr-q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search products</label><input id="pr-q" type="search" autocomplete="off" value="{{pq}}" onInput="{{pqIn}}" placeholder="Search products by name, SKU, barcode or category" style="font: inherit; font-size: 15px; padding: 10px 16px; min-height: 44px; box-sizing: border-box; border-radius: 9999px; border: 1px solid #000000; background: #ffffff; width: 100%"></div>
+<label for="pr-cat" style="font-size: 13px; color: #5f5c5a; margin-left: 4px">Category</label><select id="pr-cat" value="{{catV}}" onChange="{{catIn}}" style="font: inherit; font-size: 14px; padding: 10px 14px; min-height: 44px; border-radius: 9999px; border: 1px solid #000000; background: #ffffff; min-width: 170px"><sc-for list="{{cats}}" as="c" hint-placeholder-count="6"><option value="{{c.label}}">{{c.text}}</option></sc-for></select>
+<span style="font-size: 13px; color: #5f5c5a">{{pCount}}</span>
+<a href="Categories.dc.html" style="font-size: 13px; font-weight: 500; padding: 10px 14px; border-radius: 9999px; border: 1px dashed #cccccc; background: #ffffff; text-decoration: none">+ Add or manage categories</a>
+<span style="font-size: 13px; color: #5f5c5a; margin-left: 8px">Collections: Popular this week · Wholesale deals · New in</span>
+</div>
+
+<sc-if value="{{adding}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="ap-h" style="background: #ffffff; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><h2 id="ap-h" style="margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.04em">Add product</h2><span style="font-size: 12px; color: #5f5c5a">Adding as {{roleName}}</span></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="np-n" style="font-size: 12px; color: #5f5c5a">Product name</label><input id="np-n" placeholder="e.g. Tomato paste 400g" onInput="{{typeName}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="np-c" style="font-size: 12px; color: #5f5c5a">Category</label><select id="np-c" onChange="{{pickCat}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"><sc-for list="{{catOpts}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.v}}</option></sc-for></select><a href="Categories.dc.html" style="font-size: 12px; margin-top: 2px">Add a new category</a></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="np-s" style="font-size: 12px; color: #5f5c5a">SKU</label><input id="np-s" placeholder="Made for you if blank" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"></div>
+<div style="display: flex; flex-direction: column; gap: 4px; grid-column: span 2; min-width: 0"><label for="np-b" style="font-size: 12px; color: #5f5c5a">Barcode (from the product packaging)</label>
+<div style="display: flex; gap: 6px"><input id="np-b" inputmode="numeric" autocomplete="off" value="{{bc.value}}" onChange="{{typeBarcode}}" placeholder="Scan with a scanner or type the number" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid {{bcBd}}; background: #ffffff; box-sizing: border-box; width: 100%; min-width: 0">
+<button type="button" onClick="{{openScan}}" style="font-family: inherit; flex: none; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; padding: 0 14px; min-height: 42px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2 M17 3h2a2 2 0 0 1 2 2v2 M21 17v2a2 2 0 0 1-2 2h-2 M7 21H5a2 2 0 0 1-2-2v-2 M7 8v8 M10 8v8 M13 8v8 M17 8v8"></path></svg>Scan</button></div>
+<span role="status" style="font-size: 12px; color: {{bc.c}}">{{bc.msg}}</span>
+<sc-if value="{{bc.noCode}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{genBarcode}}" style="font-family: inherit; align-self: flex-start; font-size: 12px; padding: 5px 10px; border-radius: 9999px; border: 1px dashed #cccccc; background: #ffffff; cursor: pointer">No barcode on the pack? Create a shop barcode</button></sc-if>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><label for="np-d" style="font-size: 12px; color: #5f5c5a">Description (shown on the website)</label><button type="button" onClick="{{draftDesc}}" style="font-family: inherit; font-size: 12px; padding: 5px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Write with AI</button></div>
+<textarea id="np-d" rows="3" value="{{npDesc}}" onChange="{{typeDesc}}" placeholder="What it is, size or pack, and why customers buy it" style="font: inherit; font-size: 14px; padding: 12px 14px; border-radius: 18px; border: 1px solid #ebebeb; resize: vertical"></textarea>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><span style="font-size: 12px; color: #5f5c5a">Product images · the first one is the main image on the till and website</span><span style="font-size: 12px; color: #5f5c5a">{{npImgCount}} of 6 · PNG, JPG or WebP, under 2 MB each</span></div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start">
+<sc-for list="{{npImgs}}" as="im" hint-placeholder-count="0">
+<div style="display: flex; flex-direction: column; gap: 4px; width: 96px">
+<div style="position: relative; width: 96px; height: 96px; border-radius: 16px; overflow: hidden; border: 2px solid {{im.bd}}; background: #f2f4f5"><img src="{{im.src}}" alt="{{im.alt}}" style="width: 100%; height: 100%; object-fit: cover"><sc-if value="{{im.main}}" hint-placeholder-val="{{false}}"><span style="position: absolute; left: 6px; bottom: 6px; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 9999px; background: #000000; color: #ffffff">Main</span></sc-if><button type="button" onClick="{{im.remove}}" aria-label="Remove image {{im.n}}" style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; font-size: 14px; line-height: 1; cursor: pointer">×</button></div>
+<sc-if value="{{im.notMain}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{im.makeMain}}" style="font-family: inherit; font-size: 11px; padding: 4px 8px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Make main</button></sc-if>
+</div>
+</sc-for>
+<sc-if value="{{npCanAdd}}" hint-placeholder-val="{{true}}">
+<label style="position: relative; width: 96px; height: 96px; box-sizing: border-box; border-radius: 16px; border: 1.5px dashed #cccccc; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; font-size: 12px; color: #5f5c5a; text-align: center">
+<input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange="{{pickImgs}}" aria-label="Add product images" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; margin: 0">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="pointer-events: none"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg><span style="pointer-events: none">Add images</span>
+</label>
+</sc-if>
+</div>
+<sc-if value="{{hasImgErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 12px; color: #c62828">{{imgErr}}</span></sc-if>
+<span style="font-size: 12px; color: #5f5c5a">Alt text is filled in from the product name for screen readers. Photos are resized for the website automatically.</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 14px; border-radius: 20px; background: #f2f4f5">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="np-p" style="font-size: 12px; color: #5f5c5a">Selling price (GHS)</label><input id="np-p" type="number" min="0" step="0.01" placeholder="0.00" onInput="{{typePrice}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="np-w" style="font-size: 12px; color: #5f5c5a">Carton / bulk price (optional)</label><input id="np-w" type="number" min="0" step="0.01" placeholder="0.00" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"></div>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="np-cost" style="font-size: 12px; color: #5f5c5a">Cost price (GHS) · Admin only</label><input id="np-cost" type="number" min="0" step="0.01" placeholder="0.00" onInput="{{typeCost}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #5f5c5a">Profit per unit</span><span style="font-size: 16px; font-weight: 600; padding: 9px 0; color: {{np.pc}}">{{np.profit}} · {{np.margin}}</span></div>
+</sc-if>
+<sc-if value="{{notSu}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 4px; grid-column: span 2"><span style="font-size: 12px; color: #5f5c5a">Cost price</span><span style="font-size: 13px; padding: 10px 14px; border-radius: 9999px; border: 1px dashed #cccccc; background: #ffffff">Hidden from your account · the Admin adds the cost price and approves the product before it appears on Sell Now and the website.</span></div>
+</sc-if>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="np-q" style="font-size: 12px; color: #5f5c5a">Opening stock</label><input id="np-q" type="number" min="0" placeholder="0" onInput="{{typeQty}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="np-br" style="font-size: 12px; color: #5f5c5a">Available at</label><select id="np-br" value="{{npScope}}" onChange="{{pickScope}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"><sc-for list="{{scopeOpts}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for></select><span style="font-size: 11px; color: #5f5c5a">{{scopeNote}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px; grid-column: 1 / -1">
+<span style="font-size: 12px; color: #5f5c5a">Where it's sold · both are on for every new product</span>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<sc-for list="{{npWhere}}" as="w" hint-placeholder-count="2"><button type="button" role="switch" aria-checked="{{w.on}}" onClick="{{w.toggle}}" style="font-family: inherit; flex: 1 1 220px; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 16px; border: 1px solid {{w.bd}}; background: #ffffff; cursor: pointer; font-size: 14px; color: #000000; text-align: left"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 500">{{w.label}}</span><span style="font-size: 12px; color: #5f5c5a">{{w.note}}</span></span><span aria-hidden="true" style="width: 40px; height: 24px; border-radius: 9999px; padding: 3px; box-sizing: border-box; background: {{w.track}}; display: flex; justify-content: {{w.just}}; flex: none"><span style="width: 18px; height: 18px; border-radius: 9999px; background: #ffffff"></span></span></button></sc-for>
+</div>
+</div>
+</div>
+<sc-if value="{{hasAddErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{addErr}}</span></sc-if>
+<sc-if value="{{scanOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20">
+<div role="dialog" aria-modal="true" aria-labelledby="sc-t" style="background: #ffffff; border-radius: 28px; padding: 22px; width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: center"><h2 id="sc-t" style="margin: 0; font-size: 19px; font-weight: 600">Scan product barcode</h2><button type="button" onClick="{{closeScan}}" style="font-family: inherit; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">Close</button></div>
+<div role="tablist" aria-label="Scan with" style="display: flex; gap: 4px; padding: 4px; border-radius: 9999px; background: #f2f4f5"><sc-for list="{{scanModes}}" as="m" hint-placeholder-count="2"><button type="button" role="tab" aria-selected="{{m.pressed}}" onClick="{{m.pick}}" style="font-family: inherit; flex: 1; font-size: 13px; padding: 9px; border-radius: 9999px; border: 0; cursor: pointer; background: {{m.bg}}; color: {{m.fg}}">{{m.label}}</button></sc-for></div>
+<sc-if value="{{scanCam}}" hint-placeholder-val="{{true}}">
+<div aria-hidden="true" style="position: relative; height: 220px; border-radius: 20px; background: #1a1a1a; overflow: hidden; display: flex; align-items: center; justify-content: center">
+<div style="width: 70%; height: 46%; border: 3px solid #ffffff; border-radius: 14px; position: relative"><div style="position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; background: #c62828"></div></div>
+<span style="position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 12px; color: #c9c6c4">Hold the barcode inside the frame</span>
+</div>
+<span style="font-size: 12px; color: #5f5c5a">Uses the camera on a phone, tablet or laptop. In this prototype, tap below to simulate a scan.</span>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{simScans}}" as="x" hint-placeholder-count="3"><button type="button" onClick="{{x.pick}}" style="font-family: inherit; font-size: 12px; padding: 8px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">{{x.label}}</button></sc-for></div>
+</sc-if>
+<sc-if value="{{scanUsb}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+<span>USB or Bluetooth handheld scanners work like a keyboard. Click in the box below, then scan the barcode on the pack. The scanner types the number and presses Enter for you.</span>
+<label for="usb-in" style="font-size: 12px; color: #5f5c5a">Waiting for scanner…</label>
+<input id="usb-in" inputmode="numeric" autocomplete="off" onKeyDown="{{usbKey}}" placeholder="Scan now" style="font: inherit; font-size: 18px; letter-spacing: 0.08em; padding: 14px 16px; border-radius: 16px; border: 2px solid #000000">
+<span style="font-size: 12px; color: #5f5c5a">Works with EAN-13, EAN-8, UPC-A and carton (ITF-14) barcodes.</span>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; gap: 8px"><button type="button" onClick="{{closeAdd}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Cancel</button><button type="button" onClick="{{saveNew}}" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 11px 20px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Save product</button></div>
+</section>
+</sc-if>
+
+<sc-if value="{{hasSent}}" hint-placeholder-val="{{false}}">
+<div role="status" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 18px; border-radius: 20px; background: #ffffff; border: 2px solid #6b6866; font-size: 14px">
+<span style="flex: 1 1 260px"><strong style="font-weight: 600">{{sentName}}</strong> was sent to Kofi Adom (Admin) for approval. It will appear on Sell Now and the website once the cost price is added and it is approved. You will get a notification.</span>
+<button type="button" onClick="{{hideSent}}" style="font-family: inherit; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">Close</button>
+</div>
+</sc-if>
+<sc-if value="{{showQueue}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="pq-h" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; border: 2px solid #0b5c5c">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap"><div style="display: flex; flex-direction: column; gap: 4px"><h2 id="pq-h" style="margin: 0; font-size: 18px; font-weight: 600">{{queueTitle}}</h2><span style="font-size: 13px; color: #5f5c5a">{{queueSub}}</span></div><span style="font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 9999px; background: #0b5c5c; color: #ffffff">{{queueCount}}</span></div>
+<sc-for list="{{queue}}" as="q" hint-placeholder-count="2">
+<article style="display: flex; flex-wrap: wrap; gap: 16px; padding: 14px; border-radius: 18px; background: #f2f4f5; align-items: flex-start">
+<span aria-hidden="true" style="width: 72px; height: 72px; border-radius: 16px; background: #e6e9eb; flex: none; overflow: hidden; display: block"><sc-if value="{{q.hasImg}}" hint-placeholder-val="{{false}}"><img src="{{q.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></sc-if></span>
+<div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><strong style="font-size: 15px; font-weight: 600">{{q.name}}</strong><span style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; border: 1.5px solid {{q.sc}}; color: {{q.sc}}">{{q.status}}</span></div>
+<span style="font-size: 13px; color: #3d3a38">{{q.cat}} · selling price <strong style="font-weight: 600">{{q.price}}</strong> · barcode {{q.bc}} · opening stock {{q.stock}}</span>
+<span style="font-size: 13px; color: #5f5c5a">{{q.desc}}</span>
+<span style="font-size: 12px; color: #5f5c5a">Added by {{q.by}} · {{q.when}} · will show {{q.where}}</span>
+<sc-if value="{{q.hasReason}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #c62828">Reason: {{q.reason}}</span></sc-if>
+</div>
+<sc-if value="{{q.canDecide}}" hint-placeholder-val="{{true}}"><div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end"><div style="display: flex; flex-direction: column; gap: 4px"><label for="{{q.costId}}" style="font-size: 12px; color: #5f5c5a">Cost price (GHS) · Admin only</label><input id="{{q.costId}}" type="number" min="0" step="0.01" placeholder="0.00" value="{{q.costVal}}" onInput="{{q.typeCost}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"></div><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #5f5c5a">Profit per unit</span><span style="font-size: 15px; font-weight: 600; padding: 9px 0; color: {{q.pc}}">{{q.profit}}</span></div></div>
+<sc-if value="{{q.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 12px; color: #c62828">{{q.err}}</span></sc-if>
+<sc-if value="{{q.notRejecting}}" hint-placeholder-val="{{true}}"><div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{q.approve}}" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer; background: #1f7a2a">Approve &amp; publish</button><button type="button" onClick="{{q.startReject}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; cursor: pointer; color: #c62828; border-color: #c62828">Reject</button></div></sc-if>
+<sc-if value="{{q.rejecting}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 6px"><label for="{{q.rejId}}" style="font-size: 12px; color: #5f5c5a">Tell {{q.byFirst}} why (they will be notified)</label><input id="{{q.rejId}}" type="text" placeholder="e.g. Duplicate of an existing product" value="{{q.rejVal}}" onInput="{{q.typeRej}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; box-sizing: border-box; width: 100%"><div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{q.reject}}" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer; background: #c62828">Confirm reject</button><button type="button" onClick="{{q.cancelReject}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; cursor: pointer">Cancel</button></div></div></sc-if>
+</div></sc-if>
+</article>
+</sc-for>
+</section>
+</sc-if>
+<sc-if value="{{hasLive}}" hint-placeholder-val="{{false}}">
+<div role="status" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 18px; border-radius: 20px; background: #ffffff; border: 2px solid #1f7a2a; font-size: 14px">
+<span style="flex: 1 1 260px"><strong style="font-weight: 600">{{live.name}}</strong> {{live.verb}} {{live.where}}.</span>
+<sc-if value="{{live.web}}" hint-placeholder-val="{{true}}"><a href="Shop.dc.html" style="font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: 9999px; border: 1px solid #ebebeb; text-decoration: none">See it on the website</a></sc-if>
+<sc-if value="{{live.pos}}" hint-placeholder-val="{{true}}"><a href="POS.dc.html" style="font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: 9999px; background: #000000; color: #ffffff; text-decoration: none">See it at Sell Now</a></sc-if>
+<button type="button" onClick="{{hideLive}}" style="font-family: inherit; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">Close</button>
+</div>
+</sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-label="Product list" style="flex: 3 1 520px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 8px 8px 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px">
+<thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a">
+<th scope="col" style="font-weight: 500; padding: 12px">Product</th>
+<th scope="col" style="font-weight: 500; padding: 12px">Price</th>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><th scope="col" style="font-weight: 500; padding: 12px">Cost</th><th scope="col" style="font-weight: 500; padding: 12px">Profit · margin</th></sc-if>
+<th scope="col" style="font-weight: 500; padding: 12px">Stock (all)</th>
+<th scope="col" style="font-weight: 500; padding: 12px">Website</th>
+<th scope="col" style="font-weight: 500; padding: 12px">Till</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="p" hint-placeholder-count="10">
+<tr style="border-top: 1px solid #ebebeb; background: {{p.rowBg}}">
+<td style="padding: 10px 12px"><button type="button" onClick="{{p.pick}}" style="font-family: inherit; text-align: left; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 0; color: #000000"><span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 12px; background: {{p.tone}}; flex: none; overflow: hidden; display: block"><sc-if value="{{p.hasImg}}" hint-placeholder-val="{{false}}"><img src="{{p.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></sc-if></span><span style="display: flex; flex-direction: column"><span style="font-weight: 500">{{p.name}}</span><span style="font-size: 12px; color: #5f5c5a">{{p.sku}} · {{p.cat}}</span></span></button><sc-if value="{{p.scoped}}" hint-placeholder-val="{{false}}"><span style="display: inline-block; margin-top: 4px; margin-right: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; background: #000000; color: #ffffff">{{p.scopeTag}}</span></sc-if><sc-if value="{{p.pending}}" hint-placeholder-val="{{false}}"><span style="display: inline-block; margin-top: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; border: 1.5px solid {{p.tagC}}; color: {{p.tagC}}">{{p.tag}}</span></sc-if></td>
+<td style="padding: 10px 12px; font-variant-numeric: tabular-nums">{{p.price}}<sc-if value="{{bulk}}" hint-placeholder-val="{{false}}"><input aria-label="New price for {{p.name}}" placeholder="New price" style="display: block; margin-top: 6px; width: 100px; font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 9999px; border: 1px solid #ebebeb"></sc-if></td>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><td style="padding: 10px 12px; font-variant-numeric: tabular-nums; color: #3d3a38">{{p.cost}}</td><td style="padding: 10px 12px; font-variant-numeric: tabular-nums">{{p.profit}}</td></sc-if>
+<td style="padding: 10px 12px">{{p.stock}}</td>
+<td style="padding: 10px 12px"><button type="button" role="switch" aria-checked="{{p.webOn}}" aria-label="Show {{p.name}} on the website" onClick="{{p.toggleWeb}}" style="width: 44px; height: 26px; border-radius: 9999px; border: 0; padding: 3px; cursor: pointer; background: {{p.webTrack}}; display: flex; justify-content: {{p.webJust}}"><span style="width: 20px; height: 20px; border-radius: 9999px; background: #ffffff"></span></button></td>
+<td style="padding: 10px 12px"><button type="button" role="switch" aria-checked="{{p.posOn}}" aria-label="Sell {{p.name}} at the till" onClick="{{p.togglePos}}" style="width: 44px; height: 26px; border-radius: 9999px; border: 0; padding: 3px; cursor: pointer; background: {{p.posTrack}}; display: flex; justify-content: {{p.posJust}}"><span style="width: 20px; height: 20px; border-radius: 9999px; background: #ffffff"></span></button></td>
+</tr>
+</sc-for>
+<sc-if value="{{pNone}}" hint-placeholder-val="{{false}}"><tr><td colspan="9" style="padding: 18px 12px; font-size: 14px; color: #5f5c5a">No product matches that search or category.</td></tr></sc-if>
+</tbody>
+</table>
+</div>
+</section>
+
+<aside aria-label="Edit product" style="flex: 2 1 380px; min-width: 0; background: #ffffff; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 18px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<sc-if value="{{e.pending}}" hint-placeholder-val="{{false}}"><div role="status" style="padding: 12px 14px; border-radius: 16px; background: #f2f4f5; border: 1.5px dashed #6b6866; font-size: 13px; color: #3d3a38">{{e.pendNote}}</div></sc-if>
+<div style="display: flex; gap: 14px; align-items: center">
+<span aria-hidden="true" style="width: 64px; height: 64px; border-radius: 18px; background: {{e.tone}}; flex: none; overflow: hidden; display: block"><sc-if value="{{e.hasImg}}" hint-placeholder-val="{{false}}"><img src="{{e.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block"></sc-if></span>
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.05em">{{e.name}}</h2><span style="font-size: 13px; color: #5f5c5a">SKU {{e.sku}} · barcode {{e.barcode}}</span></div>
+</div>
+<div role="tablist" aria-label="Product sections" style="display: flex; gap: 4px; padding: 4px; border-radius: 9999px; background: #f2f4f5; flex-wrap: wrap">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+<button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; flex: 1; font-size: 13px; padding: 9px 10px; min-height: 40px; border-radius: 9999px; border: 0; cursor: pointer; background: {{t.bg}}; color: #000000; box-shadow: {{t.shadow}}">{{t.label}}</button>
+</sc-for>
+</div>
+
+<sc-if value="{{tabDetails}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="pe-name" style="font-size: 13px; color: #5f5c5a">Name</label><input id="pe-name" placeholder="{{e.name}}" style="font: inherit; font-size: 15px; padding: 11px 14px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: center"><label for="pe-desc" style="font-size: 13px; color: #5f5c5a">Description (shown online)</label><button type="button" onClick="{{writeAi}}" style="font-family: inherit; font-size: 12px; padding: 6px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Write from photo</button></div>
+<textarea id="pe-desc" rows="3" placeholder="{{e.desc}}" style="font: inherit; font-size: 14px; padding: 12px 14px; border-radius: 18px; border: 1px solid #ebebeb; resize: vertical"></textarea>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 13px; color: #5f5c5a">Images · alt text set for each</span>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{e.imgs}}" as="im" hint-placeholder-count="0"><img src="{{im.src}}" alt="{{im.alt}}" style="width: 64px; height: 64px; border-radius: 14px; object-fit: cover"></sc-for><span aria-hidden="true" style="width: 64px; height: 64px; border-radius: 14px; background: {{e.tone}}"></span><span aria-hidden="true" style="width: 64px; height: 64px; border-radius: 14px; background: #eef0f1"></span><button type="button" aria-label="Add image" style="width: 64px; height: 64px; border-radius: 14px; border: 1px dashed #cccccc; background: #ffffff; cursor: pointer; font-size: 20px">+</button></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="pe-tax" style="font-size: 13px; color: #5f5c5a">Tax class</label><select id="pe-tax" style="font: inherit; font-size: 14px; padding: 11px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff"><option>Standard (VAT + levies)</option><option>Zero-rated</option><option>Exempt</option></select></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="pe-origin" style="font-size: 13px; color: #5f5c5a">Custom field: country of origin</label><input id="pe-origin" placeholder="Ghana" style="font: inherit; font-size: 14px; padding: 11px 14px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{printLabels}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">{{labelText}}</button>
+<span style="font-size: 13px; color: #5f5c5a; align-self: center">Available at: Osu · East Legon · Adum</span>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{tabUnits}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<span style="font-size: 13px; color: #5f5c5a">Selling units (one stock pool, counted in singles)</span>
+<sc-for list="{{e.units}}" as="u" hint-placeholder-count="3">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; background: #f2f4f5; font-size: 14px"><span style="display: flex; flex-direction: column"><span style="font-weight: 500">{{u.label}}</span><span style="font-size: 12px; color: #5f5c5a">{{u.contains}}</span></span><span style="font-variant-numeric: tabular-nums">{{u.price}}</span></div>
+</sc-for>
+<button type="button" style="font-family: inherit; align-self: flex-start; font-size: 14px; padding: 10px 16px; min-height: 44px; border-radius: 9999px; border: 1px dashed #cccccc; background: #ffffff; cursor: pointer">Add unit (e.g. half carton)</button>
+<span style="font-size: 13px; color: #5f5c5a">Variants</span>
+<div style="overflow-x: auto"><table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 320px"><thead><tr style="text-align: left; color: #5f5c5a"><th scope="col" style="font-weight: 500; padding: 6px 4px">Size</th><th scope="col" style="font-weight: 500; padding: 6px 4px">SKU</th><th scope="col" style="font-weight: 500; padding: 6px 4px">Price</th><th scope="col" style="font-weight: 500; padding: 6px 4px">Stock</th></tr></thead><tbody>
+<sc-for list="{{e.variants}}" as="v" hint-placeholder-count="3"><tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 4px">{{v.size}}</td><td style="padding: 8px 4px">{{v.sku}}</td><td style="padding: 8px 4px">{{v.price}}</td><td style="padding: 8px 4px">{{v.stock}}</td></tr></sc-for>
+</tbody></table></div>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; margin: 0">Sell as part of a bundle (e.g. “Weekly essentials pack”)</label>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; margin: 0">Offer add-ons at the till (gift wrap, delivery bag)</label>
+</div>
+</sc-if>
+
+<sc-if value="{{tabPricing}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 16px; background: #f2f4f5"><label for="ed-price" style="font-size: 12px; color: #5f5c5a">Selling price (GHS)</label><input id="ed-price" type="number" step="0.01" placeholder="{{e.priceNum}}" style="font: inherit; font-size: 16px; font-weight: 500; padding: 8px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff"></div>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 4px; padding: 14px; border-radius: 16px; background: #f2f4f5"><label for="ed-cost" style="font-size: 12px; color: #5f5c5a">Cost price (GHS) · Admin only</label><input id="ed-cost" type="number" step="0.01" placeholder="{{e.costNum}}" style="font: inherit; font-size: 16px; font-weight: 500; padding: 8px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff"></div></sc-if>
+<sc-if value="{{notSu}}" hint-placeholder-val="{{false}}"><div style="padding: 14px; border-radius: 16px; border: 1px dashed #cccccc; font-size: 13px; color: #3d3a38; display: flex; align-items: center">Cost price and profit are visible to the Admin only.</div></sc-if>
+</div>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="padding: 14px; border-radius: 16px; background: #f2f4f5"><span style="font-size: 12px; color: #5f5c5a">Profit per single</span><div style="font-size: 18px; font-weight: 500">{{e.profit}}</div></div>
+<div style="padding: 14px; border-radius: 16px; background: #f2f4f5"><span style="font-size: 12px; color: #5f5c5a">Margin</span><div style="font-size: 18px; font-weight: 500">{{e.margin}}</div></div>
+</div></sc-if>
+<span style="font-size: 13px; color: #5f5c5a">Price lists</span>
+<sc-for list="{{e.lists}}" as="l" hint-placeholder-count="3">
+<div style="display: flex; justify-content: space-between; padding: 12px 14px; border-radius: 16px; border: 1px solid #ebebeb; font-size: 14px"><span>{{l.group}}</span><span style="font-variant-numeric: tabular-nums">{{l.price}}</span></div>
+</sc-for>
+<span style="font-size: 13px; color: #5f5c5a">Scheduled sale</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="sale-p" style="font-size: 12px; color: #5f5c5a">Sale price</label><input id="sale-p" placeholder="GHS 0.00" style="font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="sale-s" style="font-size: 12px; color: #5f5c5a">Starts</label><input id="sale-s" type="date" style="font: inherit; font-size: 14px; padding: 9px 12px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="sale-e" style="font-size: 12px; color: #5f5c5a">Ends</label><input id="sale-e" type="date" style="font: inherit; font-size: 14px; padding: 9px 12px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{tabTracking}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px">
+<div role="group" aria-label="Tracking method" style="display: flex; gap: 6px; flex-wrap: wrap">
+<sc-for list="{{trackOpts}}" as="t" hint-placeholder-count="4">
+<button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button>
+</sc-for>
+</div>
+<sc-if value="{{trackBatch}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; padding: 12px 14px; border-radius: 16px; background: #f2f4f5"><span>Lot L2409 · Osu</span><span>Expires 14 Jan 2027 · 40 units</span></div>
+<div style="display: flex; justify-content: space-between; padding: 12px 14px; border-radius: 16px; background: #000000; color: #ffffff"><span>Lot L2406 · Adum</span><span>Expires 9 Nov 2026 · alert on</span></div>
+<span style="color: #5f5c5a; font-size: 13px">Expired lots are blocked at the till automatically.</span>
+</div>
+</sc-if>
+<sc-if value="{{trackSerial}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; padding: 14px; border-radius: 16px; background: #f2f4f5">Each unit needs a serial number scanned when received and when sold (phones, electronics, appliances).</p>
+</sc-if>
+<sc-if value="{{trackDigital}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; padding: 14px; border-radius: 16px; background: #f2f4f5">No stock is held. Sold as a service, booking or download; gift cards issue a code by SMS or email.</p>
+</sc-if>
+<sc-if value="{{trackNone}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; padding: 14px; border-radius: 16px; background: #f2f4f5">Stock is counted by quantity only.</p>
+</sc-if>
+</div>
+</sc-if>
+
+<button type="button" onClick="{{save}}" style="font-family: inherit; font-size: 15px; font-weight: 500; padding: 14px; min-height: 50px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer; box-shadow: rgba(69, 36, 219, 0.34) 0 4px 24px 0">{{saveLabel}}</button>
+</aside>
+</div>
+
+<sc-if value="{{pmOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 130; background: rgba(0, 0, 0, 0.5); display: flex; align-items: flex-start; justify-content: center; padding: 80px 16px; box-sizing: border-box; overflow-y: auto; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000">
+<div role="dialog" aria-modal="true" aria-labelledby="pm-h" style="width: 100%; max-width: 440px; box-sizing: border-box; background: #ffffff; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.3) 0 16px 48px 0">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px"><div style="display: flex; gap: 12px; align-items: center"><span aria-hidden="true" style="flex: none; width: 44px; height: 44px; border-radius: 9999px; background: {{pmV.ibg}}; color: #ffffff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{pmV.icon}}</span><h2 id="pm-h" style="margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.03em">{{pmV.title}}</h2></div><button type="button" onClick="{{pmClose}}" aria-label="Close" style="flex: none; width: 38px; height: 38px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; font-size: 18px; line-height: 1; cursor: pointer">×</button></div>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #3d3a38">{{pmV.body}}</p>
+<sc-if value="{{pmV.isAsk}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap"><button type="button" onClick="{{pmClose}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; cursor: pointer">Cancel</button><button type="button" onClick="{{pmGo}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 20px; min-height: 44px; border-radius: 9999px; border: 0; background: {{pmV.cbg}}; color: #ffffff; cursor: pointer">{{pmV.cta}}</button></div></sc-if>
+<sc-if value="{{pmV.isOk}}" hint-placeholder-val="{{true}}"><div style="display: flex; justify-content: flex-end"><button type="button" onClick="{{pmClose}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 24px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Done</button></div></sc-if>
+</div></div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let role = 'superuser';
+    try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {}
+    let reg = [];
+    try { reg = JSON.parse(window.localStorage.getItem('ecompos.newProducts') || '[]') || []; } catch (e) {}
+    const added = reg.map((n, k) => ({ status: n.status || 'live', scope: n.scope === 'branch' ? 'branch' : 'all', branchId: n.branchId || '', branchName: n.branchName || '', addedBy: n.addedBy || '', addedRole: n.addedRole || '', addedAt: n.addedAt || '', reason: n.reason || '', desc: n.desc || '', webWant: n.web !== false, posWant: n.pos !== false, name: n.name, cat: n.cat || 'Staples', sku: n.sku || (n.name || 'NEW').slice(0, 3).toUpperCase() + '-NEW', bc: n.bc || '—', price: n.price, cost: n.cost === undefined ? null : n.cost, stock: String(n.stock || '0'), tone: '#eef0f1', ct: null, web: n.web !== false, pos: n.pos !== false, vars: [['Standard', n.sku || '—', n.price, n.stock || '0']], imgs: n.img ? [n.img] : [], reg: k }));
+    this.state = { liveIdx: -1, cat: 'All', sel: 1, tab: 'details', vis: {}, bulk: false, track: 'batch', printed: false, saved: false, ai: false, role, adding: false, np: { name: '', cat: 'Staples', price: '', cost: '', qty: '', web: 1, pos: 1, desc: '' }, added, addErr: '', npImgs: [], imgErr: '', barcode: '', scanOpen: false, scanMode: 'cam' };
+    this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' });
+    this.loadAdded = () => { let rg = []; try { rg = JSON.parse(window.localStorage.getItem('ecompos.newProducts') || '[]') || []; } catch (e) {} return rg.map((n, k) => ({ status: n.status || 'live', scope: n.scope === 'branch' ? 'branch' : 'all', branchId: n.branchId || '', branchName: n.branchName || '', addedBy: n.addedBy || '', addedRole: n.addedRole || '', addedAt: n.addedAt || '', reason: n.reason || '', desc: n.desc || '', webWant: n.web !== false, posWant: n.pos !== false, name: n.name, cat: n.cat || 'Staples', sku: n.sku || (n.name || 'NEW').slice(0, 3).toUpperCase() + '-NEW', bc: n.bc || '—', price: n.price, cost: n.cost === undefined || n.cost === null ? null : n.cost, stock: String(n.stock || '0'), tone: '#eef0f1', ct: null, web: n.web !== false, pos: n.pos !== false, vars: [['Standard', n.sku || '—', n.price, n.stock || '0']], imgs: n.img ? [n.img] : [], reg: k })); };
+    this.onProducts = () => this.setState({ added: this.loadAdded() });
+    this.onBranch = () => this.setState({ brTick: Date.now() });
+  }
+  componentDidMount() { try { window.addEventListener('ecompos:role', this.onRole); window.addEventListener('ecompos:products', this.onProducts); window.addEventListener('ecompos:branch', this.onBranch); } catch (e) {} }
+  componentWillUnmount() { try { window.removeEventListener('ecompos:role', this.onRole); window.removeEventListener('ecompos:products', this.onProducts); window.removeEventListener('ecompos:branch', this.onBranch); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Products'); }
+  renderValsH() {
+    const S = this.state;
+    const pmSet = pm => this.setState({ pm });
+    const pmOk = (title, body) => ({ kind: 'ok', title, body });
+    const set = o => this.setState(o);
+    const money = n => 'GHS ' + n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const P = [
+      { name: 'Jasmine rice 5kg', cat: 'Staples', sku: 'RIC-5KG', bc: '6034000112233', price: 145, cost: 118, stock: '45', tone: '#e9e4dc', ct: null, web: true, pos: true, vars: [['5kg', 'RIC-5KG', 145, 45], ['10kg', 'RIC-10KG', 280, 18], ['25kg', 'RIC-25KG', 660, 6]] },
+      { name: 'Vegetable oil 1L', cat: 'Staples', sku: 'OIL-1L', bc: '6034000445566', price: 38, cost: 29.5, stock: '55', tone: '#dfe3dd', ct: [12, 430, 'Carton'], web: true, pos: true, vars: [['1L', 'OIL-1L', 38, 55], ['2L', 'OIL-2L', 72, 30], ['5L', 'OIL-5L', 168, 12]] },
+      { name: 'Instant noodles 70g', cat: 'Staples', sku: 'NDL-70', bc: '6034000778899', price: 4.5, cost: 3.4, stock: '610 (15 cartons)', tone: '#ece6dd', ct: [40, 165, 'Carton'], web: true, pos: true, vars: [['Chicken', 'NDL-70-CH', 4.5, 380], ['Beef', 'NDL-70-BF', 4.5, 230]] },
+      { name: 'Evaporated milk 410g', cat: 'Tins', sku: 'MLK-410', bc: '6034000990011', price: 14, cost: 10.8, stock: '115', tone: '#e3e6e8', ct: [48, 640, 'Carton'], web: true, pos: true, vars: [['410g', 'MLK-410', 14, 115], ['170g', 'MLK-170', 7, 96]] },
+      { name: 'Sardines 125g', cat: 'Tins', sku: 'SRD-125', bc: '6034000221144', price: 12, cost: 9, stock: '221', tone: '#e1e4df', ct: [50, 560, 'Carton'], web: true, pos: true, vars: [['In oil', 'SRD-125-O', 12, 150], ['In tomato', 'SRD-125-T', 12, 71]] },
+      { name: 'Malt drink 330ml', cat: 'Drinks', sku: 'MLT-330', bc: '6034000335577', price: 9.5, cost: 7.2, stock: '296', tone: '#e6dfd6', ct: [24, 210, 'Crate'], web: true, pos: true, vars: [['Can', 'MLT-330-C', 9.5, 200], ['Bottle', 'MLT-330-B', 9, 96]] },
+      { name: 'Bottled water 1.5L', cat: 'Drinks', sku: 'WTR-15', bc: '6034000446688', price: 6, cost: 4.1, stock: '510', tone: '#e6eaec', ct: [6, 33, 'Pack'], web: true, pos: true, vars: [['1.5L', 'WTR-15', 6, 510], ['500ml', 'WTR-05', 3, 340]] },
+      { name: 'Laundry detergent 1kg', cat: 'Household', sku: 'DTG-1KG', bc: '6034000557799', price: 32, cost: 24, stock: '59', tone: '#e8e3e6', ct: null, web: true, pos: true, vars: [['1kg', 'DTG-1KG', 32, 59], ['3kg', 'DTG-3KG', 89, 14]] },
+      { name: 'Bar soap 200g', cat: 'Household', sku: 'SOP-200', bc: '6034000668800', price: 6.5, cost: 4.6, stock: '300', tone: '#ecebe4', ct: [36, 215, 'Carton'], web: false, pos: true, vars: [['Original', 'SOP-200-O', 6.5, 180], ['Lime', 'SOP-200-L', 6.5, 120]] },
+      { name: 'Ebenezer Unique Ventures gift card', cat: 'Gift cards', sku: 'GIFT', bc: '—', price: 100, cost: 100, stock: 'No stock (digital)', tone: '#d9e9e9', ct: null, web: true, pos: true, vars: [['GHS 50', 'GIFT-50', 50, '—'], ['GHS 100', 'GIFT-100', 100, '—'], ['GHS 200', 'GIFT-200', 200, '—']] }
+    ].concat(S.added);
+    const vis = (k, f) => (S.vis[k + f] === undefined ? P[k][f] : S.vis[k + f]);
+    const flip = (k, f) => {
+      const nv = !vis(k, f);
+      if (P[k].reg !== undefined) { try { const rg = JSON.parse(window.localStorage.getItem('ecompos.newProducts') || '[]'); if (rg[P[k].reg]) { rg[P[k].reg][f] = nv; window.localStorage.setItem('ecompos.newProducts', JSON.stringify(rg)); window.dispatchEvent(new CustomEvent('ecompos:products', { detail: rg })); } } catch (e) {} }
+      set({ vis: Object.assign({}, S.vis, { [k + f]: nv }) });
+    };
+    let stored = null;
+    try { stored = JSON.parse(window.localStorage.getItem('ecompos.categories') || 'null'); } catch (e) {}
+    const TOP = Array.isArray(stored) && stored.length ? stored.filter(c => !c.arch && !c.parent).map(c => c.name) : ['Staples', 'Tins', 'Drinks', 'Household', 'Gift cards'];
+    const CATS = ['All'].concat(TOP);
+    const PQ = String(S.pq || '').trim().toLowerCase();
+    const cats = CATS.map(c => Object.assign({ label: c, text: c === 'All' ? 'All categories (' + P.length + ')' : c + ' (' + P.filter(p => p.cat === c).length + ')', pick: () => set({ cat: c }) }, pill(S.cat === c)));
+    let VIEWBR = 'all'; try { VIEWBR = window.localStorage.getItem('ecompos.branch') || 'all'; } catch (e) {}
+    const MYBR = ({ manager: 'osu', supervisor: 'osu', staff: 'osu' })[S.role] || '';
+    if (MYBR) VIEWBR = MYBR;
+    const pqHit = p => !PQ || PQ.split(/\s+/).every(w => [p.name, p.cat, p.sku, p.bc, p.code, p.brand, p.supplier].concat((p.vars || []).map(v => v[0] + ' ' + v[1])).filter(Boolean).join(' ').toLowerCase().indexOf(w) >= 0);
+    const rows0 = P.map((p, k) => ({ p, k })).filter(x => (S.cat === 'All' || x.p.cat === S.cat) && (x.p.scope !== 'branch' || VIEWBR === 'all' || x.p.branchId === VIEWBR) && pqHit(x.p));
+    const rows = rows0.map(x => {
+      const p = x.p, k = x.k, pend = p.status === 'pending' || p.status === 'rejected', w = !pend && vis(k, 'web'), o = !pend && vis(k, 'pos');
+      return {
+        scoped: p.scope === 'branch', scopeTag: p.scope === 'branch' ? (p.branchName || 'One branch') + ' only' : '',
+        pending: pend, tag: p.status === 'rejected' ? 'Not approved' : 'Awaiting Admin approval', tagC: p.status === 'rejected' ? '#c62828' : '#6b6866',
+        hasImg: !!(p.imgs && p.imgs.length), img: p.imgs && p.imgs.length ? p.imgs[0] : '', name: p.name, sku: p.sku, cat: p.cat, tone: p.tone, cost: p.cost === null ? 'Not set' : money(p.cost), profit: p.cost === null ? '—' : money(p.price - p.cost) + ' · ' + Math.round((p.price - p.cost) / p.price * 100) + '%', price: money(p.price) + (p.ct ? ' · ' + p.ct[2].toLowerCase() + ' ' + money(p.ct[1]) : ''), stock: p.stock,
+        rowBg: k === S.sel ? '#f2f4f5' : '#ffffff', pick: () => set({ sel: k, saved: false, printed: false }),
+        webOn: w ? 'true' : 'false', webTrack: w ? '#000000' : '#cccccc', webJust: w ? 'flex-end' : 'flex-start', toggleWeb: () => { if (!pend) flip(k, 'web'); },
+        posOn: o ? 'true' : 'false', posTrack: o ? '#000000' : '#cccccc', posJust: o ? 'flex-end' : 'flex-start', togglePos: () => { if (!pend) flip(k, 'pos'); }
+      };
+    });
+    const p = P[S.sel];
+    const units = [{ label: 'Single', contains: '1 unit', price: money(p.price) }];
+    if (p.ct) {
+      units.push({ label: p.ct[2], contains: p.ct[0] + ' units · saves ' + money(p.price * p.ct[0] - p.ct[1]), price: money(p.ct[1]) });
+      units.push({ label: 'Half ' + p.ct[2].toLowerCase(), contains: (p.ct[0] / 2) + ' units', price: money(p.ct[1] / 2 + 5) });
+    }
+    const e = {
+      pending: p.status === 'pending' || p.status === 'rejected', pendNote: p.status === 'rejected' ? 'Not approved by the Admin' + (p.reason ? ': ' + p.reason : '') + '. Hidden from Sell Now and the website.' : 'Added by ' + (p.addedBy || 'staff') + '. Waiting for the Admin to add the cost price and approve it. Hidden from Sell Now and the website until then.',
+      hasImg: !!(p.imgs && p.imgs.length), img: p.imgs && p.imgs.length ? p.imgs[0] : '', imgs: (p.imgs || []).map((src, k) => ({ src, alt: p.name + ' photo ' + (k + 1) })), name: p.name, sku: p.sku, barcode: p.bc, tone: p.tone, cost: p.cost === null ? 'Not set' : money(p.cost), priceNum: p.price.toFixed(2), costNum: p.cost === null ? 'Not set' : p.cost.toFixed(2), profit: p.cost === null ? 'Add cost price' : money(p.price - p.cost), margin: p.cost === null ? '—' : Math.round((p.price - p.cost) / p.price * 100) + '% per single',
+      desc: S.ai ? 'Draft written from the photo: ' + p.name + (p.ct ? ', also sold by the ' + p.ct[2].toLowerCase() + ' of ' + p.ct[0] + ' at a wholesale price.' : '.') + ' Edit before saving.' : 'Write a short description customers will see online',
+      units, variants: p.vars.map(v => ({ size: v[0], sku: v[1], price: typeof v[2] === 'number' ? money(v[2]) : v[2], stock: String(v[3]) })),
+      lists: [{ group: 'Retail (default)', price: money(p.price) }, { group: 'Wholesale · 5+ cartons', price: money(p.price * 0.92) }, { group: 'Staff', price: money(p.price * 0.9) }]
+    };
+    const TABS = [['details', 'Details'], ['units', 'Units & variants'], ['pricing', 'Pricing'], ['tracking', 'Tracking']];
+    const tabs = TABS.map(t => ({ label: t[1], pressed: S.tab === t[0] ? 'true' : 'false', bg: S.tab === t[0] ? '#ffffff' : 'transparent', shadow: S.tab === t[0] ? 'rgba(0,0,0,0.06) 0 2px 8px 0' : 'none', pick: () => set({ tab: t[0] }) }));
+    const TO = [['batch', 'Batch & expiry'], ['serial', 'Serial numbers'], ['digital', 'Digital / service'], ['none', 'Quantity only']];
+    const trackOpts = TO.map(t => Object.assign({ label: t[1], pick: () => set({ track: t[0] }) }, pill(S.track === t[0])));
+    const ids = ['PC-01', 'PC-02', 'PC-03', 'PC-04', 'PC-05', 'PC-06', 'PC-07', 'PC-08', 'PC-09', 'PC-10', 'PC-11', 'PC-12', 'PC-13', 'PC-14', 'PC-15', 'PC-16', 'PC-17', 'PC-18', 'PC-19', 'PC-20', 'PC-21', 'PC-22', 'IN-14', 'TX-02'].map(t => ({ t }));
+    const isSu = S.role === 'superuser';
+    const checkDigit = d => { let sum = 0; for (let i = d.length - 1, w = 3; i >= 0; i--, w = w === 3 ? 1 : 3) sum += parseInt(d[i], 10) * w; return String((10 - sum % 10) % 10); };
+    const checkOk = v => checkDigit(v.slice(0, -1)) === v.slice(-1);
+    const RN = { superuser: 'Kofi Adom · Admin', manager: 'Ama Darko · Manager', supervisor: 'Kwame Asante · Supervisor', staff: 'Akua Kyei · Sales staff' };
+    const npP = parseFloat(S.np.price), npC = parseFloat(S.np.cost);
+    let BRL = [{ id: 'osu', name: 'Osu branch' }, { id: 'legon', name: 'East Legon branch' }, { id: 'adum', name: 'Adum branch' }];
+    try { const l = JSON.parse(window.localStorage.getItem('ecompos.branches') || 'null'); if (Array.isArray(l) && l.length) BRL = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })(l); } catch (e) {}
+    const scopeVal = S.np.scope || 'all';
+    const scopeBr = BRL.find(b => b.id === scopeVal);
+    const myFull = RN[S.role] || RN.superuser; const myName = myFull.split(' · ')[0]; const myLevel = myFull.split(' · ')[1];
+    const writeReg = (idx, patch) => { let rg = []; try { rg = JSON.parse(window.localStorage.getItem('ecompos.newProducts') || '[]') || []; if (rg[idx]) { rg[idx] = Object.assign({}, rg[idx], patch); window.localStorage.setItem('ecompos.newProducts', JSON.stringify(rg)); window.dispatchEvent(new CustomEvent('ecompos:products', { detail: rg })); } } catch (x) {} return this.loadAdded(); };
+    const BASE = P.length - S.added.length;
+    const QC = S.qCost || {}, QR = S.qRej || {}, QE = S.qErr || {};
+    const qItems = S.added.filter(a => isSu ? a.status === 'pending' : (a.addedBy === myName && a.status !== 'live'));
+    const now = () => { const d = new Date(); return 'Today ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    const queue = qItems.map(a => { const id = a.reg; const c = parseFloat(QC[id]); const ok = !isNaN(c) && c >= 0; return {
+      hasImg: !!(a.imgs && a.imgs.length), img: a.imgs && a.imgs.length ? a.imgs[0] : '', name: a.name, cat: a.cat, price: money(a.price), bc: a.bc, stock: a.stock, desc: a.desc || 'No description yet.',
+      by: (a.addedBy || 'Staff') + (a.addedRole ? ' (' + a.addedRole + ')' : ''), byFirst: (a.addedBy || 'them').split(' ')[0], when: a.addedAt || 'Recently', where: a.webWant && a.posWant ? 'on Sell Now and the website' : a.webWant ? 'on the website' : a.posWant ? 'on Sell Now' : 'nowhere yet',
+      status: a.status === 'rejected' ? 'Not approved' : 'Waiting for approval', sc: a.status === 'rejected' ? '#c62828' : '#6b6866', hasReason: a.status === 'rejected' && !!a.reason, reason: a.reason,
+      canDecide: isSu, costId: 'qc-' + id, rejId: 'qr-' + id, costVal: QC[id] || '', rejVal: (QR[id] || {}).text || '',
+      profit: ok ? money(a.price - c) + ' · ' + (a.price ? Math.round((a.price - c) / a.price * 100) : 0) + '%' : 'Enter cost price', pc: ok && c > a.price ? '#c62828' : ok ? '#1f7a2a' : '#5f5c5a',
+      hasErr: !!QE[id], err: QE[id] || '',
+      typeCost: ev => set({ qCost: Object.assign({}, QC, { [id]: ev.target.value }), qErr: Object.assign({}, QE, { [id]: '' }) }),
+      rejecting: !!QR[id], notRejecting: !QR[id],
+      startReject: () => set({ qRej: Object.assign({}, QR, { [id]: { text: '' } }) }), cancelReject: () => set({ qRej: Object.assign({}, QR, { [id]: null }) }),
+      typeRej: ev => set({ qRej: Object.assign({}, QR, { [id]: { text: ev.target.value } }) }),
+      approve: () => {
+        if (!ok) { set({ qErr: Object.assign({}, QE, { [id]: 'Enter the cost price before approving. It is used to work out profit.' }) }); return; }
+        if (c > a.price && !(QE[id] || '').startsWith('Cost is higher')) { set({ qErr: Object.assign({}, QE, { [id]: 'Cost is higher than the selling price, so each sale makes a loss. Press Approve again to publish anyway.' }) }); return; }
+        const added = writeReg(id, { status: 'live', cost: c, decidedBy: 'Kofi Adom', decidedAt: now(), reason: '' });
+        pmSet(pmOk('Product approved', a.name + ' is now live on Sell Now and the website with a cost price of ' + money(c) + '. ' + (a.addedBy || 'The person who added it') + ' has been notified.'));
+        set({ added, liveIdx: BASE + id, sel: BASE + id, qErr: Object.assign({}, QE, { [id]: '' }), qCost: Object.assign({}, QC, { [id]: '' }) });
+      },
+      reject: () => { const why = ((QR[id] || {}).text || '').trim(); if (!why) { set({ qErr: Object.assign({}, QE, { [id]: 'Give a short reason so ' + (a.addedBy || 'they').split(' ')[0] + ' can fix it.' }) }); return; }
+        const added = writeReg(id, { status: 'rejected', reason: why, decidedBy: 'Kofi Adom', decidedAt: now() }); pmSet(pmOk('Product rejected', a.name + ' was not approved. ' + (a.addedBy || 'The person who added it') + ' has been told why.')); set({ added, qRej: Object.assign({}, QR, { [id]: null }), qErr: Object.assign({}, QE, { [id]: '' }) }); }
+    }; });
+    const npOk = !isNaN(npP) && !isNaN(npC) && npP > 0;
+    const setNp = (k, v) => set({ np: Object.assign({}, S.np, { [k]: v }), addErr: '' });
+    const PMCF = () => ({ save: { title: 'Changes saved', body: p.name + ' is updated on Sell Now and the website.' } });
+
+    const pmApply = r => {
+      const C = (typeof PMCF === 'function' ? PMCF() : {}) || {};
+      Object.keys(C).forEach(k => { const orig = r[k]; const c = C[k]; if (typeof orig !== 'function' || !c) return;
+        r[k] = (...a) => { if (c.ask) pmSet({ kind: 'ask', title: c.title, body: c.body, cta: c.cta || 'Confirm', danger: !!c.danger, act: () => { orig(...a); if (c.done) setTimeout(() => pmSet(pmOk(c.done[0], c.done[1])), 0); } }); else { orig(...a); pmSet(pmOk(c.title, c.body)); } }; });
+      const pm = this.state.pm;
+      return Object.assign(r, { pmOpen: !!pm, pmV: pm ? { title: pm.title, body: pm.body || '', isAsk: pm.kind === 'ask', isOk: pm.kind !== 'ask', cta: pm.cta || 'Confirm', cbg: pm.danger ? '#c62828' : '#0b5c5c', ibg: pm.kind === 'ask' ? (pm.danger ? '#c62828' : '#0b5c5c') : '#1f7a2a', icon: pm.kind === 'ask' ? (pm.danger ? '!' : '?') : '✓' } : { title: '', body: '', isAsk: false, isOk: true, cta: '', cbg: '#0b5c5c', ibg: '#1f7a2a', icon: '' },
+        pmClose: () => pmSet(null), pmGo: () => { const act = pm && pm.act; pmSet(null); if (act) act(); } });
+    };
+    const __r = {
+      npScope: scopeVal, pickScope: e => setNp('scope', e.target.value),
+      scopeOpts: [{ v: 'all', label: 'All branches · company catalogue' }].concat(BRL.filter(b => !MYBR || b.id === MYBR).map(b => ({ v: b.id, label: 'Only at ' + b.name }))),
+      scopeNote: scopeBr ? 'Branch-only item: stocked, sold and shown online for ' + scopeBr.name + ' only. Other branches never see it.' : 'Shared with every branch, including new branches, from the company catalogue. Each branch keeps its own stock count.',
+      isSu, notSu: !isSu, roleName: RN[S.role] || RN.superuser,
+      cantAdd: S.role === 'staff', addTip: S.role === 'staff' ? 'Ask your Manager or Supervisor to add products' : 'Add a product',
+      showQueue: queue.length > 0, queue, queueCount: String(queue.length),
+      queueTitle: isSu ? 'New products waiting for your approval' : 'Your products waiting for the Admin',
+      queueSub: isSu ? 'Added by Managers and Supervisors. Add the cost price and approve to publish them on Sell Now and the website.' : 'You cannot see or set cost price. Kofi Adom adds it and approves the product before it goes on sale.',
+      hasSent: !!S.sentName, sentName: S.sentName || '', hideSent: () => set({ sentName: '' }),
+      adding: S.adding, openAdd: () => { if (S.role !== 'staff') set({ adding: true, addErr: '', sentName: '' }); }, closeAdd: () => set({ adding: false }),
+      typeName: e => setNp('name', e.target.value), pickCat: e => setNp('cat', e.target.value), typePrice: e => setNp('price', e.target.value), typeCost: e => setNp('cost', e.target.value), typeQty: e => setNp('qty', e.target.value),
+      np: { profit: npOk ? money(npP - npC) : 'GHS 0.00', margin: npOk ? Math.round((npP - npC) / npP * 100) + '%' : '0%', pc: npOk && npP < npC ? '#c62828' : '#1f7a2a' },
+      npDesc: S.np.desc || '', typeDesc: e => setNp('desc', e.target.value),
+      draftDesc: () => setNp('desc', (S.np.name || 'This product') + (S.np.cat ? ' from our ' + String(S.np.cat).split(' › ').pop().toLowerCase() + ' range' : '') + '. Good value for families and shops, sold by the piece' + ' and available for same-day delivery or collection from any Ebenezer Unique Ventures branch. Edit before saving.'),
+      hasAddErr: !!S.addErr, addErr: S.addErr,
+      npWhere: [['web', 'Show on the website', 'Customers can find and order it online'], ['pos', 'Sell at the till (Sell Now)', 'Appears on Sell Now and can be scanned']].map(w => { const on = !!S.np[w[0]]; return { label: w[1], note: w[2], on: on ? 'true' : 'false', bd: on ? '#000000' : '#ebebeb', track: on ? '#1f7a2a' : '#cccccc', just: on ? 'flex-end' : 'flex-start', toggle: () => setNp(w[0], on ? 0 : 1) }; }),
+      hasLive: S.liveIdx >= 0 && !!P[S.liveIdx], hideLive: () => set({ liveIdx: -1 }),
+      live: (() => { const x = P[S.liveIdx]; if (!x) return { verb: '', name: '', where: '', web: false, pos: false }; const w = vis(S.liveIdx, 'web'), o = vis(S.liveIdx, 'pos'); return { verb: 'is approved, saved and live', name: x.name, web: w, pos: o, where: w && o ? 'on the website and at Sell Now' : w ? 'on the website only' : o ? 'at Sell Now only' : 'but hidden from the website and the till' }; })(),
+      bc: (() => {
+        const v = (S.barcode || '').replace(/\s/g, '');
+        if (!v) return { value: '', msg: 'Scan the barcode printed on the pack so the till can find this product by scanning.', c: '#5f5c5a', noCode: true };
+        const dup = P.find(x => x.bc === v);
+        if (dup) return { value: S.barcode, msg: 'Already used by ' + dup.name + '. Each barcode can belong to one product only.', c: '#c62828', noCode: false };
+        const fmt = { 8: 'EAN-8', 12: 'UPC-A', 13: 'EAN-13', 14: 'ITF-14 (carton)' }[v.length];
+        if (!/^\d+$/.test(v) || !fmt) return { value: S.barcode, msg: 'Saved as a custom code (' + v.length + ' characters). Check it matches the pack.', c: '#5f5c5a', noCode: false };
+        return { value: S.barcode, msg: checkOk(v) ? fmt + ' · check digit correct · not used by any other product' : fmt + ' · check digit does not match, scan again or check the number', c: checkOk(v) ? '#1f7a2a' : '#c62828', noCode: false };
+      })(),
+      bcBd: S.barcode ? '#000000' : '#ebebeb',
+      typeBarcode: e => set({ barcode: e.target.value, addErr: '' }),
+      genBarcode: () => { const base = '200' + String(Math.floor(100000000 + (P.length * 7919) % 899999999)).slice(0, 9); set({ barcode: base + checkDigit(base) }); },
+      scanOpen: S.scanOpen, openScan: () => set({ scanOpen: true }), closeScan: () => set({ scanOpen: false }),
+      scanModes: [['cam', 'Camera'], ['usb', 'Handheld scanner']].map(m => Object.assign({ label: m[1], pick: () => set({ scanMode: m[0] }) }, pill(S.scanMode === m[0]))),
+      scanCam: S.scanMode === 'cam', scanUsb: S.scanMode === 'usb',
+      simScans: [['Scan new product', '603400012345' + checkDigit('603400012345')], ['Scan carton barcode', '1603400012345' + checkDigit('1603400012345')], ['Scan a barcode already in use', '6034000445566']].map(x => ({ label: x[0], pick: () => set({ barcode: x[1], scanOpen: false }) })),
+      usbKey: e => { if (e.key === 'Enter') { const v = (e.target.value || '').trim(); if (v) set({ barcode: v, scanOpen: false }); } },
+      npImgCount: String(S.npImgs.length), npCanAdd: S.npImgs.length < 6, hasImgErr: !!S.imgErr, imgErr: S.imgErr,
+      npImgs: S.npImgs.map((src, k) => ({ src, n: String(k + 1), alt: (S.np.name || 'New product') + ' photo ' + (k + 1), main: k === 0, notMain: k !== 0, bd: k === 0 ? '#000000' : '#ebebeb', remove: () => set({ npImgs: S.npImgs.filter((x, i) => i !== k) }), makeMain: () => set({ npImgs: [src].concat(S.npImgs.filter((x, i) => i !== k)) }) })),
+      pickImgs: e => {
+        const files = Array.prototype.slice.call((e && e.target && e.target.files) || []);
+        const room = 6 - this.state.npImgs.length;
+        let err = '';
+        const ok = files.filter(f => { if (!/^image\/(png|jpeg|webp)$/.test(f.type)) { err = 'Only PNG, JPG or WebP images.'; return false; } if (f.size > 2 * 1024 * 1024) { err = 'Each image must be under 2 MB.'; return false; } return true; }).slice(0, Math.max(0, room));
+        if (files.length > room) err = 'Up to 6 images per product.';
+        this.setState({ imgErr: err });
+        ok.forEach(f => { const rd = new FileReader(); rd.onload = () => { const cur = this.state.npImgs; if (cur.length < 6) this.setState({ npImgs: cur.concat([String(rd.result || '')]) }); }; rd.readAsDataURL(f); });
+        try { e.target.value = ''; } catch (x) {}
+      },
+      saveNew: () => {
+        const nm = S.np.name.trim();
+        if (!nm || isNaN(npP) || npP <= 0) { set({ addErr: 'Enter a product name and a selling price.' }); return; }
+        if (isSu && isNaN(npC)) { set({ addErr: 'As Admin, enter the cost price too.' }); return; }
+        if (S.barcode && P.some(x => x.bc === S.barcode.trim())) { set({ addErr: 'That barcode already belongs to another product.' }); return; }
+        const item = { scope: scopeBr ? 'branch' : 'all', branchId: scopeBr ? scopeBr.id : '', branchName: scopeBr ? scopeBr.name : '', name: nm, cat: S.np.cat, sku: nm.slice(0, 3).toUpperCase() + '-NEW', bc: (S.barcode || '').trim() || '—', price: npP, cost: isSu ? npC : null, stock: S.np.qty || '0', tone: '#eef0f1', ct: null, web: true, pos: true, vars: [['Standard', nm.slice(0, 3).toUpperCase() + '-NEW', npP, S.np.qty || '0']], imgs: S.npImgs.slice() };
+        let regIdx;
+        try { const reg = JSON.parse(window.localStorage.getItem('ecompos.newProducts') || '[]'); const main = S.npImgs[0] && S.npImgs[0].length < 600000 ? S.npImgs[0] : ''; reg.push({ scope: scopeBr ? 'branch' : 'all', branchId: scopeBr ? scopeBr.id : '', branchName: scopeBr ? scopeBr.name : '', status: isSu ? 'live' : 'pending', addedBy: myName, addedRole: myLevel, addedAt: now(), desc: (S.np.desc || '').trim(), name: item.name, cat: item.cat, sku: item.sku, price: item.price, cost: item.cost === null ? undefined : item.cost, bc: item.bc, stock: item.stock, web: !!S.np.web, pos: !!S.np.pos, img: main }); regIdx = reg.length - 1; window.localStorage.setItem('ecompos.newProducts', JSON.stringify(reg)); window.dispatchEvent(new CustomEvent('ecompos:products', { detail: reg })); } catch (x) {}
+        item.reg = regIdx; item.web = !!S.np.web; item.pos = !!S.np.pos;
+        if (!isSu) { pmSet(pmOk('Sent for approval', nm + ' was sent to Kofi Adom (Admin). It appears on Sell Now and the website once the cost price is added and it is approved.')); set({ barcode: '', npImgs: [], imgErr: '', added: this.loadAdded(), adding: false, cat: 'All', np: { name: '', cat: 'Staples', price: '', cost: '', qty: '', web: 1, pos: 1, desc: '' }, sentName: nm, liveIdx: -1 }); return; }
+        pmSet(pmOk('Product added', nm + ' is live ' + (scopeBr ? 'at ' + scopeBr.name + ' only' : 'at every branch') + (S.np.web && S.np.pos ? ', on Sell Now and the website.' : S.np.pos ? ' on Sell Now.' : S.np.web ? ' on the website.' : ' but hidden from Sell Now and the website.')));
+        set({ barcode: '', npImgs: [], imgErr: '', added: S.added.concat([item]), adding: false, sel: P.length, cat: 'All', np: { name: '', cat: 'Staples', price: '', cost: '', qty: '', web: 1, pos: 1, desc: '' }, liveIdx: P.length });
+      },
+      catOpts: (Array.isArray(stored) && stored.length ? stored.filter(c => !c.arch).map(c => c.parent ? c.parent + ' › ' + c.name : c.name) : TOP).map(v => ({ v })),
+      cats, rows, e, tabs, trackOpts, ids, pq: S.pq || '', pqIn: ev => set({ pq: ev.target.value }), catV: S.cat || 'All', catIn: ev => set({ cat: ev.target.value }), pCount: rows0.length + (rows0.length === 1 ? ' product' : ' products') + (PQ ? ' match' : ''), pNone: rows0.length === 0,
+      bulk: S.bulk, toggleBulk: () => set({ bulk: !S.bulk }), bulkBg: S.bulk ? '#000000' : '#ffffff', bulkFg: S.bulk ? '#ffffff' : '#000000',
+      tabDetails: S.tab === 'details', tabUnits: S.tab === 'units', tabPricing: S.tab === 'pricing', tabTracking: S.tab === 'tracking',
+      trackBatch: S.track === 'batch', trackSerial: S.track === 'serial', trackDigital: S.track === 'digital', trackNone: S.track === 'none',
+      writeAi: () => set({ ai: true }), printLabels: () => set({ printed: true }), labelText: S.printed ? 'Sent 24 labels to Osu label printer' : 'Print barcode labels',
+      save: () => set({ saved: true }), saveLabel: S.saved ? 'Saved · live on till and website' : 'Save changes'
+    };
+    return pmApply(__r);
+  }
+}
+</script>
+</body>
+</html>

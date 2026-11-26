@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 720" width="1600" height="720">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1a1240"/><stop offset="0.55" stop-color="#3b23b8"/><stop offset="1" stop-color="#ff9a3d"/></linearGradient>
+<radialGradient id="glow" cx="0.72" cy="0.42" r="0.55"><stop offset="0" stop-color="#ffd9a8" stop-opacity="0.85"/><stop offset="1" stop-color="#ffd9a8" stop-opacity="0"/></radialGradient>
+<linearGradient id="table" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98a52"/><stop offset="1" stop-color="#7a4a24"/></linearGradient>
+<linearGradient id="sack" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9cdb4"/><stop offset="0.45" stop-color="#f7f0e1"/><stop offset="1" stop-color="#b9ab90"/></linearGradient>
+<linearGradient id="oil" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d99a00"/><stop offset="0.4" stop-color="#ffd54a"/><stop offset="1" stop-color="#b87d00"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a1d07"/><stop offset="0.4" stop-color="#7a3f12"/><stop offset="1" stop-color="#2b1504"/></linearGradient>
+<linearGradient id="water" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7cc4f2" stop-opacity="0.75"/><stop offset="0.45" stop-color="#e8f6ff" stop-opacity="0.9"/><stop offset="1" stop-color="#5aa9dd" stop-opacity="0.75"/></linearGradient>
+<linearGradient id="tin" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8d96a0"/><stop offset="0.45" stop-color="#eef2f5"/><stop offset="1" stop-color="#7c8590"/></linearGradient>
+<linearGradient id="red" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9e1b1b"/><stop offset="0.45" stop-color="#e53935"/><stop offset="1" stop-color="#8a1515"/></linearGradient>
+<linearGradient id="blue" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0d3c8c"/><stop offset="0.45" stop-color="#2f6fe0"/><stop offset="1" stop-color="#0b3274"/></linearGradient>
+<linearGradient id="green" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#145c2a"/><stop offset="0.45" stop-color="#2fa354"/><stop offset="1" stop-color="#0f4a21"/></linearGradient>
+<linearGradient id="noodle" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a00"/><stop offset="1" stop-color="#d94800"/></linearGradient>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity="0.35"/></filter>
+</defs>
+<rect width="1600" height="720" fill="url(#bg)"/><rect width="1600" height="720" fill="url(#glow)"/>
+<circle cx="1180" cy="160" r="220" fill="#ffffff" opacity="0.08"/>
+<circle cx="1460" cy="90" r="120" fill="#ffffff" opacity="0.1"/>
+<circle cx="900" cy="620" r="180" fill="#ffffff" opacity="0.06"/>
+<path d="M560 560 L1600 520 L1600 720 L520 720 Z" fill="url(#table)"/>
+<path d="M560 560 L1600 520" stroke="#e7b583" stroke-width="4" opacity="0.7"/>
+<ellipse cx="1370.0" cy="540" rx="77.0" ry="17.11111111111111" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="1300" y="330" width="140" height="210" rx="8" fill="url(#green)"/><path d="M1300 330 L1316 316 L1456 316 L1440 330 Z" fill="#43c06b"/><path d="M1440 330 L1456 316 L1456 526 L1440 540 Z" fill="#0c3d1b"/><circle cx="1370.0" cy="405.6" r="33.6" fill="#ffffff"/><circle cx="1370.0" cy="405.6" r="22.400000000000002" fill="#7dd3fc"/><text x="1370.0" y="481.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="24" fill="#ffffff">CLEAN</text><text x="1370.0" y="508.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="15" fill="#d1fae5">detergent 1kg</text></g>
+<ellipse cx="1251.0" cy="540" rx="40.7" ry="9.044444444444444" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="1236.2" y="250" width="29.6" height="17.4" rx="4" fill="#1565c0"/>
+<path d="M1236.2 267.4 L1236.2 284.8 Q1214 308.0 1214 337.0 L1214 530 Q1214 540 1224 540 L1278 540 Q1288 540 1288 530 L1288 337.0 Q1288 308.0 1265.8 284.8 L1265.8 267.4 Z" fill="url(#water)" stroke="#9fd3f5" stroke-width="2"/>
+<line x1="1218" y1="349" x2="1284" y2="349" stroke="#ffffff" stroke-opacity="0.5" stroke-width="2"/>
+<line x1="1218" y1="363" x2="1284" y2="363" stroke="#ffffff" stroke-opacity="0.5" stroke-width="2"/>
+<line x1="1218" y1="378" x2="1284" y2="378" stroke="#ffffff" stroke-opacity="0.5" stroke-width="2"/>
+<rect x="1216" y="400.8" width="70" height="63.8" rx="4" fill="#1565c0"/><text x="1251.0" y="441.4" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="15" fill="#ffffff">AQUA</text></g>
+<ellipse cx="1179.0" cy="540" rx="31.900000000000002" ry="7.0888888888888895" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="1166.56" y="330" width="24.88" height="12.6" rx="3" fill="#f2c94c"/>
+<path d="M1168.56 342.6 L1168.56 393.0 Q1150 409.8 1150 430.8 L1150 532 Q1150 540 1158 540 L1200 540 Q1208 540 1208 532 L1208 430.8 Q1208 409.8 1189.44 393.0 L1189.44 342.6 Z" fill="url(#glass)"/>
+<rect x="1153" y="447.6" width="52" height="54.6" rx="5" fill="#f2c94c"/><text x="1179.0" y="481.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="14" fill="#3a1d07">MALT</text>
+<rect x="1160.44" y="418.2" width="5.22" height="105.0" rx="4" fill="#ffffff" opacity="0.25"/></g>
+<ellipse cx="1127.0" cy="540" rx="31.900000000000002" ry="7.0888888888888895" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="1114.56" y="340" width="24.88" height="12.0" rx="3" fill="#f2c94c"/>
+<path d="M1116.56 352.0 L1116.56 400.0 Q1098 416.0 1098 436.0 L1098 532 Q1098 540 1106 540 L1148 540 Q1156 540 1156 532 L1156 436.0 Q1156 416.0 1137.44 400.0 L1137.44 352.0 Z" fill="url(#glass)"/>
+<rect x="1101" y="452.0" width="52" height="52.0" rx="5" fill="#f2c94c"/><text x="1127.0" y="484.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="14" fill="#3a1d07">MALT</text>
+<rect x="1108.44" y="424.0" width="5.22" height="100.0" rx="4" fill="#ffffff" opacity="0.25"/></g>
+<ellipse cx="990.0" cy="580" rx="136.5" ry="30.333333333333332" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><path d="M868 290 Q860 431.5 866 570 Q990.0 592 1114 570 Q1120 431.5 1112 290 Q1055.0 264 990.0 272 Q925.0 264 868 290 Z" fill="url(#sack)"/>
+<path d="M912.0 276 Q990.0 242 1068.0 276" fill="none" stroke="#a8946d" stroke-width="5"/>
+<rect x="896.4" y="355.6" width="187.2" height="138.6" rx="14" fill="#1f7a2a"/><rect x="906.8" y="368.8" width="166.4" height="112.2" rx="10" fill="none" stroke="#f2c94c" stroke-width="3"/>
+<text x="990.0" y="411.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="31" fill="#ffffff">JASMINE</text><text x="990.0" y="441.4" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="31" fill="#f2c94c">RICE</text><text x="990.0" y="471.1" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="21" fill="#ffffff">5 kg</text></g>
+<ellipse cx="1514.0" cy="550" rx="57.2" ry="12.711111111111112" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="1496.32" y="300" width="35.36" height="20.0" rx="4" fill="#c62828"/>
+<path d="M1496.32 320.0 L1496.32 340.0 Q1462 355.0 1462 385.0 L1462 538 Q1462 550 1474 550 L1554 550 Q1566 550 1566 538 L1566 385.0 Q1566 355.0 1531.68 340.0 L1531.68 320.0 Z" fill="url(#oil)"/>
+<rect x="1468" y="415.0" width="92" height="75.0" rx="8" fill="#ffffff"/><text x="1514.0" y="445.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="19" fill="#c62828">PURE</text><text x="1514.0" y="472.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="14" fill="#7a4a00">VEG OIL</text>
+<rect x="1478.64" y="375.0" width="10.4" height="150.0" rx="5" fill="#ffffff" opacity="0.35"/></g>
+<ellipse cx="828.0" cy="570" rx="52.800000000000004" ry="11.733333333333334" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="780" y="436" width="96" height="128" fill="url(#red)"/><ellipse cx="828.0" cy="436" rx="48.0" ry="7" fill="url(#tin)"/><ellipse cx="828.0" cy="564" rx="48.0" ry="7" fill="#6d7680"/><rect x="780" y="436" width="96" height="8" fill="url(#tin)"/><rect x="780" y="554" width="96" height="8" fill="url(#tin)"/>
+<text x="828.0" y="500.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="19" fill="#ffffff">MILK</text><text x="828.0" y="522.4" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="12" fill="#ffffff" opacity="0.9">410 g</text></g>
+<ellipse cx="1165.0" cy="580" rx="49.50000000000001" ry="11.000000000000002" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="1120" y="456" width="90" height="118" fill="url(#blue)"/><ellipse cx="1165.0" cy="456" rx="45.0" ry="7" fill="url(#tin)"/><ellipse cx="1165.0" cy="574" rx="45.0" ry="7" fill="#6d7680"/><rect x="1120" y="456" width="90" height="8" fill="url(#tin)"/><rect x="1120" y="564" width="90" height="8" fill="url(#tin)"/>
+<text x="1165.0" y="515.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="18" fill="#ffffff">EVAP</text><text x="1165.0" y="535.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="12" fill="#ffffff" opacity="0.9">milk</text></g>
+<ellipse cx="1583.0" cy="560" rx="49.50000000000001" ry="11.000000000000002" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="1567.7" y="350" width="30.6" height="16.8" rx="4" fill="#c62828"/>
+<path d="M1567.7 366.8 L1567.7 383.6 Q1538 396.2 1538 421.4 L1538 548 Q1538 560 1550 560 L1616 560 Q1628 560 1628 548 L1628 421.4 Q1628 396.2 1598.3 383.6 L1598.3 366.8 Z" fill="url(#oil)"/>
+<rect x="1544" y="446.6" width="78" height="63.0" rx="8" fill="#ffffff"/><text x="1583.0" y="471.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="16" fill="#c62828">PURE</text><text x="1583.0" y="494.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="12" fill="#7a4a00">VEG OIL</text>
+<rect x="1552.4" y="413.0" width="9.0" height="126.0" rx="5" fill="#ffffff" opacity="0.35"/></g>
+<ellipse cx="1065.0" cy="662" rx="85.0" ry="18.88888888888889" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="980" y="600" width="170" height="62" rx="27.900000000000002" fill="url(#blue)"/><rect x="986" y="605" width="158" height="52" rx="24.8" fill="none" stroke="#cfd8e3" stroke-width="3"/><text x="1065.0" y="638.44" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="24" fill="#ffffff">SARDINES</text></g>
+<g filter="url(#sh)" transform="rotate(-8 1315.0 615.0)"><path d="M1240 568 L1248 560 L1382 560 L1390 568 L1390 662 L1382 670 L1248 670 L1240 662 Z" fill="url(#noodle)"/><circle cx="1315.0" cy="606.2" r="24.2" fill="#fff3e0"/><path d="M1294.0 606.2 q8 -10 16 0 t16 0 t16 0" fill="none" stroke="#e0a100" stroke-width="3"/><text x="1315.0" y="654.6" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="18" fill="#ffffff">NOODLES</text></g>
+<g filter="url(#sh)" transform="rotate(6 1455.0 645.0)"><path d="M1380 598 L1388 590 L1522 590 L1530 598 L1530 692 L1522 700 L1388 700 L1380 692 Z" fill="url(#noodle)"/><circle cx="1455.0" cy="636.2" r="24.2" fill="#fff3e0"/><path d="M1434.0 636.2 q8 -10 16 0 t16 0 t16 0" fill="none" stroke="#e0a100" stroke-width="3"/><text x="1455.0" y="684.6" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="18" fill="#ffffff">NOODLES</text></g>
+<ellipse cx="742.0" cy="640" rx="46.2" ry="10.266666666666667" fill="#000" opacity="0.28"/>
+<g filter="url(#sh)"><rect x="700" y="526" width="84" height="108" fill="url(#green)"/><ellipse cx="742.0" cy="526" rx="42.0" ry="7" fill="url(#tin)"/><ellipse cx="742.0" cy="634" rx="42.0" ry="7" fill="#6d7680"/><rect x="700" y="526" width="84" height="8" fill="url(#tin)"/><rect x="700" y="624" width="84" height="8" fill="url(#tin)"/>
+<text x="742.0" y="580.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="17" fill="#ffffff">TOMATO</text><text x="742.0" y="599.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="11" fill="#ffffff" opacity="0.9">paste</text></g>
+</svg>

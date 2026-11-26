@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS branches</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="branches" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="home" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<sc-if value="{{noAccess}}" hint-placeholder-val="{{false}}"><div role="alert" style="position: fixed; inset: 0; z-index: 80; background: rgba(242, 244, 245, 0.97); display: flex; align-items: flex-start; justify-content: center; padding: 80px 16px; box-sizing: border-box"><div style="width: 100%; max-width: 420px; background: #ffffff; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 14px; align-items: center; text-align: center; box-shadow: rgba(0, 0, 0, 0.12) 0 8px 32px 0"><h2 style="margin: 0; font-size: 22px; font-weight: 600">Branches is turned off</h2><p style="margin: 0; font-size: 14px; line-height: 1.5; color: #3d3a38">The Admin has not given your account permission to view branches. Ask the Admin to turn it on in Users &amp; permissions.</p><a href="Main.dc.html" style="font-size: 15px; font-weight: 600; padding: 13px 22px; border-radius: 9999px; background: #0b5c5c; color: #ffffff; text-decoration: none">Back to Home</a></div></div></sc-if>
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Branches</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{company}} · {{countLine}} · one company, one catalogue, shared customers · new branches are created by eComPOS Support under a purchase agreement</p>
+</div>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{openAdd}}" style="font-family: inherit; padding: 12px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: rgba(69, 36, 219, 0.34) 0 4px 24px 0">Request a new branch</button></sc-if>
+<sc-if value="{{notSu}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; padding: 10px 14px; border-radius: 9999px; border: 1px dashed #cccccc; background: #ffffff">{{notSuNote}}</span></sc-if>
+</header>
+
+<sc-if value="{{requesting}}" hint-placeholder-val="{{false}}">
+<div role="form" aria-labelledby="rq-h" style="background: #ffffff; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><h2 id="rq-h" style="margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.04em">Request a new branch</h2><span style="font-size: 12px; padding: 4px 10px; border-radius: 9999px; background: #000000; color: #ffffff">Sent to eComPOS Support</span></div>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #3d3a38">New branches are created by eComPOS Support after you both sign a purchase agreement for the branch. Once created, the branch appears here under your company and you add its Manager and staff.</p>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="rq-name" style="font-size: 12px; color: #5f5c5a">Proposed branch name</label><input id="rq-name" value="{{rq.name}}" onInput="{{rqIn.name}}" placeholder="e.g. Tema branch" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; min-width: 0; width: 100%; box-sizing: border-box"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="rq-city" style="font-size: 12px; color: #5f5c5a">Town</label><input id="rq-city" value="{{rq.city}}" onInput="{{rqIn.city}}" placeholder="Tema" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; min-width: 0; width: 100%; box-sizing: border-box"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="rq-note" style="font-size: 12px; color: #5f5c5a">Notes (tills needed, opening date)</label><input id="rq-note" value="{{rq.note}}" onInput="{{rqIn.note}}" placeholder="2 tills · opening November" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; min-width: 0; width: 100%; box-sizing: border-box"></div>
+</div>
+<sc-if value="{{hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{err}}</span></sc-if>
+<div style="display: flex; gap: 8px"><button type="button" onClick="{{closeAdd}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Cancel</button><button type="button" onClick="{{sendRequest}}" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 11px 20px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Send request</button></div>
+</div>
+</sc-if>
+<sc-if value="{{hasReqs}}" hint-placeholder-val="{{false}}"><section aria-label="Branch requests" style="background: #ffffff; border-radius: 24px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px"><strong style="font-size: 14px; font-weight: 600">Your branch requests</strong><sc-for list="{{reqs}}" as="r" hint-placeholder-count="1"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px; padding: 10px 12px; border-radius: 14px; background: #f2f4f5"><span style="font-weight: 600">{{r.name}}</span><span style="color: #5f5c5a">{{r.city}} · {{r.when}}</span><span style="margin-left: auto; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; border: 1.5px solid {{r.sc}}; color: {{r.sc}}">{{r.status}}</span></div></sc-for></section></sc-if>
+
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="bl-h" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+<h2 id="bl-h" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Branch list</h2>
+<sc-for list="{{list}}" as="b" hint-placeholder-count="3">
+<button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" style="font-family: inherit; text-align: left; display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 22px; border: 2px solid {{b.ring}}; background: #ffffff; color: #000000; cursor: pointer; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<span style="display: flex; justify-content: space-between; gap: 8px; align-items: center"><span style="display: flex; gap: 10px; align-items: center"><span aria-hidden="true" style="width: 38px; height: 38px; border-radius: 12px; background: #000000; color: #ffffff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">{{b.code}}</span><span style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600">{{b.name}}</span><span style="font-size: 12px; color: #5f5c5a">{{b.city}}</span></span></span><span style="font-size: 11px; padding: 3px 9px; border-radius: 9999px; background: {{b.sbg}}; color: #ffffff">{{b.status}}</span></span>
+<span style="font-size: 13px; color: #3d3a38">Manager {{b.manager}} · {{b.team}} · {{b.tills}}</span>
+</button>
+</sc-for>
+</section>
+
+<section aria-labelledby="bd-h" style="flex: 2 1 520px; min-width: 0; background: #ffffff; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 16px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start">
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 12px; color: #5f5c5a">Branch {{cur.code}} · opened {{cur.opened}}</span><h2 id="bd-h" style="margin: 0; font-size: 24px; font-weight: 500; letter-spacing: -0.04em">{{cur.name}}</h2><span style="font-size: 13px; color: #3d3a38">{{cur.addr}}</span></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><button type="button" onClick="{{viewBranch}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">{{viewLabel}}</button></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px">
+<sc-for list="{{cur.kpis}}" as="k" hint-placeholder-count="4"><div style="padding: 12px; border-radius: 16px; background: #f2f4f5; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #5f5c5a">{{k.l}}</span><span style="font-size: 18px; font-weight: 500">{{k.v}}</span></div></sc-for>
+</div>
+<div role="tablist" aria-label="Branch sections" style="display: flex; gap: 4px; padding: 4px; border-radius: 9999px; background: #f2f4f5; flex-wrap: wrap">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="5"><button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; flex: 1; font-size: 13px; padding: 9px 12px; min-height: 40px; border-radius: 9999px; border: 0; cursor: pointer; background: {{t.bg}}; box-shadow: {{t.shadow}}; color: #000000">{{t.label}}</button></sc-for>
+</div>
+
+<sc-if value="{{tDetails}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px">
+<sc-for list="{{cur.details}}" as="d" hint-placeholder-count="8"><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #5f5c5a">{{d.l}}</span><span style="font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb">{{d.v}}</span></div></sc-for>
+</div>
+<span style="font-size: 12px; color: #5f5c5a">{{editNote}}</span>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><span style="font-size: 12px; padding: 8px 12px; border-radius: 12px; background: #f2f4f5; color: #3d3a38">🔒 Closing a branch, temporarily or permanently, is done by eComPOS Support (the system developer). Raise a ticket under Support if a branch needs to close.</span></sc-if>
+<sc-if value="{{canCloseBr}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; gap: 6px; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid #ebebeb">
+<button type="button" onClick="{{toggleStatus}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">{{statusAction}}</button>
+<button type="button" onClick="{{askArchive}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">Close branch permanently</button>
+</div>
+<sc-if value="{{archiveAsk}}" hint-placeholder-val="{{false}}"><div role="alertdialog" aria-labelledby="ar-t" style="padding: 14px 16px; border-radius: 18px; border: 2px solid #c62828; display: flex; flex-direction: column; gap: 8px; font-size: 13px"><strong id="ar-t" style="font-size: 14px; font-weight: 600">Close {{cur.name}} permanently?</strong><span style="color: #3d3a38">Sales history, invoices and reports are kept. Staff must be moved to another branch first, and remaining stock transferred out.</span><div style="display: flex; gap: 6px"><button type="button" onClick="{{cancelArchive}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Keep open</button><button type="button" onClick="{{confirmArchive}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">Close branch</button></div></div></sc-if>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{tTeam}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; background: #000000; color: #ffffff; font-size: 13px; flex-wrap: wrap"><span aria-hidden="true" style="width: 32px; height: 32px; border-radius: 9999px; background: #ffffff; color: #000000; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600">KA</span><span style="flex: 1 1 200px"><strong style="font-weight: 600">Kofi Adom · Admin</strong> · oversees this branch and every other. Only one Admin per company.</span></div>
+<sc-for list="{{cur.team}}" as="p" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 18px; border: 1px solid #ebebeb">
+<div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap"><span aria-hidden="true" style="width: 36px; height: 36px; border-radius: 9999px; background: #f2f4f5; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600">{{p.ini}}</span><span style="flex: 1 1 160px; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 600">{{p.name}}</span><span style="font-size: 12px; color: #5f5c5a">{{p.level}} · {{p.phone}}</span></span><span style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; background: {{p.sbg}}; color: #ffffff">{{p.status}}</span></div>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px">
+<sc-for list="{{p.facts}}" as="f" hint-placeholder-count="6"><div style="padding: 8px 10px; border-radius: 12px; background: #f2f4f5; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 11px; color: #5f5c5a">{{f.l}}</span><span style="font-size: 13px; font-weight: 500; color: {{f.c}}">{{f.v}}</span></div></sc-for>
+</div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><button type="button" onClick="{{p.watch}}" style="font-family: inherit; font-size: 12px; font-weight: 500; padding: 7px 12px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">View activity</button><a href="Users.dc.html" style="font-size: 12px; padding: 7px 12px; border-radius: 9999px; border: 1px solid #ebebeb; text-decoration: none">Account &amp; permissions</a></div>
+</sc-if>
+</div>
+</sc-for>
+<span style="font-size: 13px; color: #3d3a38">The Admin oversees every branch. Each Manager, Supervisor and Sales staff member belongs to one branch.</span>
+<a href="Users.dc.html" style="align-self: flex-start; font-size: 13px; font-weight: 500; padding: 9px 14px; border-radius: 9999px; border: 1px solid #ebebeb; text-decoration: none">Manage people in Users &amp; permissions</a>
+</div>
+</sc-if>
+
+<sc-if value="{{tTills}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{cur.devices}}" as="d" hint-placeholder-count="4"><div style="display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 14px; border: 1px solid #ebebeb; font-size: 14px; flex-wrap: wrap"><span style="flex: 1 1 160px; font-weight: 500">{{d.name}}</span><span style="color: #5f5c5a">{{d.kind}}</span><span style="font-size: 11px; padding: 3px 9px; border-radius: 9999px; background: {{d.sbg}}; color: #ffffff">{{d.status}}</span></div></sc-for>
+<sc-if value="{{canEdit}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{addTill}}" style="font-family: inherit; align-self: flex-start; font-size: 13px; padding: 9px 14px; border-radius: 9999px; border: 1px dashed #cccccc; background: #ffffff; cursor: pointer">Add till or device</button></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{tAct}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{notSu}}" hint-placeholder-val="{{false}}"><div style="padding: 16px; border-radius: 18px; border: 1px dashed #cccccc; font-size: 14px">The branch activity monitor is for the Admin only.</div></sc-if>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px">
+<sc-for list="{{actKpis}}" as="k" hint-placeholder-count="4"><div style="padding: 12px; border-radius: 16px; background: {{k.bg}}; color: {{k.fg}}; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px">{{k.l}}</span><span style="font-size: 18px; font-weight: 600">{{k.v}}</span></div></sc-for>
+</div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
+<sc-for list="{{actTypes}}" as="t" hint-placeholder-count="7"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; min-height: 34px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for>
+<label for="act-u" style="font-size: 12px; color: #5f5c5a; margin-left: 6px">User</label>
+<select id="act-u" value="{{actUser}}" onChange="{{pickActUser}}" style="font: inherit; font-size: 12px; padding: 7px 10px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff"><sc-for list="{{actUsers}}" as="u" hint-placeholder-count="4"><option value="{{u.v}}">{{u.v}}</option></sc-for></select>
+<button type="button" onClick="{{toggleFlag}}" aria-pressed="{{flagOnlyStr}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; min-height: 34px; border-radius: 9999px; cursor: pointer; background: {{flagBg}}; color: {{flagFg}}; border: 1px solid #c62828">Needs attention only</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{acts}}" as="a" hint-placeholder-count="8">
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 14px; background: {{a.bg}}; border-left: 3px solid {{a.bar}}; font-size: 13px; flex-wrap: wrap">
+<span style="min-width: 44px; color: #5f5c5a; font-variant-numeric: tabular-nums">{{a.time}}</span>
+<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: #ffffff; border: 1px solid #ebebeb; min-width: 64px; text-align: center">{{a.type}}</span>
+<span style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 500">{{a.text}}</span><span style="font-size: 12px; color: #5f5c5a">{{a.who}} · {{a.where}}</span></span>
+<span style="font-weight: 500; font-variant-numeric: tabular-nums">{{a.amount}}</span>
+</div>
+</sc-for>
+<sc-if value="{{noActs}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f5c5a; padding: 10px">No activity matches these filters today.</span></sc-if>
+</div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><a href="Audit.dc.html" style="font-size: 13px; padding: 9px 14px; border-radius: 9999px; border: 1px solid #ebebeb; text-decoration: none">Full audit trail</a><button type="button" style="font-family: inherit; font-size: 13px; padding: 9px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Export today's activity (PDF)</button><span style="font-size: 12px; color: #5f5c5a; align-self: center">Live · updates as staff work · alerts go to your bell</span></div>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{tHours}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{cur.hours}}" as="h" hint-placeholder-count="7"><div style="display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 12px; background: #f2f4f5; font-size: 14px"><span>{{h.d}}</span><span>{{h.t}}</span></div></sc-for>
+<sc-for list="{{cur.service}}" as="s" hint-placeholder-count="3"><div style="display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 12px; border: 1px solid #ebebeb; font-size: 14px"><span>{{s.l}}</span><span style="color: #3d3a38">{{s.v}}</span></div></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{tStock}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{cur.stock}}" as="s" hint-placeholder-count="4"><div style="display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 12px; background: #f2f4f5; font-size: 14px"><span>{{s.n}}</span><span>{{s.q}}</span></div></sc-for>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><span style="font-size: 13px; font-weight: 500">Stock value at cost: {{cur.value}} · Admin only</span></sc-if>
+<a href="Inventory.dc.html" style="align-self: flex-start; font-size: 13px; font-weight: 500; padding: 9px 14px; border-radius: 9999px; border: 1px solid #ebebeb; text-decoration: none">Transfer stock between branches</a>
+</div>
+</sc-if>
+</section>
+</div>
+
+<sc-if value="{{pmOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 130; background: rgba(0, 0, 0, 0.5); display: flex; align-items: flex-start; justify-content: center; padding: 80px 16px; box-sizing: border-box; overflow-y: auto; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000">
+<div role="dialog" aria-modal="true" aria-labelledby="pm-h" style="width: 100%; max-width: 440px; box-sizing: border-box; background: #ffffff; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.3) 0 16px 48px 0">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px"><div style="display: flex; gap: 12px; align-items: center"><span aria-hidden="true" style="flex: none; width: 44px; height: 44px; border-radius: 9999px; background: {{pmV.ibg}}; color: #ffffff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{pmV.icon}}</span><h2 id="pm-h" style="margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.03em">{{pmV.title}}</h2></div><button type="button" onClick="{{pmClose}}" aria-label="Close" style="flex: none; width: 38px; height: 38px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; font-size: 18px; line-height: 1; cursor: pointer">×</button></div>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #3d3a38">{{pmV.body}}</p>
+<sc-if value="{{pmV.isAsk}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap"><button type="button" onClick="{{pmClose}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; cursor: pointer">Cancel</button><button type="button" onClick="{{pmGo}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 20px; min-height: 44px; border-radius: 9999px; border: 0; background: {{pmV.cbg}}; color: #ffffff; cursor: pointer">{{pmV.cta}}</button></div></sc-if>
+<sc-if value="{{pmV.isOk}}" hint-placeholder-val="{{true}}"><div style="display: flex; justify-content: flex-end"><button type="button" onClick="{{pmClose}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 24px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Done</button></div></sc-if>
+</div></div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let role = 'superuser', branches = null, view = 'osu', addFlag = false;
+    try {
+      role = window.localStorage.getItem('ecompos.role') || 'superuser';
+      branches = JSON.parse(window.localStorage.getItem('ecompos.branches') || 'null');
+      view = window.localStorage.getItem('ecompos.branchView') || 'osu';
+      addFlag = window.localStorage.getItem('ecompos.branchAdd') === '1';
+      window.localStorage.removeItem('ecompos.branchAdd');
+    } catch (e) {}
+    const DEF = [
+      { id: 'osu', name: 'Osu branch', code: 'OSU', city: 'Accra', addr: '12 Oxford Street, Osu, Accra · GA-123-4567', phone: '+233 30 000 1111', email: 'osu@ebenezerunique.com.gh', manager: 'Ama Darko', opened: 'Mar 2019', status: 'open', tills: 2, evat: '[GRA branch ID]' },
+      { id: 'legon', name: 'East Legon branch', code: 'ELG', city: 'Accra', addr: 'Boundary Road, East Legon, Accra · GA-411-2290', phone: '+233 30 000 2222', email: 'legon@ebenezerunique.com.gh', manager: 'Efua Sarpong', opened: 'Jun 2022', status: 'open', tills: 2, evat: '[GRA branch ID]' },
+      { id: 'adum', name: 'Adum branch', code: 'ADM', city: 'Kumasi', addr: 'Prempeh II Street, Adum, Kumasi · AK-039-5521', phone: '+233 32 000 3333', email: 'adum@ebenezerunique.com.gh', manager: 'Yaw Boakye', opened: 'Jan 2024', status: 'open', tills: 1, evat: '[GRA branch ID]' }
+    ];
+    this.state = { role, list: Array.isArray(branches) && branches.length ? branches : DEF, sel: view, tab: 'details', adding: addFlag, actType: 'All', actUser: 'Everyone', flagOnly: false, nb: { name: '', code: '', city: '', addr: '', phone: '', email: '', opened: '', manager: '', copy: 'Osu branch' }, copy: { prices: 1, products: 1, tax: 1, receipt: 1, payopts: 1 }, err: '', archiveAsk: false };
+    this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' });
+    this.onView = e => this.setState({ sel: (e && e.detail) || 'osu', tab: 'details', adding: false, actUser: 'Everyone' });
+    this.onAdd = () => this.setState({ adding: true, err: '' });
+    this.onBranches = () => { try { const l = JSON.parse(window.localStorage.getItem('ecompos.branches') || 'null'); if (Array.isArray(l) && l.length) this.setState({ list: l }); } catch (e) {} };
+    this.onReqs = () => this.setState({ reqTick: Date.now() });
+  }
+  componentDidMount() { try { window.addEventListener('ecompos:role', this.onRole); window.addEventListener('ecompos:branchView', this.onView); window.addEventListener('ecompos:branchAdd', this.onAdd); window.addEventListener('ecompos:branches', this.onBranches); window.addEventListener('ecompos:branchRequests', this.onReqs); } catch (e) {} }
+  componentWillUnmount() { try { window.removeEventListener('ecompos:role', this.onRole); window.removeEventListener('ecompos:branchView', this.onView); window.removeEventListener('ecompos:branchAdd', this.onAdd); window.removeEventListener('ecompos:branches', this.onBranches); window.removeEventListener('ecompos:branchRequests', this.onReqs); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Branches'); }
+  renderValsH() {
+    const S = this.state;
+    const pmSet = pm => this.setState({ pm });
+    const pmOk = (title, body) => ({ kind: 'ok', title, body });
+    const set = o => this.setState(o);
+    const money = n => 'GHS ' + n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const isSu = S.role === 'superuser';
+    let BIZ = 'Ebenezer Unique Ventures'; try { BIZ = (JSON.parse(String(window.localStorage.getItem('ecompos.biz') || '').replace('"name":"Adom' + ' Mart"', '"name":"Ebenezer Unique Ventures"') || '{}') || {}).name || 'Ebenezer Unique Ventures'; } catch (e) {}
+    let PRG = []; try { PRG = (JSON.parse(window.localStorage.getItem('ecompos.newProducts') || '[]') || []).filter(x => x.status !== 'rejected'); } catch (e) {}
+    let REQS = []; try { REQS = JSON.parse(window.localStorage.getItem('ecompos.branchRequests') || '[]') || []; } catch (e) {}
+    const persist = list => { try { window.localStorage.setItem('ecompos.branches', JSON.stringify(list)); window.dispatchEvent(new CustomEvent('ecompos:branches', { detail: list })); } catch (e) {} set({ list }); };
+    const ROLEX = S.role; const LOCKB = ({ manager: 'osu', supervisor: 'osu', staff: 'osu' })[ROLEX] || '';
+    const live = S.list.filter(b => b.status !== 'archived' && (!LOCKB || b.id === LOCKB));
+    const cur = live.find(b => b.id === S.sel) || live[0] || S.list[0];
+    const TEAM = { osu: [['Ama Darko', 'Manager'], ['Kwame Asante', 'Supervisor'], ['Akua Kyei', 'Sales staff'], ['Kwesi Ofori', 'Sales staff']], legon: [['Efua Sarpong', 'Manager'], ['Nana Ampofo', 'Supervisor'], ['Adjoa Badu', 'Sales staff']], adum: [['Yaw Boakye', 'Manager'], ['Abena Mensah', 'Supervisor'], ['Kojo Appiah', 'Sales staff (suspended)']] };
+    const SHARE = { osu: 0.45, legon: 0.33, adum: 0.22 };
+    const myBranch = { manager: 'osu', supervisor: 'osu', staff: 'osu' }[S.role];
+    const canEdit = isSu || (S.role === 'manager' && cur.id === myBranch);
+    const INFO = {
+      'Ama Darko': ['+233 24 300 1100', 'Active', 'Today 07:41 · Office PC', 'Not on a till', 'GHS 0.00', '3 approvals given', 'None'],
+      'Kwame Asante': ['+233 20 400 2200', 'Active', 'Today 07:55 · Till 2 tablet', 'Till 2 · since 08:00', 'GHS 2,410.00', '1 discount request', 'None'],
+      'Akua Kyei': ['+233 24 500 3300', 'Active', 'Today 07:58 · Till 1 tablet', 'Till 1 · since 07:58', 'GHS 3,180.50', '2 requests waiting', '1 void today'],
+      'Kwesi Ofori': ['+233 55 600 4400', 'Active', 'Yesterday 20:02', 'Off today', 'GHS 0.00', 'None', 'None'],
+      'Efua Sarpong': ['+233 24 700 5500', 'Active', 'Today 08:10 · Office PC', 'Not on a till', 'GHS 0.00', '1 approval given', 'None'],
+      'Nana Ampofo': ['+233 20 800 6600', 'Active', 'Today 08:20 · Till 1 tablet', 'Till 1 · since 08:30', 'GHS 2,870.00', 'None', 'None'],
+      'Adjoa Badu': ['+233 27 900 7700', 'Active', 'Today 09:01 · Till 2 tablet', 'Till 2 · since 09:00', 'GHS 1,640.00', 'None', 'Cash short GHS 25.00 yesterday'],
+      'Yaw Boakye': ['+233 24 111 8800', 'Active', 'Today 07:30 · Phone', 'Not on a till', 'GHS 0.00', 'None', 'None'],
+      'Abena Mensah': ['+233 20 222 9900', 'Active', 'Today 07:50 · Till 1 tablet', 'Till 1 · since 08:00', 'GHS 2,950.00', 'None', 'None'],
+      'Kojo Appiah': ['+233 55 333 0011', 'Suspended', 'Last 21/10 · Till 1 tablet', 'Cannot sign in', 'GHS 0.00', 'None', 'Suspended by the Admin']
+    };
+    const team = (TEAM[cur.id] || (cur.manager ? [[cur.manager, 'Manager']] : [])).map(p => {
+      const nm = p[0]; const inf = INFO[nm] || ['—', 'Active', 'Not signed in yet', 'Not on a till', 'GHS 0.00', 'None', 'None'];
+      const flagged = inf[6] !== 'None';
+      return { name: nm, level: p[1].replace(' (suspended)', ''), ini: nm.split(' ').map(w => w[0]).join('').slice(0, 2), phone: inf[0], status: inf[1], sbg: inf[1] === 'Active' ? '#1f7a2a' : '#c62828',
+        facts: [['Last sign-in', inf[2]], ['Now', inf[3]], ['Sales today', inf[4]], ['Approvals', inf[5]], ['Needs attention', inf[6]]].map((f, i) => ({ l: f[0], v: f[1], c: i === 4 && flagged ? '#c62828' : '#000000' })),
+        watch: () => set({ tab: 'activity', actUser: nm, actType: 'All', flagOnly: false }) };
+    });
+    const ACT = {
+      osu: [['16:42', 'Akua Kyei', 'Sale', 'Sale S-2610270121 · 5 items', 'GHS 186.50', 'Till 1', 0], ['16:20', 'Akua Kyei', 'Discount', 'Asked for 12% discount (limit 5%)', 'GHS 52.20', 'Till 1', 1], ['15:58', 'Kwame Asante', 'Sale', 'Sale S-2610270119 · cash', 'GHS 22.00', 'Till 2', 0], ['15:42', 'Ama Darko', 'Refund', 'Approved refund with manager PIN', 'GHS 640.00', 'Till 2', 1], ['14:16', 'Akua Kyei', 'Return', 'Return R-0042 · Jasmine rice × 2 · sent for approval', 'GHS 290.00', 'Till 1', 1], ['13:10', 'Akua Kyei', 'Void', 'Voided sale S-2610270117 · customer left', 'GHS 35.00', 'Till 1', 1], ['12:58', 'Kofi Adom', 'Sale', 'Exceptional sale by Admin · cashier on break', 'GHS 860.00', 'Till 1', 1], ['11:05', 'Ama Darko', 'Stock', 'Received PO-0312 · 3 of 4 lines', '—', 'Back store', 0], ['09:10', 'Ama Darko', 'Price', 'Vegetable oil 1L GHS 38.00 → 41.00', '—', 'Office PC', 0], ['08:00', 'Kwame Asante', 'Shift', 'Opened Till 2 · float GHS 300.00', '—', 'Till 2', 0], ['07:58', 'Akua Kyei', 'Shift', 'Opened Till 1 · float GHS 200.00', '—', 'Till 1', 0], ['07:41', 'Ama Darko', 'Sign-in', 'Signed in', '—', 'Office PC', 0]],
+      legon: [['16:05', 'Adjoa Badu', 'Sale', 'Sale S-2610270344 · MoMo', 'GHS 142.00', 'Till 2', 0], ['15:30', 'Nana Ampofo', 'Discount', '5% wholesale discount', 'GHS 21.50', 'Till 1', 0], ['13:12', 'Efua Sarpong', 'Stock', 'Stock-take Tins aisle · 2 variances', '−GHS 27.00', 'Back store', 1], ['09:01', 'Adjoa Badu', 'Shift', 'Opened Till 2 · float GHS 200.00', '—', 'Till 2', 0], ['08:10', 'Efua Sarpong', 'Sign-in', 'Signed in', '—', 'Office PC', 0]],
+      adum: [['15:48', 'Abena Mensah', 'Sale', 'Sale S-2610270521 · on account · Kofi Boateng', 'GHS 1,240.00', 'Till 1', 0], ['14:02', 'Kojo Appiah', 'Sign-in', 'Blocked sign-in attempt · account suspended', '—', 'Till 1 tablet', 1], ['11:30', 'Yaw Boakye', 'Stock', 'Transfer from Osu · 20 cartons noodles received', '—', 'Back store', 0], ['08:00', 'Abena Mensah', 'Shift', 'Opened Till 1 · float GHS 250.00', '—', 'Till 1', 0]]
+    };
+    const allActs = ACT[cur.id] || [];
+    const TYPES = ['All', 'Sale', 'Void', 'Refund', 'Return', 'Discount', 'Stock', 'Price', 'Shift', 'Sign-in'];
+    const acts = allActs.filter(a => (S.actType === 'All' || a[2] === S.actType) && (S.actUser === 'Everyone' || a[1] === S.actUser) && (!S.flagOnly || a[6]));
+    const salesSum = allActs.filter(a => a[2] === 'Sale').reduce((x, a) => x + (parseFloat(String(a[4]).replace(/[^0-9.]/g, '')) || 0), 0);
+    const share = SHARE[cur.id] || 0;
+    const ST = { open: ['Open', '#1f7a2a'], paused: ['Temporarily closed', '#6b6866'] };
+    const setNb = (k, v) => set({ nb: Object.assign({}, S.nb, { [k]: v }), err: '' });
+    const F = [['name', 'Branch name', 'e.g. Tema Community 1 branch'], ['code', 'Short code', 'e.g. TMA'], ['city', 'Town or city', 'e.g. Tema'], ['addr', 'Address & digital address', 'Street · GT-000-0000'], ['phone', 'Phone', '+233 …'], ['email', 'Email', 'branch@ebenezerunique.com.gh'], ['opened', 'Opening date', 'e.g. Dec 2026']];
+    const devices = [];
+    for (let i = 1; i <= (cur.tills || 0); i++) devices.push({ name: 'Till ' + i, kind: 'Sell Now on tablet · receipt printer 80mm · cash drawer', status: 'Online', sbg: '#1f7a2a' });
+    devices.push({ name: 'Card terminal', kind: 'Paystack / Hubtel POS', status: cur.tills ? 'Online' : 'Not set up', sbg: cur.tills ? '#1f7a2a' : '#6b6866' });
+    devices.push({ name: 'Barcode scanner', kind: 'USB handheld', status: cur.tills ? 'Connected' : 'Not set up', sbg: cur.tills ? '#1f7a2a' : '#6b6866' });
+    const PMCF = () => ({
+      toggleStatus: cur.status === 'paused' ? { ask: true, title: 'Reopen ' + cur.name + '?', body: 'Tills can sell again and the branch shows as open online.', cta: 'Reopen branch', done: ['Branch reopened', cur.name + ' is open again.'] } : { ask: true, danger: true, title: 'Close ' + cur.name + ' temporarily?', body: 'Tills stop selling and the branch is hidden from click & collect until you reopen it. Stock and history are kept.', cta: 'Close temporarily', done: ['Branch closed for now', cur.name + ' is closed until you reopen it.'] },
+      confirmArchive: { title: 'Branch closed permanently', body: cur.name + ' has been archived. Its sales and stock history are kept in reports.' },
+      addTill: { title: 'Till added', body: 'A new till was added to ' + cur.name + '. eComPOS Support will pair the device.' }
+    });
+
+    const pmApply = r => {
+      const C = (typeof PMCF === 'function' ? PMCF() : {}) || {};
+      Object.keys(C).forEach(k => { const orig = r[k]; const c = C[k]; if (typeof orig !== 'function' || !c) return;
+        r[k] = (...a) => { if (c.ask) pmSet({ kind: 'ask', title: c.title, body: c.body, cta: c.cta || 'Confirm', danger: !!c.danger, act: () => { orig(...a); if (c.done) setTimeout(() => pmSet(pmOk(c.done[0], c.done[1])), 0); } }); else { orig(...a); pmSet(pmOk(c.title, c.body)); } }; });
+      const pm = this.state.pm;
+      return Object.assign(r, { pmOpen: !!pm, pmV: pm ? { title: pm.title, body: pm.body || '', isAsk: pm.kind === 'ask', isOk: pm.kind !== 'ask', cta: pm.cta || 'Confirm', cbg: pm.danger ? '#c62828' : '#0b5c5c', ibg: pm.kind === 'ask' ? (pm.danger ? '#c62828' : '#0b5c5c') : '#1f7a2a', icon: pm.kind === 'ask' ? (pm.danger ? '!' : '?') : '✓' } : { title: '', body: '', isAsk: false, isOk: true, cta: '', cbg: '#0b5c5c', ibg: '#1f7a2a', icon: '' },
+        pmClose: () => pmSet(null), pmGo: () => { const act = pm && pm.act; pmSet(null); if (act) act(); } });
+    };
+    const NOACC = (() => { const PVN = { manager: ['Ama Darko', 'M'], supervisor: ['Kwame Asante', 'S'], staff: ['Akua Kyei', 'N'] }[S.role]; if (!PVN) return false; let G = {}; try { G = (JSON.parse(window.localStorage.getItem('ecompos.grants') || '{}') || {})[PVN[0]] || {}; } catch (e) {} if (G.__off) return true; return G['branches.view'] !== undefined ? !G['branches.view'] : PVN[1] === 'N'; })();
+    const __r = {
+      noAccess: NOACC,
+      isSu, notSu: !isSu, canEdit,
+      countLine: live.length + (live.length === 1 ? ' branch' : ' branches'),
+      list: live.map(b => { const st = ST[b.status] || ST.open; const t = TEAM[b.id]; return { name: b.name, city: b.city, code: b.code, manager: b.manager || 'not assigned', team: (t ? t.length : (b.manager ? 1 : 0)) + ' people', tills: (b.tills || 0) + (b.tills === 1 ? ' till' : ' tills'), status: st[0], sbg: st[1], ring: b.id === cur.id ? '#000000' : '#ffffff', pressed: b.id === cur.id ? 'true' : 'false', pick: () => set({ sel: b.id, tab: 'details', archiveAsk: false, actUser: 'Everyone' }) }; }),
+      cur: {
+        name: cur.name, code: cur.code, addr: cur.addr, opened: cur.opened || 'not yet',
+        kpis: [['Sales today', money(18640 * share)], ['Orders today', String(Math.round(214 * share))], ['Team', team.length + ' people'], ['Tills', String(cur.tills || 0)]].map(k => ({ l: k[0], v: k[1] })),
+        details: [['Branch name', cur.name], ['Product database', 'Linked to the ' + BIZ + ' company catalogue · ' + (10 + PRG.filter(x => x.scope !== 'branch').length) + ' shared products · ' + PRG.filter(x => x.scope === 'branch' && x.branchId === cur.id).length + ' only at this branch'], ['Created by', cur.agreementDate || cur.agreement ? 'eComPOS Support · purchase agreement signed ' + (cur.agreementDate || cur.agreement) : 'Set up at installation'], ['Short code', cur.code], ['Town or city', cur.city], ['Address', cur.addr], ['Phone', cur.phone || '—'], ['Email', cur.email || '—'], ['Manager', cur.manager || 'Assign in Users & permissions'], ['GRA E-VAT branch ID', cur.evat || '[GRA branch ID]'], ['Status', (ST[cur.status] || ST.open)[0]]].map(d => ({ l: d[0], v: d[1] })),
+        team, devices,
+        hours: [['Monday – Friday', '07:30 – 20:00'], ['Saturday', '08:00 – 20:00'], ['Sunday', '10:00 – 16:00'], ['Public holidays', '10:00 – 14:00']].map(h => ({ d: h[0], t: h[1] })),
+        service: [['Click & collect', cur.tills ? 'On · ready in 30 min' : 'Off until opening'], ['Local delivery', cur.tills ? 'On · zones and fees in Orders' : 'Off until opening'], ['Shows on the website', cur.tills ? 'Yes · stock per branch' : 'After opening']].map(s => ({ l: s[0], v: s[1] })),
+        stock: share ? [['Products in stock', String(Math.round(1204 * share * 1.6))], ['Low stock', String(Math.round(4 * share * 2))], ['Transfers in transit', share > 0.3 ? '1' : '0']].map(s => ({ n: s[0], q: s[1] })) : [{ n: 'Products in stock', q: '0 · starts empty' }],
+        value: money(184320 * share)
+      },
+      actKpis: [['Activities today', String(allActs.length), '#f2f4f5', '#000000'], ['Sales logged', 'GHS ' + salesSum.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), '#f2f4f5', '#000000'], ['People signed in', String(team.filter(p => p.status === 'Active').length), '#f2f4f5', '#000000'], ['Needs attention', String(allActs.filter(a => a[6]).length), '#c62828', '#ffffff']].map(k => ({ l: k[0], v: k[1], bg: k[2], fg: k[3] })),
+      actTypes: TYPES.map(t => Object.assign({ label: t, pick: () => set({ actType: t }) }, pill(S.actType === t))),
+      actUser: S.actUser, pickActUser: e => set({ actUser: e.target.value }),
+      actUsers: ['Everyone', 'Kofi Adom'].concat(team.map(p => p.name)).map(v => ({ v })),
+      flagOnlyStr: S.flagOnly ? 'true' : 'false', flagBg: S.flagOnly ? '#c62828' : '#ffffff', flagFg: S.flagOnly ? '#ffffff' : '#c62828', toggleFlag: () => set({ flagOnly: !S.flagOnly }),
+      acts: acts.map(a => ({ time: a[0], who: a[1], type: a[2], text: a[3], amount: a[4], where: a[5], bg: a[6] ? '#fff5f5' : '#f2f4f5', bar: a[6] ? '#c62828' : '#ebebeb' })), noActs: acts.length === 0,
+      tabs: [['details', 'Details'], ['team', 'Team'], ['activity', 'Activity'], ['tills', 'Tills & devices'], ['hours', 'Hours & services'], ['stock', 'Stock']].map(t => ({ label: t[1], pressed: S.tab === t[0] ? 'true' : 'false', bg: S.tab === t[0] ? '#ffffff' : 'transparent', shadow: S.tab === t[0] ? 'rgba(0,0,0,0.06) 0 2px 8px 0' : 'none', pick: () => set({ tab: t[0] }) })),
+      tDetails: S.tab === 'details', tTeam: S.tab === 'team', tAct: S.tab === 'activity', tTills: S.tab === 'tills', tHours: S.tab === 'hours', tStock: S.tab === 'stock',
+      canCloseBr: S.role === 'developer', editNote: isSu ? 'As Admin you can edit every branch\'s details, hours and tills. Only eComPOS Support can close a branch or change the business name.' : canEdit ? 'As Manager you can update your own branch details, hours and tills. Only the Admin can create or close branches.' : 'View only. Branch details are managed by the Admin and the branch Manager.',
+      viewLabel: 'Switch the system to this branch',
+      viewBranch: () => { try { window.localStorage.setItem('ecompos.branch', cur.id); window.dispatchEvent(new CustomEvent('ecompos:branch', { detail: cur.id })); } catch (e) {} },
+      statusAction: cur.status === 'paused' ? 'Reopen branch' : 'Close temporarily',
+      toggleStatus: () => S.role === 'developer' && persist(S.list.map(b => b.id === cur.id ? Object.assign({}, b, { status: b.status === 'paused' ? 'open' : 'paused' }) : b)),
+      archiveAsk: S.archiveAsk, askArchive: () => set({ archiveAsk: true }), cancelArchive: () => set({ archiveAsk: false }),
+      confirmArchive: () => { if (S.role !== 'developer') return; persist(S.list.map(b => b.id === cur.id ? Object.assign({}, b, { status: 'archived' }) : b)); set({ archiveAsk: false, sel: '' }); },
+      addTill: () => { if (canEdit) persist(S.list.map(b => b.id === cur.id ? Object.assign({}, b, { tills: (b.tills || 0) + 1 }) : b)); },
+      adding: false, requesting: S.adding && isSu, openAdd: () => set({ adding: true, err: '', rq: {} }), closeAdd: () => set({ adding: false, err: '', rq: {} }),
+      company: BIZ, notSuNote: S.role === 'developer' ? 'Create branches in the Developer console › Company branches' : 'New branches are created by eComPOS Support after the Admin signs a purchase agreement',
+      rq: { name: (S.rq || {}).name || '', city: (S.rq || {}).city || '', note: (S.rq || {}).note || '' },
+      rqIn: { name: e => set({ rq: Object.assign({}, S.rq, { name: e.target.value }), err: '' }), city: e => set({ rq: Object.assign({}, S.rq, { city: e.target.value }), err: '' }), note: e => set({ rq: Object.assign({}, S.rq, { note: e.target.value }) }) },
+      hasReqs: REQS.length > 0 && isSu, reqs: REQS.slice().reverse().map(r => ({ name: r.name, city: r.city || '', when: r.when || '', status: r.status === 'done' ? 'Created · agreement signed ' + (r.agreementDate || r.agreement || '') : 'Waiting for purchase agreement', sc: r.status === 'done' ? '#1f7a2a' : '#a8492a' })),
+      sendRequest: e => { try { e && e.preventDefault && e.preventDefault(); } catch (x) {} if (!isSu) { set({ err: 'Only the Admin can request a new branch.' }); return; } const nm = String((S.rq || {}).name || '').trim(), city = String((S.rq || {}).city || '').trim(); if (!nm || !city) { set({ err: 'Enter the proposed branch name and town.' }); return; }
+        const d = new Date(); const r = { id: 'BR-' + Date.now(), name: nm, city, note: String((S.rq || {}).note || '').trim(), when: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + d.toTimeString().slice(0, 5), status: 'requested' };
+        const list = REQS.concat([r]); try { window.localStorage.setItem('ecompos.branchRequests', JSON.stringify(list)); window.dispatchEvent(new CustomEvent('ecompos:branchRequests', { detail: list })); } catch (x) {}
+        pmSet(pmOk('Request sent', nm + ' (' + city + ') was sent to eComPOS Support. They will create the branch under ' + BIZ + ' once you both sign the purchase agreement.'));
+        set({ adding: false, rq: {}, err: '', reqTick: Date.now() }); },
+      nb: S.nb, addFields: F.map(f => ({ id: 'nb-' + f[0], label: f[1], ph: f[2], value: S.nb[f[0]], change: e => setNb(f[0], e.target.value) })),
+      pickMgr: e => setNb('manager', e.target.value), pickCopy: e => setNb('copy', e.target.value),
+      copyOpts: live.map(b => ({ v: b.name })),
+      copyItems: [['products', 'Products & categories'], ['prices', 'Prices & price lists'], ['tax', 'Tax & E-VAT settings'], ['receipt', 'Receipt layout'], ['payopts', 'Payment options']].map(c => Object.assign({ label: c[1], toggle: () => set({ copy: Object.assign({}, S.copy, { [c[0]]: S.copy[c[0]] ? 0 : 1 }) }) }, pill(!!S.copy[c[0]]))),
+      hasErr: !!S.err, err: S.err,
+      create: () => {
+        if (!isSu) return;
+        const nm = S.nb.name.trim(), code = S.nb.code.trim().toUpperCase().slice(0, 4);
+        if (!nm || !code || !S.nb.city.trim()) { set({ err: 'Enter the branch name, short code and town.' }); return; }
+        if (S.list.some(b => b.code === code && b.status !== 'archived')) { set({ err: 'Another branch already uses the code ' + code + '.' }); return; }
+        const id = code.toLowerCase() + '-' + (S.list.length + 1);
+        const mgr = S.nb.manager.indexOf('Ama') === 0 ? 'Ama Darko' : '';
+        persist(S.list.concat([{ id, name: nm, code, city: S.nb.city.trim(), addr: S.nb.addr.trim() || '[Address]', phone: S.nb.phone.trim(), email: S.nb.email.trim(), manager: mgr, opened: S.nb.opened.trim() || 'Opening soon', status: 'open', tills: 0, evat: '[Register with GRA]' }]));
+        set({ adding: false, sel: id, tab: 'details', nb: { name: '', code: '', city: '', addr: '', phone: '', email: '', opened: '', manager: '', copy: 'Osu branch' } });
+      },
+      ids: ['Branches created by eComPOS Support under a purchase agreement', 'Admin requests new branches', 'Branch details', 'Branch team', 'Tills & devices', 'Hours & services', 'Branch stock', 'Pause or close a branch', 'Manager edits own branch', 'Admin monitors users & activity', 'One Admin per company'].map(t => ({ t }))
+    };
+    return pmApply(__r);
+  }
+}
+</script>
+</body>
+</html>

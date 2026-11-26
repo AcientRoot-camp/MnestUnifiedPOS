@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS issue tickets</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="tickets" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="approvals" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Issue tickets</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{subLine}}</p>
+</div>
+<sc-if value="{{canReport}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{openNew}}" style="font-family: inherit; padding: 12px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: rgba(69, 36, 219, 0.34) 0 4px 24px 0">{{reportLbl}}</button></sc-if><sc-if value="{{isDevView}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; padding: 10px 14px; border-radius: 9999px; border: 1px dashed #cccccc; background: #ffffff">Developer view · you receive escalated issues; you cannot report issues to other users</span></sc-if>
+</header>
+
+<sc-if value="{{hasAlerts}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="al-h" style="background: #000000; color: #ffffff; border-radius: 24px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><h2 id="al-h" style="margin: 0; font-size: 15px; font-weight: 600">{{alertTitle}}</h2><button type="button" onClick="{{readAlerts}}" style="font-family: inherit; font-size: 12px; padding: 6px 12px; border-radius: 9999px; border: 1px solid #ffffff; background: transparent; color: #ffffff; cursor: pointer">Mark all read</button></div>
+<sc-for list="{{alerts}}" as="a" hint-placeholder-count="2"><button type="button" onClick="{{a.open}}" style="font-family: inherit; text-align: left; display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; border: 0; background: #1a1a1a; color: #ffffff; cursor: pointer; font-size: 13px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 9999px; background: #0b5c5c; flex: none"></span><span style="flex: 1">{{a.text}}</span><span style="font-size: 12px; color: #c9c6c4">{{a.when}}</span></button></sc-for>
+</section>
+</sc-if>
+
+<section aria-label="Ticket figures" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4"><div style="background: {{k.bg}}; color: {{k.fg}}; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 4px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px"><span style="font-size: 13px">{{k.l}}</span><span style="font-size: 26px; font-weight: 500; letter-spacing: -0.04em">{{k.v}}</span></div></sc-for>
+</section>
+
+<sc-if value="{{newOpen}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="nt-h" style="background: #ffffff; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap"><h2 id="nt-h" style="margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.04em">{{ntTitle}}</h2><span style="font-size: 12px; color: #5f5c5a">From {{me.name}} · {{me.level}} · {{me.branchName}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #5f5c5a">What is it about?</span><div role="group" aria-label="Category" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{catOpts}}" as="c" hint-placeholder-count="7"><button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}">{{c.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #5f5c5a">How urgent? · the colour shows on the ticket for everyone</span><div role="group" aria-label="Priority" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{priOpts}}" as="c" hint-placeholder-count="4"><button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}; display: flex; flex-direction: column; align-items: flex-start; gap: 1px"><span>{{c.label}}</span><span style="font-size: 11px; opacity: 0.8">{{c.note}}</span></button></sc-for></div><span style="align-self: flex-start; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; color: {{priNowC}}; background: {{priNowBg}}; border: 1px solid {{priNowC}}">{{priNow}}</span></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="tk-t" style="font-size: 12px; color: #5f5c5a">{{tLbl}}</label><input id="tk-t" value="{{form.title}}" onChange="{{typeTitle}}" placeholder="{{tPh}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="tk-r" style="font-size: 12px; color: #5f5c5a">{{rLbl}}</label><input id="tk-r" value="{{form.ref}}" onChange="{{typeRef}}" placeholder="{{rPh}}" style="font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="tk-d" style="font-size: 12px; color: #5f5c5a">{{dLbl}}</label><textarea id="tk-d" rows="4" value="{{form.desc}}" onChange="{{typeDesc}}" placeholder="{{dPh}}" style="font: inherit; font-size: 14px; padding: 12px 14px; border-radius: 18px; border: 1px solid #ebebeb; resize: vertical"></textarea></div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center">
+<label style="position: relative; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 9px 14px; border-radius: 9999px; border: 1px dashed #cccccc; background: #ffffff; cursor: pointer"><input type="file" accept="image/*,.pdf" onChange="{{pickFile}}" aria-label="Attach a screenshot or photo" style="position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; margin: 0">Attach screenshot or photo</label>
+<span style="font-size: 12px; color: #5f5c5a">{{fileLine}}</span>
+</div>
+<span style="font-size: 12px; color: #5f5c5a">{{ntFoot}}</span>
+<sc-if value="{{hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{err}}</span></sc-if>
+<div style="display: flex; gap: 8px"><button type="button" onClick="{{closeNew}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Cancel</button><button type="button" onClick="{{submit}}" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 11px 20px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Send to the Admin</button></div>
+</section>
+</sc-if>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="tl-h" style="flex: 1 1 360px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="tl-h" style="margin: 0; font-size: 16px; font-weight: 600">{{listTitle}}</h2>
+<div role="group" aria-label="Filter by status" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{filters}}" as="f" hint-placeholder-count="5"><button type="button" onClick="{{f.pick}}" aria-pressed="{{f.pressed}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; min-height: 34px; border-radius: 9999px; cursor: pointer; background: {{f.bg}}; color: {{f.fg}}; border: 1px solid {{f.bd}}">{{f.label}}</button></sc-for></div>
+<sc-for list="{{list}}" as="t" hint-placeholder-count="5">
+<button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="font-family: inherit; text-align: left; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 16px; border: 1px solid {{t.bd}}; border-left: 6px solid {{t.pc}}; background: #ffffff; color: #000000; cursor: pointer">
+<span style="display: flex; justify-content: space-between; gap: 8px; align-items: center"><span style="font-size: 12px; color: #5f5c5a">{{t.id}} · {{t.cat}} · {{t.branch}}</span><span style="font-size: 11px; padding: 3px 9px; border-radius: 9999px; background: {{t.sbg}}; color: #ffffff; white-space: nowrap">{{t.status}}</span></span>
+<span style="font-size: 14px; font-weight: 600">{{t.title}}</span>
+<span aria-hidden="true" style="height: 5px; border-radius: 9999px; background: #f2f4f5"><span style="display: block; width: {{t.pct}}%; height: 100%; border-radius: 9999px; background: {{t.sbg}}"></span></span>
+<span style="font-size: 12px; color: #5f5c5a; display: flex; justify-content: space-between; gap: 8px"><span>{{t.by}}</span><span style="color: {{t.pc}}; font-weight: 700; background: {{t.pbg}}; padding: 2px 8px; border-radius: 9999px">{{t.pri}}</span></span>
+</button>
+</sc-for>
+<sc-if value="{{noneShown}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f5c5a; padding: 12px">No tickets here.</span></sc-if>
+</section>
+
+<section aria-labelledby="td-h" style="flex: 2 1 520px; min-width: 0; background: #ffffff; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 16px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<sc-if value="{{hasCur}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start">
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 12px; color: #5f5c5a">{{cur.id}} · {{cur.cat}} · opened {{cur.created}} · {{cur.age}}</span><h2 id="td-h" style="margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.04em">{{cur.title}}</h2><span style="font-size: 13px; color: #3d3a38">Reported by {{cur.by}} · {{cur.level}} · {{cur.branch}} branch</span></div>
+<span style="font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 9999px; border: 2px solid {{cur.pc}}; color: {{cur.pc}}">{{cur.pri}} priority</span>
+</div>
+
+<ol aria-label="Progress" style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{cur.steps}}" as="s" hint-placeholder-count="5"><li aria-current="{{s.current}}" style="display: flex; flex-direction: column; gap: 6px"><span aria-hidden="true" style="height: 6px; border-radius: 9999px; background: {{s.bar}}"></span><span style="font-size: 12px; font-weight: {{s.fw}}; color: {{s.fg}}">{{s.label}}</span></li></sc-for>
+</ol>
+<div role="status" style="padding: 12px 14px; border-radius: 16px; background: {{cur.sbg}}; color: #ffffff; font-size: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><strong style="font-weight: 600">{{cur.status}}</strong><span>{{cur.statusNote}}</span></div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px">
+<sc-for list="{{cur.facts}}" as="f" hint-placeholder-count="4"><div style="padding: 10px 12px; border-radius: 14px; background: #f2f4f5; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 11px; color: #5f5c5a">{{f.l}}</span><span style="font-size: 13px; font-weight: 500">{{f.v}}</span></div></sc-for>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 1.6; color: #3d3a38">{{cur.desc}}</p>
+
+<sc-if value="{{canHandle}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; border: 1px solid #000000">
+<span style="font-size: 13px; font-weight: 600">{{handlerTitle}}</span>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{suActions}}" as="a" hint-placeholder-count="4"><button type="button" onClick="{{a.go}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; border: 0; background: {{a.bg}}; color: #ffffff">{{a.label}}</button></sc-for></div>
+<span style="font-size: 12px; color: #5f5c5a">{{handlerNote}}</span>
+</div>
+</sc-if>
+<sc-if value="{{reporterCanConfirm}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; border: 2px solid #1f7a2a">
+<span style="font-size: 14px; font-weight: 600">The Admin marked this as resolved. Is it fixed for you?</span>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><button type="button" onClick="{{confirmFixed}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Yes, close the ticket</button><button type="button" onClick="{{reopen}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; cursor: pointer">No, reopen it</button></div>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-size: 15px; font-weight: 600">Updates</h3>
+<sc-for list="{{cur.log}}" as="l" hint-placeholder-count="4">
+<div style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px">
+<span aria-hidden="true" style="width: 10px; height: 10px; margin-top: 4px; border-radius: 9999px; background: {{l.dot}}; flex: none"></span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span><strong style="font-weight: 600">{{l.who}}</strong> · {{l.text}}</span><span style="font-size: 12px; color: #5f5c5a">{{l.when}}{{l.alerted}}</span></span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{canComment}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; gap: 6px; flex-wrap: wrap">
+<label for="tk-c" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Add a comment</label>
+<input id="tk-c" value="{{comment}}" onChange="{{typeComment}}" placeholder="Add a comment or more detail" style="flex: 1 1 240px; font: inherit; font-size: 14px; padding: 10px 14px; border-radius: 9999px; border: 1px solid #ebebeb">
+<button type="button" onClick="{{addComment}}" style="font-family: inherit; font-size: 13px; font-weight: 500; padding: 10px 16px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Post</button>
+</div>
+</sc-if>
+</sc-if>
+<sc-if value="{{noCur}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">Pick a ticket to see its progress.</span></sc-if>
+</section>
+</div>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwQDAwQEBAQFBQQFBwsHBwYGBw4KCggLEA4RERAOEA8SFBoWEhMYEw8QFh8XGBsbHR0dERYgIh8cIhocHRz/2wBDAQUFBQcGBw0HBw0cEhASHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBz/wgARCACgAKADASIAAhEBAxEB/8QAHAAAAQQDAQAAAAAAAAAAAAAAAAQFBgcBAggD/8QAGwEAAQUBAQAAAAAAAAAAAAAABAACAwUGAQf/2gAMAwEAAhADEAAAAefwEgBIFVlMKruVWZka9iS94Tw2yBvePDhEVjNl+Uo1Qa2VCyM40gTUwAkAJEizcMFsmczQTSiYRNJPdL0DIHRsb6epB7Ibr55h0p5ba97GIvZsZnycXALyA4t1qxmydf5gGx9EmEnJ8ohLwx56D536IMyGaotepnhVdnz2C9HMGFw0zqmwxon0PLwvtcteT6CyV+PgnhuvdK+TaQSpE7wwMtJB0Xzj0cXjc1LbVSPBqvbzdQvQ23W5YU+th2pqyxIdL2SSmf5EwuUJ/v6t1iuZaSsLLzevaQmEMr/QZH0jzZ0kRns1HblQvBqe4qbkomw6T8982PnnMrFctL13oWUK1M0havZXRs+buoy8ZqiwEitIdh+U84xV+oOXUXJEhmoemqKb4M8X1wYG03UTyyvVn5pDedeh+dxNXlP7tsVrq/weaugzZ9XL2FdTnh72XnHOcS6Z5xB3CLXJFa67YwubP7N0bJVyjJpYYap6bemSu3oxvMTeIkm8HcSKSZa4AdzaN1cg3MTlLYY3wKznP8M6zB7zkmYdDCUekIEUhULnRA14B4jaZLF1KU7FAEte+SGBPoulf9AG0dgXXyliWl7FOaJHPS3oUZH+86Bpms9YLjOddIbfZgw1lZrbUCaIASAEl7/Ecw2k1xG1496548tmGb58/JcVDQgkBemFKEUIBLXgCX//xAApEAAABgICAgIBBAMAAAAAAAAAAQIDBAUGEBESEyAwNSEUFSMxJCUy/9oACAEBAAEFAvaPCekmxjjig3RRmwmujNpOEwHKuMsPUbZh+reZBkaT+FiO5JXAx9DQQ0lpIMGoGoGoGoGYkRGnykwHI/wV1U5OOJCahoBmFKClCPDkzTk1E6MjsORzo/yJsAgZcH6VVYc9xllDKAZhSgpQjNHLlssojtDKIKIcz1nQvSFEVMfix0RWQZhSgpQUoUqv9xrNAXqYnxvCvVHCJhkGoGoKUDUFKFH9zrNQXtIaJ5sySwdex+olI4QnsDUDUFKBmDMUX3Os2Be89vo9QtfnkGoGsVtU9aKPE2DRZ1z1Y8YofudZsCECC9YyG8Njki4x56sLdinluoT0jdgahFYXNkxo6IjAzDp+3cig+51m4IYV18QWhLqLivOsn6kl2ahH/j9gahiEfu9rJbL9dPFB91rOAQorI62w1mkbtH05+ERD/g5BmMRTxViS54Y3POq6UUKehaXEDMpqH5paqXTfrBlKO1Jpz/mCvmPyDGHr7VYlN+aN/WjFdfzatMrLrCQj+z1UtGxWDK19KTUtXVmsXyjWFyur+sjgHAsvalrzsrDWbyuG9T1cJhO+N7UCYqBMZdRIaFvVotokqK7Cf9GGXJLtHTpqIoUokJt7D9zsAZiSvu6R8HGfJ5vWKXRMq1ZVUa0an4nOim5GfZNEd504OKT5Z1dNGqW9ZbdkSdSXfG2Z8mIj/hc55LWO5MThfBkWSphEZmowpXUn3fKvcOV19KfK34Ag2cWxR6TLCNXouMvdlFozEqR2HH49I0wc87SpSFRsptIoRnUkgrO5BiTllnIC3Fur0pXAkSTUfuzKU0G30OfC7IS2HX1OfERmQblrSEzUmCdQY7pHdIN9CQqaRBcpavf/xAAvEQABAwMBBAkFAQEAAAAAAAABAAIDBAURIRITFDEGECIyNEFRcYEgYbHB0SOh/9oACAEDAQE/Aeqno5Z+4FBZ4m9/VR0cLeTQuDicMFoU1jppeQwq6yz03aHab9FBb99/o/kmMDRhqYxXO48CA1oy4q03k1Um5lGD5YWFhXmzDBnpx7jqoaU1Euz5JrNkYCZGmMXSTxDfb9lWTxzPn8HrKvFt3M223RpVlpdin3h5uTY1PcqWmfsSO1UL2yND2HIK6S+Ib7fsqy+NZ8/gp0jWN2nHAChvFJO/dsdqiVeod7Sn7aqliDIGAeirp+Gp3S+ic4uOSrNC6Cla13nqukfiG+ys/jGfP4V0hdPSuYzmuSttUaina881UAOjcCqVwdAw/YLpD4TT1CZjaGUFd7c6qw+PmFa7U+GTeyryU+N47Hquj+eHPv8AxVUmxE5xViqd7Shvm3RXCDiKd0aIxoVaLgKiIMd3gj1XSvFNFgd49Vug4enaw81eajYgLfVWeu4WbDu65ZV4tpJNREPf+pj3Ru2mHBUV/maMSNz/AMUt+mcMMbhSSOkdtPOSrVbiSJ5fhOdshXKr4mXTkOq1XXAEEx9kTlVlpimO03Qp9oqG8tUy0VDueipbTHF2n6lZDQrlc9vMUX0Ul0lp+ydQorrTyeeEJGHkUZWN1JUt2p4+Ryqq4y1GnIdf/8QAIxEAAQQCAQQDAQAAAAAAAAAAAQACAxEQEjEEICEyIkFCUf/aAAgBAgEBPwHDnhvKdOTwi8/1blNmcEyYO7JZdfAzFFupIdRYzFLXg4kfqOzpvUqb0PZFJYpTvt1YbE53kKq5XTcFTehQRjcBZxEacnG3EpjdnViV2z/C6bgqb0Kjdq4E4kbq6kEeVB7ooKKXTlSzBwoYbwuo9kBZUzaemO1cDiWPU5ij3OJHbOtQttymZsMQy18SiL8FHpx9IdOPtAV4Cml/IxEzUYli/QwyYtQnajO1PmLuMRRfZ7HxByMTgqVIQuKZEG5//8QANhAAAQIDBAULBAIDAAAAAAAAAQIDABARBCAhMRIiQVHBEyMwMkJSYXFygYIUYpGhBTNj0eH/2gAIAQEABj8CvUQn3jnFaMY60UDeHnHU/cHUzjUVSK0qIoR0QQ2KmNN7WV3YohISPDoMU0Mb09AFZNVxjRbT73SGGlLpt2RprYOjvTrXaGCtuCLuJohP7gIQKJF1lgH+xVKwlptOihOQkhxsUQ+K08bxcbz3C4lse5hLadl6yevhOxfLhf0h1TPlCNdV+x+vhOxfLhfIMKSqizlhshCfeABkL9j9fCdi+XDoKjIwty4dHUaTmsxhaHdLfhHJu0IPVUMjKx+vhOxfLhIMsjHaTkBHOWh0r3poBHKpVytn71MU+dwGB4zbYR1lmnlCGWxRCBJsnr8oNGVj9fCdh+XCVrPb0h+JKQsApUKEGHGexmg+EyIRO0Wg9gaA95ltJ5ljVHidplY/XwnYflwkhZPNL1V+U7PaRmhWgfIzMJmpXecMnnO4gqiu2VnfPVbXU+UJWggpUKgjbJqzoNeQB0vMzsjhzU2KytH26J/czAxmpPdcMnm++gj9XNBpYU13FiogoTybIO1sYxUzsjZzDYrJ8d4pH7mYKZ2izntjTHtNyg5p7XTxvtNU5say/KdmsozJ5Q8Jgb4G4zZtCewct4hDrZqhYqDItKwWMUK3GFMvJ0XE3UtNIK3FYACNE0U+vFauEipRokYkw6/2DgjymZA7Z/Qvq1FHmydh3T0H06w6qxmmCWR9Q39vW/EUcZcQfuSYohlxR8EmAXU/Tt715/iKMpq4es4rMzP8ewrE/wBpGz7ZnfFTLHqm4myW1dHMkOnteB6FVmsigq05FQyb/wCwSTUmVTHhcDargatNXrPs7yY0rO8lX27R7XdO0PJbHjmfaFM2IFpravtH/VwoEV2XdFf5uBSSQobRFOX5RO50VjXsrJ8iRGrZGh5qJigeDQ/xppBW4pS1nao1njFEnDoKZiMD0OePR4RjjGOEdaM4zjOMB0H/xAAnEAEAAgECBQQDAQEAAAAAAAABABEhEDFBUWFxgSCRofAwsdHB4f/aAAgBAQABPyH1H108W0Euakqovh/bhit3J4TqjywfL95mXZS77mS8Aev4nIpKVcHANTpygRKjr1Squq5pGL8x+CugFFeYcEPHjZt6A+MBGweXEXLndSneo30sLCFCx3JSF1SMxuNelgk4u7+v+wH/AABNvQ3QAp6RxfaHKHQaCHYR2DvXeyDoupoB5i9G0zvyD7iGCAM43g1Meq4pYP1lq6O6SxF1YLEdmYF7Jtr3jnl9/sGUenoV/Ru129+ldGXGcifCS2D3yNlIxcBQ2suHYIr1vHf2c2uzvkpely4sWWAVDOdzB994a2amIo9l8g4srgecU9oXpO9u/wB6RT7nVrt75KCuXnyEwCUrIewzE+QUinYf7L0WUYbMBQU5vXGq5p7cnF8ExywOvXvoMNp1mzehfZza7e6SxAzVivPBr5vRwLNiSZBu+cXt/PEuLN9rdq9v9lfm/euqXdHdyfgPfV8sr9w6eNH9XNrt7pLEzKOvq4+HOpiMxOhZ8nzLjHZ5T5n9x0p1GXvgDRydwvAss7NrKxYB9g/a+ISFmSBz0FBlhwqx4A95sjHRu7darQmO6H2wjGVLQ0W8MxLtn7/3QoPEjvkHRRtw/KJTglJh1ZJjeMduJF5wij5riZZFXKvHRYZtefVegobm+x/yEZ1izolLiwE2z3cH4fjXCwi/fZ4f80YkqGmTpLeR399vMCsGgpMoehj9n2hFiw2T8iLplpb33B7QSJpuI6PEbf8A2OcffvB49TmS5elxX08SZdCjHz5OhofwqjYOcbL2VPA7f3zLgArsTjPHOICbkBmzc0YarZ2w36v776+FEPaf8gluC4+X8RxyAFL8lwdBorv+n/dRIgvEfyOhres7WfWdFlgHPBERFXddN6BuQAJsxdKfRkcdRz68fwr0PFvo9opZVq5VlwkSg3iI3Y29HLF2Zd6MJMbCvH0eJ0YOU8dne3enkVQXsbmLA+F2+n0zfLoYWuIiFQbsv31egUbN5S4a4QACNkYzZRolJ5hhhuB+e/zBMrz/ALkKz/0NoOo/Al7ts3kIXD51E2qJjGHE/B8GWCcSLGVKla3OZOSI5UOX4lbSPSYXBKKrFbQzLuHE6Wb1PHrvOJ0Tf1f/2gAMAwEAAgADAAAAEAACJWvFAAAAAIc4wafWwBAUUNRvM/YC0HRlVgB9Uvpo3hBqSZ5og0bRzHSiQSkguKRc4XNgAJUYsgE5YQKDIgjSD4wQAFosJCSgAP/EACcRAQABAwMDBQEAAwAAAAAAAAERACExUWFxQYHREJGhscHwIOHx/9oACAEDAQE/EPRHoauKubX7FCQbtRaC4KCbvU8UanuGTk/f8HR2etACgNKnoQu4vgNXqz0LeYS1lUoYukK3i8zQKhENOufIfYa7ehLoXeP90IHY9KCjHowgxS1uoFYv+HSM32nr0KAg6nbp5rqVyiAFjmPrND2wE9HFFYdmBKvSs5LEiTwv/fRJvW1WAIH1NQ3kW5bHy0heVuurWWmUNJuHneac/wBctKH/AJdSfYDzCMd496FUmaZnQ8lp7571jCR+qJPX6KlPkfP7FbBknikBanXBahwnkoexJMBfNpe1LhWxZRxNIT6/qgYgD9UCj+DJUF5S3Jc+SkSEJSdW4dww+d+SoNEFPHsQGm/bpvQK0m4Dy3+MVBje39avNFh20fNJSSpSU4H0/ffWjjAwlRIb8u+T2Co0t+X8PhpMxOrRsQFxru7aa5xkUVsUqT6R5/unoe0S/H8aASUgv+mHk8RTEEGz5ikoByfE08LFrg7efamYWKvVbC67FMdPU44dycNA3m0fNAyL3KKhncq0SdvNX3wn6+v/xAAjEQEAAgIBBAIDAQAAAAAAAAABABEhMRBBUaGxIGFxkdHB/9oACAECAQE/EON+nYkTtQtsZhnMwTh+H2OKrbFllVoId3iBxteOM31i3li8eRPW9w5zvKRuyJcKoxFKtp5X+E9b3ArRK8cV/wBxkJUd8ACiEjHlT1vcLSJuWY1EiJDTJq/EtTXArAw8S2Xrfaafx/ZUEvnvPomDeSNeaeU+k3xZjUqXtM+bJU9T/kAUWR7lXmHcr8QTRRAr9sCbfbw9/tlTBOSJ3iB1mYLAgSmvh5YwzplxR0g3ROkVMnt5/8QAKBABAAIBAwMDBAMBAAAAAAAAAQARITFBUWFxgRCRoSCxwfAw0fHh/9oACAEBAAE/EPqR2QKUHXAqdhicXAsHfYt41rsS+JCyabK02I9YFa1l1cIewECBfCjbPeKGwFcZXeo+CSzyVhs/s6aEr6o7Va86e9dooE9hT/E6E6umj2jh6DIC1W8h4t6lwsa4wL7ur5gWh7pSXcv3nXljrONzLxBmus8p/VMQE4/2+Nf4GGApAjKta1hL5wdKfKpj59joebiEVEMxcrvMBkKjp/Cxbpdwv92WHkNQ61OVhi24vMszDoCpNEmFJFt3en/c+/MpbvKmyzr9KbBKrC26opqqSxwreiYPQGry8soEAsmrTKBzEANMbz7gFheo6cHLyuq6rNIf7naXBjYCVzctIs2bjmMUPwyt8pX78fQEaPdV3waVoWVaXi4J8QgFq1aM/vMuSmhCBlQ5l6zGtsMpoenQP4YKPYjL+YoACwROSbgrNgL/ALnyPqTJWNjITIdAa79kM1gDE60vvM1sxqczzhE0PRVBq4osVRhS9rCdQftfEplJRO4oNbs7d4acNYDCViuU1xMQgBy9Xrv5iQ1mvma+ZaKuJr5l92y7JuiYD0/U8TijK1H1ChviCQiK/fjxACPgrwPn7XpKyUbzNrBl0eBwVYNrA3Y8QTDd/Ex5glKimk01eQYtaWajcsNYriTQ9HWX/GaCGxBaQWr8ZDlUCPCuAh6IVd2YW0s0dMjQ6UxetYlIssmVRzJrR+MvxLeoEqtBv5faOEwuZiEFaWai9AXxArEHvyXKbV5fTGoMuqudKD2I2Jd30TQ9P3PE0Rrxa7L3h9iaQqrmWspE4SAXINcv6t0pXWGLCU/kBqqrhW+FKA+/ujQ1mrmHUJ6mmRPA9S7ktHFte8U6dUXEu7yJp49HX7uPSFcBNvdjvq7LN5YliJ09Dq101UWdlgtHxNULAldydn/smDWXjmGLKjkC+zLnzE4GfJLRSbGquV95QR8gGNdletmPRYSxLA7iSobtsexSb82HDTaKoNlc4ivEKbgp9z01DCOED7LFcVRhJqJRYFvSYhJy1pYP3jRrNaDpxRwBfn0COyrqB8suXsAdRMJGHEMhyFxutrLeBrpDzBo06O8inrBYBqFqdVd2DRKC70zMTAp2RR7vo+FdVl+0UU0S1DSAYvr96l74XZnX9H4m3MugZyru6U+y+pQcRjBb3VccMXcylvpwi12lxwdXDxt3UOsAAADABghL6pedAbu7EqmOCLS15rc/ohOeS3sn2X4nsRcQk0czV2POk9ptj1KVnn8+jWkU2a9+UYHGdQjE5rKBsmibJrGxMosKQfRx7T8BqrgMsxkAXCNO5Ncqu9ERXMNCLU8ALCnQepY+Oy5XVTRGQAFV2JcAA61DfbatPEROmEeEjQFYbw/7+IsUFi85wsp2TJwk9R9VLhqfcOVY8QRGzQI6rl7mGjmFD8kIOyhS+xHNZarp0G7gcQBT6O9PAc3r6kiGWuoB5cPAo3aFlUx4d1v9PiJgK0Wrz6VugLTT4Wv+O0eOysZZFRxhISyhWA0FabRY3Z1qb+lvL7y03fH0CZVWOR0enTU5xEwIfUG1V1V3iAlNx2o1wtKlCXr/AL9AHVVX3n9xj761AiI5E3It+ml6vgQml4Nk0lfZW726Yd9Os6fQxrm7boFk7EJFrie2aXovUaQVKKrau8uoiADKsJiqky3ucftczZDc2a1emv0AkQNiORjA4XQzuvV+e+ptlyI6xDDcQrlvu5BklQ1UPxHI+G9bH4YQGwE72I1v3Vh4jwkeCNuK6puBLqJyDuwGrOtyvf8AgOLXOUXHvBaZuFxff+6lBmC4hlYCVDEQEHpCXQv9cyz0mqOPb+ImV6KqCjU1Q7eP8hdgda2z1/uDJlFPGukLVY1q2AeZS1n6W38THDftfvRG0v6Wv6ilBq0oa52qKq1V6/V//9k=',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let role = 'superuser', tickets = null, alerts = [], newFlag = false, selFlag = '';
+    try {
+      role = window.localStorage.getItem('ecompos.role') || 'superuser';
+      tickets = JSON.parse(window.localStorage.getItem('ecompos.tickets') || 'null');
+      alerts = JSON.parse(window.localStorage.getItem('ecompos.ticketAlerts') || '[]') || [];
+      newFlag = window.localStorage.getItem('ecompos.ticketNew') === '1';
+      selFlag = window.localStorage.getItem('ecompos.ticketSel') || '';
+      window.localStorage.removeItem('ecompos.ticketSel');
+      window.localStorage.removeItem('ecompos.ticketNew');
+    } catch (e) {}
+    const DEF = [
+      { id: 'T-1042', by: 'Akua Kyei', level: 'Sales staff', branch: 'osu', cat: 'Sale', pri: 'High', title: 'MoMo payment taken but sale still shows unpaid', ref: 'S-2610270118', desc: 'Customer paid GHS 860.00 by MTN MoMo and got the SMS, but the till kept waiting and I had to take the sale again as cash. The customer was charged once only.', created: '27/10 14:20', status: 'review', log: [['Akua Kyei', 'Reported the issue', '27/10 14:20', ''], ['Kofi Adom', 'Started review · checking Hubtel settlement report', '27/10 15:05', 'Akua Kyei, Ama Darko, Kwame Asante']] },
+      { id: 'T-1041', by: 'Kwame Asante', level: 'Supervisor', branch: 'osu', cat: 'System failure', pri: 'Urgent', title: 'Till 2 receipt printer stops after every 3 receipts', ref: 'Till 2', desc: 'Printer goes offline after three receipts and needs a restart. Queue builds up at lunch time.', created: '27/10 11:02', status: 'progress', log: [['Kwame Asante', 'Reported the issue', '27/10 11:02', ''], ['Kofi Adom', 'Started review', '27/10 11:20', 'everyone'], ['Kofi Adom', 'In progress · new USB cable and driver update sent to the branch', '27/10 13:40', 'everyone']] },
+      { id: 'T-1039', by: 'Efua Sarpong', level: 'Manager', branch: 'legon', cat: 'Product', pri: 'Normal', title: 'Milo 400g shelf label shows the old price', ref: 'Milo 400g', desc: 'Labels printed this morning show GHS 45.00, the system price is GHS 48.00.', created: '26/10 09:15', status: 'resolved', log: [['Efua Sarpong', 'Reported the issue', '26/10 09:15', ''], ['Kofi Adom', 'Started review', '26/10 10:00', 'Efua Sarpong, Nana Ampofo, Adjoa Badu'], ['Kofi Adom', 'Resolved · labels reprinted from the new price list', '26/10 16:30', 'Efua Sarpong, Nana Ampofo, Adjoa Badu']] },
+      { id: 'T-1037', by: 'Abena Mensah', level: 'Supervisor', branch: 'adum', cat: 'Stock', pri: 'Normal', title: 'Transfer from Osu arrived 2 cartons short', ref: 'Transfer TR-0088', desc: 'Noodles transfer says 20 cartons, we counted 18 on arrival.', created: '25/10 12:40', status: 'open', log: [['Abena Mensah', 'Reported the issue', '25/10 12:40', '']] },
+      { id: 'T-1031', by: 'Adjoa Badu', level: 'Sales staff', branch: 'legon', cat: 'Other', pri: 'Low', title: 'Need training on hire purchase agreements', ref: '', desc: 'I would like a short session on setting up hire purchase at the till.', created: '20/10 15:00', status: 'closed', log: [['Adjoa Badu', 'Reported the issue', '20/10 15:00', ''], ['Kofi Adom', 'Resolved · training booked for 22/10', '21/10 09:00', 'Adjoa Badu, Efua Sarpong'], ['Adjoa Badu', 'Confirmed fixed and closed the ticket', '22/10 17:10', '']] }
+    ];
+    this.state = { role, tickets: Array.isArray(tickets) && tickets.length ? tickets : DEF, alerts, sel: selFlag || 'T-1042', filter: selFlag ? 'all' : 'active', newOpen: newFlag, form: { cat: role === 'superuser' ? 'New branch' : 'Sale', pri: 'Normal', title: '', ref: '', desc: '', file: '' }, err: '', comment: '' };
+    this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' });
+    this.onTickets = () => { try { this.setState({ tickets: JSON.parse(window.localStorage.getItem('ecompos.tickets') || '[]'), alerts: JSON.parse(window.localStorage.getItem('ecompos.ticketAlerts') || '[]') }); } catch (e) {} };
+    this.onNew = () => this.setState({ newOpen: true });
+  }
+  componentDidMount() { try { window.addEventListener('ecompos:role', this.onRole); window.addEventListener('ecompos:tickets', this.onTickets); window.addEventListener('ecompos:ticketNew', this.onNew); } catch (e) {} }
+  componentWillUnmount() { try { window.removeEventListener('ecompos:role', this.onRole); window.removeEventListener('ecompos:tickets', this.onTickets); window.removeEventListener('ecompos:ticketNew', this.onNew); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Tickets'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const PEOPLE = { superuser: ['Kofi Adom', 'Superuser', 'all'], manager: ['Ama Darko', 'Manager', 'osu'], supervisor: ['Kwame Asante', 'Supervisor', 'osu'], staff: ['Akua Kyei', 'Sales staff', 'osu'], developer: ['eComPOS Support', 'System developer', 'all'] };
+
+    let BRX = null; try { BRX = JSON.parse(window.localStorage.getItem('ecompos.branches') || 'null'); } catch (e) {}
+    const BRALL = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })((Array.isArray(BRX) && BRX.length ? BRX : [{ id: 'osu', name: 'Osu branch', city: 'Accra' }, { id: 'legon', name: 'East Legon branch', city: 'Accra' }, { id: 'adum', name: 'Adum branch', city: 'Kumasi' }]));
+    const brShort = b => String(b.name || '').replace(/\s*branch$/i, '');
+    const BRNEW = BRALL.filter(b => ['osu', 'legon', 'adum'].indexOf(b.id) < 0);
+    const BRN = { osu: 'Osu', legon: 'East Legon', adum: 'Adum', all: 'All branches' }; BRNEW.forEach(b => { BRN[b.id] = brShort(b); });
+    const TEAM = { osu: ['Ama Darko', 'Kwame Asante', 'Akua Kyei', 'Kwesi Ofori'], legon: ['Efua Sarpong', 'Nana Ampofo', 'Adjoa Badu'], adum: ['Yaw Boakye', 'Abena Mensah'] };
+    const rk = PEOPLE[S.role] ? S.role : 'superuser';
+    const me = { name: PEOPLE[rk][0], level: PEOPLE[rk][1], branch: PEOPLE[rk][2], branchName: BRN[PEOPLE[rk][2]] };
+    const isSu = rk === 'superuser';
+    const isDev = rk === 'developer';
+    const suOwn = t => !!t && (t.suRaised || t.by === me.name && isSu);
+    const handles = t => !!t && ((isSu && !suOwn(t)) || (isDev && (t.status === 'developer' || t.dev)));
+    const STA = { open: ['Open', '#6b6866', 'Waiting for the Admin to pick it up.', 0], review: ['Under review', '#0b5c5c', 'The Admin is looking into it. Everyone affected is kept updated.', 1], progress: ['In progress', '#000000', 'A fix is being worked on.', 2], waiting: ['Waiting for reporter', '#a8492a', 'The Admin needs more information from the reporter.', 2], developer: ['With system developer', '#0b5c5c', 'The Admin sent this technical problem to the system developer (eComPOS Support). You are alerted when it is fixed.', 2], resolved: ['Resolved', '#1f7a2a', 'Fixed by the Admin. The reporter confirms to close it.', 3], closed: ['Closed', '#3d3a38', 'Confirmed fixed by the reporter.', 4] };
+    const PRI = { Low: ['#1f7a2a', 'Reply within 3 days', '#e7f4e8', '🟢'], Normal: ['#0e7ac4', 'Reply within 1 day', '#e6f2fb', '🔵'], High: ['#c2410c', 'Reply within 4 hours', '#fff1e6', '🟠'], Urgent: ['#c62828', 'Reply within 1 hour · system down', '#fbeaea', '🔴'] };
+    const save = (tickets, alerts) => { try { window.localStorage.setItem('ecompos.tickets', JSON.stringify(tickets)); window.localStorage.setItem('ecompos.ticketAlerts', JSON.stringify(alerts)); window.dispatchEvent(new CustomEvent('ecompos:tickets', { detail: tickets })); } catch (e) {} set({ tickets, alerts }); };
+    const recipients = t => t.cat === 'System failure' ? 'everyone' : [t.by].concat((TEAM[t.branch] || []).filter(n => n !== t.by)).join(', ');
+    const visible = S.tickets.filter(t => isDev ? (t.status === 'developer' || t.dev) : (isSu || t.by === me.name));
+    const FIL = [['active', 'Active'], ['open', 'Open'], ['review', 'Under review'], ['progress', 'In progress'], ['resolved', 'Resolved'], ['closed', 'Closed'], ['all', 'All']];
+    const shown = visible.filter(t => S.filter === 'all' || (S.filter === 'active' ? ['open', 'review', 'progress', 'waiting', 'developer'].indexOf(t.status) >= 0 : (S.filter === 'progress' ? ['progress', 'waiting', 'developer'].indexOf(t.status) >= 0 : t.status === S.filter)));
+    const cur = visible.find(t => t.id === S.sel) || shown[0] || visible[0];
+    const myAlerts = S.alerts.filter(a => !a.read && a.ticket && (a.to === 'everyone' ? true : String(a.to).split(', ').indexOf(me.name) >= 0) && a.from !== me.name);
+    const push = (t, status, text) => {
+      const who = recipients(t);
+      const toDev = status === 'developer';
+      const tickets = S.tickets.map(x => x.id === t.id ? Object.assign({}, x, { status, dev: x.dev || toDev, log: x.log.concat([[me.name, text, 'Just now', status === 'closed' ? '' : (toDev ? 'eComPOS Support, ' + who : isDev ? 'Kofi Adom, ' + who : who)]]) }) : x);
+      const alerts = [{ ticket: t.id, from: me.name, to: toDev ? 'eComPOS Support, ' + who : isDev ? 'Kofi Adom, ' + who : isSu ? (status === 'closed' ? t.by : who) : (handles(t) ? who + ', Kofi Adom' : 'Kofi Adom'), text: t.id + ' · ' + STA[status][0] + ' · ' + t.title, when: 'Just now', read: false }].concat(S.alerts);
+      save(tickets, alerts);
+    };
+    const canHandle = handles(cur);
+    const steps = ['Reported', 'Under review', 'In progress', 'Resolved', 'Closed'];
+    const ci = cur ? STA[cur.status][3] : 0;
+    const setF = (k, v) => set({ form: Object.assign({}, S.form, { [k]: v }), err: '' });
+    const active = visible.filter(t => ['open', 'review', 'progress', 'waiting', 'developer'].indexOf(t.status) >= 0);
+    const nextId = 'T-' + (1043 + S.tickets.length - 5);
+    return {
+      isSu, me,
+      subLine: isDev ? 'Technical problems the Admin has sent to you. Reply, fix and return them to the Admin.' : isSu ? 'Tickets from your Manager, Supervisor and Sales staff come to you. Resolve them or forward them to eComPOS Support. Your own tickets go straight to eComPOS Support.' : 'Report a problem with a sale, a product, a payment or the system. It goes straight to the Admin and you can follow its progress here.',
+      listTitle: isDev ? 'Escalated to you' : isSu ? 'All tickets' : 'Your tickets',
+      hasAlerts: myAlerts.length > 0, alertTitle: myAlerts.length + (myAlerts.length === 1 ? ' ticket update for you' : ' ticket updates for you'),
+      alerts: myAlerts.slice(0, 4).map(a => ({ text: a.text, when: a.when, open: () => set({ sel: a.ticket, filter: 'all' }) })),
+      readAlerts: () => save(S.tickets, S.alerts.map(a => myAlerts.indexOf(a) >= 0 ? Object.assign({}, a, { read: true }) : a)),
+      kpis: [['Open tickets', String(active.length), '#ffffff', '#000000'], ['Under review', String(visible.filter(t => t.status === 'review').length), '#0b5c5c', '#ffffff'], ['Urgent', String(active.filter(t => t.pri === 'Urgent').length), '#c62828', '#ffffff'], ['Resolved this week', String(visible.filter(t => t.status === 'resolved' || t.status === 'closed').length), '#1f7a2a', '#ffffff']].map(k => ({ l: k[0], v: k[1], bg: k[2], fg: k[3] })),
+      filters: FIL.map(f => Object.assign({ label: f[1], pick: () => set({ filter: f[0] }) }, pill(S.filter === f[0]))),
+      list: shown.map(t => ({ id: t.id, cat: t.cat, branch: BRN[t.branch], title: t.title, by: t.by + ' · ' + t.created, status: STA[t.status][0], sbg: STA[t.status][1], pct: String((STA[t.status][3] + 1) * 20), pri: PRI[t.pri][3] + ' ' + t.pri, pc: PRI[t.pri][0], pbg: PRI[t.pri][2], bd: cur && t.id === cur.id ? '#000000' : '#ebebeb', pressed: cur && t.id === cur.id ? 'true' : 'false', pick: () => set({ sel: t.id, comment: '' }) })),
+      noneShown: shown.length === 0,
+      hasCur: !!cur, noCur: !cur,
+      cur: cur ? {
+        id: cur.id, cat: cur.cat, created: cur.created, age: cur.status === 'closed' ? 'closed' : 'response target: ' + PRI[cur.pri][1].toLowerCase(), title: cur.title, by: cur.by, level: cur.level, branch: BRN[cur.branch], pri: PRI[cur.pri][3] + ' ' + cur.pri, pc: PRI[cur.pri][0], desc: cur.desc,
+        status: STA[cur.status][0], sbg: STA[cur.status][1], statusNote: STA[cur.status][2],
+        steps: steps.map((s, i) => ({ label: s, bar: i <= ci ? STA[cur.status][1] : '#ebebeb', fw: i === ci ? '600' : '400', fg: i <= ci ? '#000000' : '#5f5c5a', current: i === ci ? 'step' : 'false' })),
+        facts: [['Related to', cur.ref || '—'], ['Branch', BRN[cur.branch]], ['Reported to', cur.dev ? 'Kofi Adom · Admin → eComPOS Support (developer)' : 'Kofi Adom · Admin'], ['Alerts go to', cur.cat === 'System failure' ? 'Everyone in the company' : recipients(cur)]].map(f => ({ l: f[0], v: f[1] })),
+        alertWho: cur.cat === 'System failure' ? 'everyone in the company' : 'the reporter and the ' + BRN[cur.branch] + ' team',
+        log: cur.log.map(l => ({ who: l[0], text: l[1], when: l[2], alerted: l[3] ? ' · alert sent to ' + l[3] : '', dot: l[0] === 'Kofi Adom' ? '#0b5c5c' : l[0] === 'eComPOS Support' ? '#1f7a2a' : '#000000' }))
+      } : {},
+      canHandle: canHandle,
+      handlerTitle: isDev ? 'System developer actions · eComPOS Support' : isSu ? 'Admin actions' : 'Actions',
+      handlerNote: cur && cur.status === 'resolved' ? 'Resolved. Close the issue once the fix is confirmed, or reopen it if the problem is back.' : cur && cur.status === 'closed' ? 'This issue is closed. Reopen it if the problem comes back.' : 'Every status change alerts ' + (cur ? (cur.cat === 'System failure' ? 'everyone in the company' : 'the reporter and the ' + BRN[cur.branch] + ' team') : '') + ' until the issue is resolved' + (isSu ? '.' : ', and the Admin is copied in.'),
+      suActions: cur && canHandle ? (isDev ? (cur.status === 'developer' ? [['developer', 'Reply: working on a fix', '#000000', 'Working on a fix in the backend'], ['resolved', 'Mark fixed · back to the Admin', '#1f7a2a', 'Fixed in the backend · returned to the Admin to close']] : []) : cur.status === 'resolved' ? [['closed', 'Close issue', '#1f7a2a', 'Closed the issue'], ['open', 'Reopen', '#c62828', 'Reopened the issue']] : cur.status === 'closed' ? [['open', 'Reopen', '#c62828', 'Reopened the issue']] : (isSu && !cur.dev ? [['developer', 'Forward to eComPOS Support (developer)', '#3d3a38', 'Forwarded to eComPOS Support (system developer) to resolve']] : []).concat([['review', cur.status === 'open' ? 'Open issue · start review' : 'Back to review', '#0b5c5c', 'Opened the issue and started review'], ['progress', 'Mark in progress', '#000000', 'Marked in progress'], ['waiting', 'Ask reporter for more', '#a8492a', 'Asked the reporter for more information'], ['resolved', 'Mark resolved', '#1f7a2a', 'Marked as resolved']]).filter(a => a[0] !== cur.status)).map(a => ({ label: a[1], bg: a[2], go: () => push(cur, a[0], a[3]) })) : [],
+      reporterCanConfirm: !!cur && !canHandle && cur.status === 'resolved' && cur.by === me.name,
+      confirmFixed: () => cur && push(cur, 'closed', 'Confirmed fixed and closed the ticket'),
+      reopen: () => cur && push(cur, 'open', 'Reopened · still not fixed'),
+      canComment: !!cur && cur.status !== 'closed' && (isSu || cur.by === me.name),
+      comment: S.comment, typeComment: e => set({ comment: e.target.value }),
+      addComment: () => { const c = (S.comment || '').trim(); if (!c || !cur) return; save(S.tickets.map(x => x.id === cur.id ? Object.assign({}, x, { log: x.log.concat([[me.name, c, 'Just now', isSu ? recipients(cur) : 'Kofi Adom']]) }) : x), S.alerts); set({ comment: '' }); },
+      canReport: !isDev, isDevView: isDev, reportLbl: isSu ? 'Raise a ticket to eComPOS Support' : 'Report an issue', ntTitle: isSu ? 'Raise a ticket to eComPOS Support (system developer)' : 'Report an issue to the Admin',
+      ...(() => { const c = S.form.cat; const H = { 'New company': ['Name of the new company', 'e.g. Ebenezer Hardware Ltd', 'Type of business and first branch town', 'e.g. Hardware · Tema', 'Tell us about the new company', 'Owner, whether it should be attached to ' + 'your current company, branches needed, start date'], 'New branch': ['Name of the new branch', 'e.g. Madina branch', 'Town and digital address', 'e.g. Madina, Accra · GA-123-4567', 'Tell us about the new branch', 'Opening date, number of tills, manager, opening stock'], 'Close a branch': ['Which branch should close?', 'e.g. East Legon branch', 'Close temporarily or permanently?', 'e.g. Temporarily from 1 Dec to 15 Jan', 'Why is the branch closing?', 'Reason, what to do with stock and staff'], 'Change business name': ['New business name', 'e.g. Ebenezer Unique Ventures Ltd', 'Registration or reference (optional)', 'e.g. Registrar General no.', 'Why the name is changing', 'Effective date and where it should change'], 'Licence & payment': ['What is it about?', 'e.g. Renew licence for 2027', 'Payment reference (optional)', 'e.g. MoMo ref 7QX21D', 'Details', 'Amount, period, any questions'] }[c];
+        return H && isSu ? { tLbl: H[0], tPh: H[1], rLbl: H[2], rPh: H[3], dLbl: H[4], dPh: H[5] } : { tLbl: 'Short title', tPh: 'e.g. Card payment declined but customer was charged', rLbl: 'Related sale, product or order (optional)', rPh: 'e.g. S-2610270121 or Milo 400g', dLbl: 'What happened? What did you expect?', dPh: 'Steps, error message, time it happened' }; })(),
+      ntFoot: isSu ? 'It goes straight to eComPOS Support. You get an alert each time the developer replies or updates the ticket.' : "Your branch, device, screen and the time are added for you. You'll get an alert each time the Admin updates the ticket.",
+      newOpen: S.newOpen && !isDev, openNew: () => { if (!isDev) set(Object.assign({ newOpen: true, err: '' }, isSu && ['New company', 'New branch', 'Close a branch', 'Change business name', 'Licence & payment', 'System failure', 'Other'].indexOf(S.form.cat) < 0 ? { form: Object.assign({}, S.form, { cat: 'New branch' }) } : {})); }, closeNew: () => set({ newOpen: false }),
+      form: S.form, typeTitle: e => setF('title', e.target.value), typeRef: e => setF('ref', e.target.value), typeDesc: e => setF('desc', e.target.value),
+      pickFile: e => { const f = e && e.target && e.target.files && e.target.files[0]; if (f) setF('file', f.name); },
+      fileLine: S.form.file ? 'Attached: ' + S.form.file : 'Optional · a photo of the error helps',
+      catOpts: (isSu ? ['New company', 'New branch', 'Close a branch', 'Change business name', 'Licence & payment', 'System failure', 'Other'] : ['Sale', 'Product', 'Payment', 'Stock', 'System failure', 'Hardware', 'Other']).map(c => Object.assign({ label: c, pick: () => setF('cat', c) }, pill(S.form.cat === c))),
+      priOpts: ['Low', 'Normal', 'High', 'Urgent'].map(p => { const on = S.form.pri === p; return { label: PRI[p][3] + ' ' + p, note: PRI[p][1], pick: () => setF('pri', p), pressed: on ? 'true' : 'false', bg: on ? PRI[p][0] : PRI[p][2], fg: on ? '#ffffff' : PRI[p][0], bd: PRI[p][0] }; }), priNow: PRI[S.form.pri] ? PRI[S.form.pri][3] + ' ' + S.form.pri + ' · ' + PRI[S.form.pri][1] : '', priNowC: PRI[S.form.pri] ? PRI[S.form.pri][0] : '#000000', priNowBg: PRI[S.form.pri] ? PRI[S.form.pri][2] : '#ffffff',
+      hasErr: !!S.err, err: S.err,
+      submit: () => { if (isDev) return;
+        const ti = (S.form.title || '').trim();
+        if (!ti || !(S.form.desc || '').trim()) { set({ err: 'Add a short title and say what happened.' }); return; }
+        const t = { id: nextId, by: me.name, level: me.level, branch: me.branch === 'all' ? 'osu' : me.branch, cat: S.form.cat, pri: S.form.pri, title: (isSu && ['New company', 'New branch', 'Close a branch', 'Change business name'].indexOf(S.form.cat) >= 0 ? S.form.cat + ': ' : '') + ti, ref: S.form.ref.trim(), desc: S.form.desc.trim() + (S.form.file ? ' · Attachment: ' + S.form.file : ''), created: 'Just now', status: isSu ? 'developer' : 'open', dev: isSu ? true : undefined, suRaised: isSu ? true : undefined, log: [[me.name, isSu ? 'Raised the ticket to eComPOS Support' : 'Reported the issue', 'Just now', isSu ? 'eComPOS Support' : 'Kofi Adom']] };
+        if (isSu && S.form.cat === 'New branch') { try { const RQ = JSON.parse(window.localStorage.getItem('ecompos.branchRequests') || '[]') || []; RQ.unshift({ id: 'BR-' + String(Date.now()).slice(-5), name: ti, city: String(S.form.ref || '').split(/[,·]/)[0].trim(), note: S.form.desc.trim() + ' · ticket ' + t.id, when: new Date().toLocaleDateString('en-GB'), status: 'open', ticket: t.id }); window.localStorage.setItem('ecompos.branchRequests', JSON.stringify(RQ)); } catch (e) {} }
+        const alerts = [{ ticket: t.id, from: me.name, to: isSu ? 'eComPOS Support' : 'Kofi Adom', text: 'New ' + t.pri.toLowerCase() + ' ticket ' + t.id + ' from ' + me.name + ' · ' + t.title, when: 'Just now', read: false }].concat(S.alerts);
+        save([t].concat(S.tickets), alerts);
+        set({ newOpen: false, sel: t.id, filter: 'active', form: { cat: isSu ? 'New branch' : 'Sale', pri: 'Normal', title: '', ref: '', desc: '', file: '' } });
+      },
+      ids: ['Report to the Admin', 'Sale, product, payment, stock, system issues', 'Priority & response targets', 'Progress tracker', 'Status alerts to everyone affected', 'Comments & attachments', 'Reporter confirms the fix', 'Supervisor opens & handles branch issues', 'Close issue when resolved', 'Escalate to system developer', 'Branch & role visibility'].map(t => ({ t }))
+    };
+  }
+}
+</script>
+</body>
+</html>
+

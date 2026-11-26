@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="settings" hint-size="232px,960px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="settings" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Settings</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{bizName}} · business account on eComPOS</p>
+<p style="margin: 4px 0 0; font-size: 13px; color: #3d3a38; display: flex; gap: 6px; align-items: center"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>IT management (integrations, API keys, payment gateways, devices and offline sync) and creating new branches are handled by eComPOS Support.</p>
+</div>
+<div role="tablist" aria-label="Settings sections" style="display: flex; gap: 4px; padding: 4px; border-radius: 9999px; background: #ffffff; box-shadow: rgba(0, 0, 0, 0.06) 0 2px 8px 0; flex-wrap: wrap; align-self: flex-start">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="7">
+<button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; font-size: 14px; padding: 10px 16px; min-height: 42px; border-radius: 9999px; border: 0; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}">{{t.label}}</button>
+</sc-for>
+</div>
+</header>
+
+<sc-if value="{{isCompany}}" hint-placeholder-val="{{true}}">
+<sc-if value="{{cp.firstSetup}}" hint-placeholder-val="{{false}}"><div role="status" style="padding: 14px 18px; border-radius: 20px; background: #e7f2f2; border: 1.5px solid #0b5c5c; font-size: 14px">Welcome to eComPOS. Start by adding your business name and logo. They appear on Sell Now, on receipts and in your online store.</div></sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<div aria-labelledby="cp-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 16px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px; flex: 1 1 380px; min-width: 0" role="form">
+<div style="display: flex; flex-direction: column; gap: 4px"><h2 id="cp-h" style="margin: 0; font-size: 20px; font-weight: 600">Manage company</h2><span style="font-size: 13px; color: #5f5c5a">{{cp.who}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="cp-name" style="font-size: 13px; color: #5f5c5a">Business name · shown as the shop name online and on Sell Now · 🔒 only eComPOS Support can change it</label><input id="cp-name" type="text" maxlength="40" value="{{cp.nameVal}}" onInput="{{cpTypeName}}" disabled="{{true}}" readonly title="Only eComPOS Support (the system developer) can change the business name" placeholder="e.g. Ebenezer Unique Ventures" style="font: inherit; font-size: 15px; padding: 12px 16px; border-radius: 9999px; border: 1px solid #cccccc; background: #ffffff; min-width: 0; width: 100%; box-sizing: border-box"></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; color: #5f5c5a">Business logo · PNG, JPG, SVG or WebP · up to 2 MB · square works best</span>
+<div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap"><span aria-hidden="true" style="width: 88px; height: 88px; flex: none; border-radius: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: {{cp.boxBg}}; color: #ffffff; font-weight: 700; font-size: 33px"><sc-if value="{{cp.hasLogo}}" hint-placeholder-val="{{false}}"><img src="{{cp.logo}}" alt="" style="width: 100%; height: 100%; object-fit: contain; background: #ffffff"></sc-if><sc-if value="{{cp.noLogo}}" hint-placeholder-val="{{true}}">{{cp.ini}}</sc-if></span>
+<div style="display: flex; flex-direction: column; gap: 8px"><sc-if value="{{cp.canEdit}}" hint-placeholder-val="{{true}}"><label style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; cursor: pointer; position: relative; display: inline-flex; align-items: center; gap: 8px; overflow: hidden"><input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange="{{cpPickLogo}}" aria-label="Upload business logo" style="position: absolute; inset: 0; opacity: 0; cursor: pointer"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"></path><path d="M7 9l5-5 5 5"></path><path d="M5 20h14"></path></svg>{{cp.upLabel}}</label><sc-if value="{{cp.hasLogo}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{cpRemoveLogo}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; cursor: pointer; color: #c62828; border-color: #c62828">Remove logo</button></sc-if></sc-if></div></div>
+<sc-if value="{{cp.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{cp.err}}</span></sc-if>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 18px; border: 1px solid #ebebeb">
+<div style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 15px; font-weight: 600">Business details</strong><span style="font-size: 12.5px; color: #5f5c5a">Printed on reports, invoices and statements. {{bi.who}}</span></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px"><sc-for list="{{bi.fields}}" as="f" hint-placeholder-count="10"><label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">{{f.label}}<input type="{{f.type}}" value="{{f.v}}" onInput="{{f.in}}" disabled="{{bi.ro}}" placeholder="{{f.ph}}" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9; background: {{bi.inBg}}"></label></sc-for></div>
+<sc-if value="{{bi.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{bi.err}}</span></sc-if>
+<sc-if value="{{bi.saved}}" hint-placeholder-val="{{false}}"><span role="status" style="font-size: 13px; color: #1f7a2a">Business details saved. Reports now print them.</span></sc-if>
+<sc-if value="{{bi.canEdit}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{bi.save}}" style="align-self: flex-start; font-family: inherit; font-size: 14px; font-weight: 500; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Save business details</button></sc-if>
+</div>
+<sc-if value="{{cp.canEdit}}" hint-placeholder-val="{{true}}"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"><button type="button" onClick="{{cpSave}}" disabled="{{cp.clean}}" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Save company details</button><sc-if value="{{cp.dirty}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{cpDiscard}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; cursor: pointer">Discard changes</button></sc-if><sc-if value="{{cp.saved}}" hint-placeholder-val="{{false}}"><span role="status" style="font-size: 13px; color: #1f7a2a; font-weight: 500">✓ Saved · Sell Now and the online store are updated</span></sc-if></div></sc-if>
+<sc-if value="{{cp.locked}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 8px; align-items: center; font-size: 13px; color: #5f5c5a; padding: 10px 14px; border-radius: 14px; background: #f2f4f5"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Only the Admin can change the business name and logo.</div></sc-if>
+</div>
+<section aria-label="Preview" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 16px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px; flex: 1 1 340px; min-width: 0">
+<strong style="font-size: 15px; font-weight: 600">Preview{{cp.previewNote}}</strong>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #5f5c5a">Sell Now (POS) header</span><div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; border: 1px solid #ebebeb; background: #ffffff"><span aria-hidden="true" style="width: 32px; height: 32px; flex: none; border-radius: 9px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: {{cp.boxBg}}; color: #ffffff; font-weight: 700; font-size: 12px"><sc-if value="{{cp.hasLogo}}" hint-placeholder-val="{{false}}"><img src="{{cp.logo}}" alt="" style="width: 100%; height: 100%; object-fit: contain; background: #ffffff"></sc-if><sc-if value="{{cp.noLogo}}" hint-placeholder-val="{{true}}">{{cp.ini}}</sc-if></span><strong style="font-size: 17px; font-weight: 600; letter-spacing: -0.03em">{{cp.name}}</strong><span style="font-size: 12px; color: #5f5c5a">· Osu · Till 1</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #5f5c5a">Online store header</span><div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: #000000; color: #ffffff"><span aria-hidden="true" style="width: 32px; height: 32px; flex: none; border-radius: 9px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: {{cp.boxBg}}; color: #ffffff; font-weight: 700; font-size: 12px"><sc-if value="{{cp.hasLogo}}" hint-placeholder-val="{{false}}"><img src="{{cp.logo}}" alt="" style="width: 100%; height: 100%; object-fit: contain; background: #ffffff"></sc-if><sc-if value="{{cp.noLogo}}" hint-placeholder-val="{{true}}">{{cp.ini}}</sc-if></span><strong style="font-size: 18px; font-weight: 600; letter-spacing: -0.04em">{{cp.name}}</strong><span style="margin-left: auto; font-size: 12px; opacity: 0.7">Shop · About us · Contact</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #5f5c5a">Receipt</span><div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px; border-radius: 14px; border: 1px dashed #cccccc; font-family: ui-monospace, Menlo, monospace; font-size: 12px"><span aria-hidden="true" style="width: 40px; height: 40px; flex: none; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: {{cp.boxBg}}; color: #ffffff; font-weight: 700; font-size: 15px"><sc-if value="{{cp.hasLogo}}" hint-placeholder-val="{{false}}"><img src="{{cp.logo}}" alt="" style="width: 100%; height: 100%; object-fit: contain; background: #ffffff"></sc-if><sc-if value="{{cp.noLogo}}" hint-placeholder-val="{{true}}">{{cp.ini}}</sc-if></span><strong style="font-size: 14px">{{cp.name}} · Osu</strong><span>Receipt S-2610280001</span></div></div>
+</section>
+</div>
+</sc-if>
+<sc-if value="{{isBusiness}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="ob-h" style="background: #000000; color: #ffffff; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center"><h2 id="ob-h" style="margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.04em">Getting started · {{obDone}} of 6 done</h2><span style="font-size: 13px; color: #c9c6c4">Takes about 20 minutes</span></div>
+<div aria-hidden="true" style="height: 8px; border-radius: 9999px; background: #332f2d"><div style="width: {{obPct}}%; height: 100%; border-radius: 9999px; background: #ffffff"></div></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px">
+<sc-for list="{{onboarding}}" as="o" hint-placeholder-count="6">
+<button type="button" onClick="{{o.toggle}}" aria-pressed="{{o.pressed}}" style="font-family: inherit; text-align: left; display: flex; align-items: center; gap: 10px; padding: 12px 14px; min-height: 48px; border-radius: 16px; border: 1px solid #332f2d; background: {{o.bg}}; color: {{o.fg}}; cursor: pointer; font-size: 14px"><span aria-hidden="true" style="width: 20px; height: 20px; border-radius: 9999px; border: 2px solid {{o.fg}}; display: flex; align-items: center; justify-content: center; font-size: 12px; flex: none">{{o.mark}}</span>{{o.label}}</button>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{isBranches}}" hint-placeholder-val="{{false}}">
+<section aria-label="Branches" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px">
+<sc-for list="{{branches}}" as="b" hint-placeholder-count="3">
+<div style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<strong style="font-size: 17px; font-weight: 600">{{b.name}}</strong><span>{{b.addr}}</span><span style="color: #5f5c5a">{{b.detail}}</span>
+</div>
+</sc-for>
+<a href="Branches.dc.html" style="display: flex; align-items: center; justify-content: center; text-align: center; padding: 16px; border-radius: 24px; border: 1px dashed #cccccc; background: transparent; min-height: 120px; font-size: 15px; text-decoration: none; color: #000000">Request a new branch</a>
+</section>
+</sc-if>
+
+<sc-if value="{{isPlan}}" hint-placeholder-val="{{false}}">
+<section aria-label="Plans" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px">
+<sc-for list="{{plans}}" as="p" hint-placeholder-count="3">
+<div style="background: {{p.bg}}; color: {{p.fg}}; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<span style="font-size: 13px; opacity: 0.8">{{p.tag}}</span>
+<strong style="font-size: 24px; font-weight: 500; letter-spacing: -0.05em">{{p.name}}</strong>
+<span style="font-size: 15px">{{p.price}}</span>
+<span style="font-size: 13px; opacity: 0.85">{{p.inc}}</span>
+<button type="button" onClick="{{p.pick}}" style="font-family: inherit; margin-top: auto; font-size: 14px; padding: 11px; min-height: 44px; border-radius: 9999px; cursor: pointer; border: 1px solid {{p.fg}}; background: transparent; color: {{p.fg}}">{{p.btn}}</button>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{notCompany}}" hint-placeholder-val="{{false}}"><section aria-label="{{tabLabel}}" style="background: #ffffff; border-radius: 24px; padding: 8px 22px; display: flex; flex-direction: column; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<div style="display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid #ebebeb; flex-wrap: wrap">
+<span style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 500">{{r.title}}</span><span style="font-size: 13px; color: #5f5c5a">{{r.detail}}</span></span>
+<span style="font-size: 11px; color: #5f5c5a; padding: 3px 8px; border-radius: 9999px; border: 1px solid #ebebeb">{{r.id}}</span>
+<sc-if value="{{r.isSwitch}}" hint-placeholder-val="{{false}}">
+<button type="button" role="switch" aria-checked="{{r.on}}" aria-label="{{r.title}}" onClick="{{r.toggle}}" style="width: 44px; height: 26px; border-radius: 9999px; border: 0; padding: 3px; cursor: pointer; background: {{r.track}}; display: flex; justify-content: {{r.just}}"><span style="width: 20px; height: 20px; border-radius: 9999px; background: #ffffff"></span></button>
+</sc-if>
+<sc-if value="{{r.isButton}}" hint-placeholder-val="{{false}}">
+<button type="button" onClick="{{r.press}}" style="font-family: inherit; font-size: 13px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; border: 1px solid {{r.bd}}; background: {{r.bg}}; color: {{r.fg}}">{{r.btn}}</button>
+</sc-if>
+<sc-if value="{{r.isStatus}}" hint-placeholder-val="{{false}}">
+<span style="font-size: 13px; padding: 7px 12px; border-radius: 9999px; background: #f2f4f5">{{r.status}}</span>
+</sc-if>
+</div>
+</sc-for>
+</section></sc-if>
+
+<sc-if value="{{pmOpen}}" hint-placeholder-val="{{false}}">
+<div style="position: fixed; inset: 0; z-index: 130; background: rgba(0, 0, 0, 0.5); display: flex; align-items: flex-start; justify-content: center; padding: 80px 16px; box-sizing: border-box; overflow-y: auto; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000">
+<div role="dialog" aria-modal="true" aria-labelledby="pm-h" style="width: 100%; max-width: 440px; box-sizing: border-box; background: #ffffff; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.3) 0 16px 48px 0">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px"><div style="display: flex; gap: 12px; align-items: center"><span aria-hidden="true" style="flex: none; width: 44px; height: 44px; border-radius: 9999px; background: {{pmV.ibg}}; color: #ffffff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{pmV.icon}}</span><h2 id="pm-h" style="margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.03em">{{pmV.title}}</h2></div><button type="button" onClick="{{pmClose}}" aria-label="Close" style="flex: none; width: 38px; height: 38px; border-radius: 9999px; border: 0; background: #c62828; color: #ffffff; font-size: 18px; line-height: 1; cursor: pointer">×</button></div>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #3d3a38">{{pmV.body}}</p>
+<sc-if value="{{pmV.isAsk}}" hint-placeholder-val="{{false}}"><div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap"><button type="button" onClick="{{pmClose}}" style="font-family: inherit; font-size: 14px; padding: 11px 18px; min-height: 44px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #000000; cursor: pointer">Cancel</button><button type="button" onClick="{{pmGo}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 20px; min-height: 44px; border-radius: 9999px; border: 0; background: {{pmV.cbg}}; color: #ffffff; cursor: pointer">{{pmV.cta}}</button></div></sc-if>
+<sc-if value="{{pmV.isOk}}" hint-placeholder-val="{{true}}"><div style="display: flex; justify-content: flex-end"><button type="button" onClick="{{pmClose}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 24px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Done</button></div></sc-if>
+</div></div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) { super(props); this.onBrAll = () => this.setState({ brAllTick: Date.now() }); this.state = { tab: 'company', sw: {}, pressed: {}, ob: { 1: true, 2: true, 3: true }, plan: 'Growth' }; let biz0 = { name: 'Ebenezer Unique Ventures', logo: '' }; try { biz0 = Object.assign(biz0, JSON.parse(String(window.localStorage.getItem('ecompos.biz') || '').replace('"name":"Adom' + ' Mart"', '"name":"Ebenezer Unique Ventures"') || '{}') || {}); } catch (e) {} let setDone = false; try { setDone = !!window.localStorage.getItem('ecompos.biz'); } catch (e) {} this.state.biz = biz0; this.state.cpName = biz0.name; this.state.cpLogo = biz0.logo; this.state.setDone = setDone; let role = 'superuser'; try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {} this.state.role = role; this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' }); }
+  componentDidMount() { try { window.addEventListener('ecompos:branches', this.onBrAll); window.addEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  componentWillUnmount() { try { window.removeEventListener('ecompos:branches', this.onBrAll); window.removeEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Settings'); }
+  renderValsH() {
+    const DEFBIZ = { addr: '12 Oxford Street, Osu', city: 'Accra, Greater Accra', gps: 'GA-123-4567', phone: '+233 30 000 1111', mobile: '+233 24 400 0111', email: 'info@ebenezerunique.com.gh', web: 'www.ebenezerunique.com.gh', tin: 'C0001234567', vat: 'VAT reg. 714-0029-11', reg: 'CS-112233-2019', box: 'P.O. Box OS 2241, Osu' };
+    const S = this.state;
+    const pmSet = pm => this.setState({ pm });
+    const pmOk = (title, body) => ({ kind: 'ok', title, body });
+    const set = o => this.setState(o);
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const TABS = [['company', 'Manage company'], ['business', 'Business'], ['branches', 'Branches'], ['store', 'Online store'], ['plan', 'Plan & billing'], ['legal', 'Privacy & legal']];
+    const tabs = TABS.map(t => Object.assign({ label: t[1], pick: () => set({ tab: t[0] }) }, pill(S.tab === t[0])));
+    const R = {
+      business: [
+        ['PF-05', 'Currency', 'Base GHS · also show GBP and USD to diaspora shoppers', 'status', 'GHS · GBP · USD'],
+        ['PF-06', 'Formats', 'Dates 27/10/2026 · phone +233 · addresses with GhanaPostGPS', 'status', 'Ghana'],
+        ['PF-11', 'Language', 'English for all staff; French and Swahili available for other branches', 'status', 'English'],
+        ['PF-12', 'Your other businesses', 'Adom Café (East Legon) under the same login', 'button', 'Switch business'],
+        ['PF-13', 'Data location', 'Hosted in the EU; Africa-region hosting available on Pro', 'status', 'EU (Ireland)'],
+        ['PF-14', 'Import & export', 'Products, customers, stock and orders as CSV or Excel', 'button', 'Export everything'],
+        ['PF-10', 'Backups', 'Daily backups kept 35 days; restore to any point', 'status', 'Last: 03:00 today'],
+        ['PF-15', 'System status', 'status.ecompos.app · 99.9% uptime target', 'status', 'All systems normal'],
+        ['PF-16', 'Test mode', 'Practise sales and payments without touching live data', 'switch', false],
+        ['PF-18', 'Low-data admin', 'Lighter pages for 3G and older phones', 'switch', true],
+        ['PF-17', 'Reseller / white-label', 'For agencies that set eComPOS up for clients', 'button', 'Apply']
+      ],
+      branches: [
+        ['PF-04', 'Registers', '5 tills across 3 branches · each with its own cash drawer and Z-report', 'status', '5 tills'],
+        ['PF-04', 'Warehouses', 'Back store at Adum used for wholesale stock', 'status', '1 warehouse']
+      ],
+      store: [
+        ['WS-07', 'Domain', 'ebenezerunique.com.gh · free address ebenezerunique.ecompos.app · SSL on', 'status', 'Connected'],
+        ['WS-01', 'Theme', 'Marble · rounded cards, one accent colour', 'button', 'Customise theme'],
+        ['WS-02', 'Pages', 'Home, About, Branches, Contact, FAQs · drag-and-drop editor', 'button', 'Edit pages'],
+        ['WS-11', 'SEO', 'Titles, descriptions, sitemap and redirects', 'button', 'Review SEO'],
+        ['WS-17', 'Store languages', 'English · add French for West African buyers', 'switch', false],
+        ['WS-20', 'Blog / news', '4 posts · recipes and new arrivals', 'switch', true],
+        ['WS-22', 'Install as an app', 'Shoppers can add the store to their Android home screen', 'switch', true],
+        ['WS-23', 'Bookings', 'Let customers book services such as bulk-order consultations', 'switch', false],
+        ['WS-25', 'Trade portal', 'Wholesale customers log in for trade prices and credit terms', 'switch', true],
+        ['WS-24', 'Theme code', 'For developers: edit templates directly', 'button', 'Open code editor'],
+        ['LG-06', 'Cookie banner', 'Asks before analytics and advertising cookies', 'switch', true]
+      ],
+      plan: [
+        ['PF-08', 'Pay eComPOS in cedis', 'Monthly bill by MTN MoMo, Telecel Cash or card', 'status', 'MoMo · next bill 1 Nov'],
+        ['PF-07', 'Invoices', 'Download monthly invoices for your records', 'button', 'View invoices']
+      ],
+      integrations: [
+        ['IG-01', 'API keys', 'Live key ek_live_••••••3f9a · scoped to products, orders, stock', 'button', 'Create key'],
+        ['IG-02', 'Webhooks', '2 endpoints · order.paid, stock.changed', 'button', 'Manage'],
+        ['IG-03', 'Accounting', 'Xero, QuickBooks or Sage · sales, tax, payouts and fees', 'button', 'Connect'],
+        ['IG-04', 'Built-in bookkeeping', 'Simple cash book and profit view for shops without an accountant', 'switch', true],
+        ['IG-05', 'Expenses at the till', 'Record fuel, rent, electricity and generator diesel', 'switch', true],
+        ['IG-09', 'Move from another system', 'Import from Shopify, WooCommerce, Square, Lightspeed or a spreadsheet', 'button', 'Start import'],
+        ['IG-07', 'Zapier / Make', 'No-code automations', 'button', 'Connect'],
+        ['IG-06', 'App marketplace', 'Add-ons built by partners', 'button', 'Browse apps'],
+        ['IG-08', 'HR system', 'Share staff records, roles and hours', 'switch', true],
+        ['IG-10', 'GraphQL & headless', 'Use eComPOS as the backend for a custom site or mobile app', 'status', 'Pro plan']
+      ],
+      hardware: [
+        ['HW-01', 'Receipt printers', '3 thermal printers (80 mm network, 58 mm Bluetooth)', 'button', 'Print test'],
+        ['HW-02', 'Barcode scanners', 'USB and Bluetooth scanners plus phone camera', 'status', '4 connected'],
+        ['HW-03', 'Cash drawers', 'Opened by the printer', 'status', '5 connected'],
+        ['HW-07', 'Label printers', 'Xprinter at Osu', 'status', '1 connected'],
+        ['HW-08', 'Weighing scale', 'For loose rice and gari sold by weight', 'button', 'Pair scale'],
+        ['HW-09', 'Customer display & kitchen printer', 'Second screen at Osu Till 1', 'status', 'On'],
+        ['HW-04', 'Offline selling', 'Tills keep a local copy and sync when back online', 'status', 'All tills synced'],
+        ['HW-06', 'Save mobile data', 'Compress and batch syncing on mobile data', 'switch', true],
+        ['HW-11', 'Power-cut protection', 'Warn on low battery; save the sale instantly if power fails', 'switch', true],
+        ['HW-05', 'Supported devices', 'Android 9+ phones and tablets (2 GB RAM), iPad, Windows, web', 'status', 'Checked'],
+        ['HW-10', 'Recommended kits', 'Bundles from Accra suppliers and UK/US suppliers', 'button', 'See kits']
+      ],
+      legal: [
+        ['LG-04', 'Ghana Data Protection Commission', 'eComPOS is registered; your business registers as data controller', 'button', 'How to register'],
+        ['LG-01', 'UK / EU GDPR', 'Data processing agreement, access and erasure tools', 'status', 'DPA signed'],
+        ['LG-02', 'US state privacy', '“Do not sell or share” control for US stores', 'switch', false],
+        ['LG-03', 'Canada PIPEDA & CASL', 'Express consent recorded for every marketing message', 'status', 'On'],
+        ['LG-05', 'Nigeria & Kenya data laws', 'Ready for NDPA and Kenya DPA when you open there', 'status', 'Ready'],
+        ['LG-07', 'Accessibility', 'Store themes and checkout meet WCAG 2.2 AA', 'status', 'Passing'],
+        ['LG-08', 'Returns window', 'UK stores 14 days by law; Ghana stores set your own', 'status', '7 days'],
+        ['LG-09', 'Card security', 'Cards handled by PCI DSS certified gateways only', 'status', 'Compliant'],
+        ['LG-11', 'Record keeping', 'Sales and tax records kept 6 years', 'status', '6 years'],
+        ['PF-09', 'Audit log', 'Every price change, refund, stock adjustment and setting change', 'button', 'Open audit log'],
+        ['LG-12', 'Security testing', 'Annual penetration test · report on request', 'button', 'Request report'],
+        ['LG-10', 'Terms & policies', 'eComPOS terms of service and privacy policy', 'button', 'Read']
+      ]
+    };
+    const rows = (R[S.tab] || []).map((r, k) => {
+      const key = S.tab + k;
+      const on = S.sw[key] === undefined ? r[4] : S.sw[key];
+      const done = !!S.pressed[key];
+      return {
+        id: r[0], title: r[1], detail: r[2], isSwitch: r[3] === 'switch', isButton: r[3] === 'button', isStatus: r[3] === 'status', status: r[3] === 'status' ? r[4] : '',
+        on: on ? 'true' : 'false', track: on ? '#000000' : '#cccccc', just: on ? 'flex-end' : 'flex-start', toggle: () => set({ sw: Object.assign({}, S.sw, { [key]: !on }) }),
+        btn: done ? 'Done' : (r[3] === 'button' ? r[4] : ''), bg: done ? '#000000' : '#ffffff', fg: done ? '#ffffff' : '#000000', bd: done ? '#000000' : '#ebebeb',
+        press: () => set({ pressed: Object.assign({}, S.pressed, { [key]: true }) })
+      };
+    });
+    const OB = ['Business details & logo', 'Currency, tax and E-VAT', 'First products added', 'Branches and tills', 'Connect Paystack or Hubtel', 'Invite your staff'];
+    const onboarding = OB.map((o, k) => { const d = k === 0 ? !!S.setDone : !!S.ob[k]; return { label: o, mark: d ? '✓' : '', pressed: d ? 'true' : 'false', bg: d ? '#ffffff' : 'transparent', fg: d ? '#000000' : '#ffffff', toggle: () => { if (k === 0) set({ tab: 'company' }); else set({ ob: Object.assign({}, S.ob, { [k]: !d }) }); } }; });
+    const obDone = OB.filter((o, k) => S.ob[k]).length;
+
+    let BRX = null; try { BRX = JSON.parse(window.localStorage.getItem('ecompos.branches') || 'null'); } catch (e) {}
+    const BRALL = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })((Array.isArray(BRX) && BRX.length ? BRX : [{ id: 'osu', name: 'Osu branch', city: 'Accra' }, { id: 'legon', name: 'East Legon branch', city: 'Accra' }, { id: 'adum', name: 'Adum branch', city: 'Kumasi' }]));
+    const brShort = b => String(b.name || '').replace(/\s*branch$/i, '');
+    const BRNEW = BRALL.filter(b => ['osu', 'legon', 'adum'].indexOf(b.id) < 0);
+    const BDET = { osu: { name: 'Osu · Accra', addr: '12 Oxford Street · GA-123-4567', detail: '2 tills · opens 7:30 · manager Ama Darko' }, legon: { name: 'East Legon · Accra', addr: 'Lagos Avenue · GA-492-0010', detail: '2 tills · opens 8:00 · manager Efua Sarpong' }, adum: { name: 'Adum · Kumasi', addr: 'Prempeh II Street · AK-039-0101', detail: '1 till + wholesale back store · opens 7:00' } };
+    const branches = BRALL.map(b => BDET[b.id] || { name: brShort(b) + ' · ' + (b.city || ''), addr: (b.addr || '[Address]') + (b.phone ? ' · ' + b.phone : ''), detail: (b.tills || 0) + ' till' + ((b.tills || 0) === 1 ? '' : 's') + ' · opens ' + (b.opened || 'soon') + ' · created by eComPOS Support' });
+    const P = [['Starter', 'One shop', '[GHS price] / month', 'POS, online shop, MoMo, E-VAT, 1 branch'], ['Growth', 'Most popular', '[GHS price] / month', 'Up to 5 branches, wholesale pricing, WhatsApp, reports'], ['Pro', 'Chains & add-ons', '[GHS price] / month', 'Unlimited branches, API, hospitality, payroll, Africa hosting']];
+    const plans = P.map(p => { const on = S.plan === p[0]; return { name: p[0], tag: on ? 'Your plan' : p[1], price: p[2], inc: p[3], bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', btn: on ? 'Current plan' : 'Switch to ' + p[0], pick: () => set({ plan: p[0] }) }; });
+    const extra = { company: ['PF-01', 'PF-02'], business: ['PF-01', 'PF-02', 'PF-03'], branches: ['PF-04'], store: [], plan: ['PF-07', 'PF-08'], integrations: ['IG-11'], hardware: [], legal: [] }[S.tab];
+    const ids = extra.concat((R[S.tab] || []).map(r => r[0])).filter((v, i, a) => a.indexOf(v) === i).map(t => ({ t }));
+    const PMCF = () => ({});
+
+    const pmApply = r => {
+      const C = (typeof PMCF === 'function' ? PMCF() : {}) || {};
+      Object.keys(C).forEach(k => { const orig = r[k]; const c = C[k]; if (typeof orig !== 'function' || !c) return;
+        r[k] = (...a) => { if (c.ask) pmSet({ kind: 'ask', title: c.title, body: c.body, cta: c.cta || 'Confirm', danger: !!c.danger, act: () => { orig(...a); if (c.done) setTimeout(() => pmSet(pmOk(c.done[0], c.done[1])), 0); } }); else { orig(...a); pmSet(pmOk(c.title, c.body)); } }; });
+      const pm = this.state.pm;
+      return Object.assign(r, { pmOpen: !!pm, pmV: pm ? { title: pm.title, body: pm.body || '', isAsk: pm.kind === 'ask', isOk: pm.kind !== 'ask', cta: pm.cta || 'Confirm', cbg: pm.danger ? '#c62828' : '#0b5c5c', ibg: pm.kind === 'ask' ? (pm.danger ? '#c62828' : '#0b5c5c') : '#1f7a2a', icon: pm.kind === 'ask' ? (pm.danger ? '!' : '?') : '✓' } : { title: '', body: '', isAsk: false, isOk: true, cta: '', cbg: '#0b5c5c', ibg: '#1f7a2a', icon: '' },
+        pmClose: () => pmSet(null), pmGo: () => { const act = pm && pm.act; pmSet(null); if (act) act(); } });
+    };
+    const __r = {
+      tabs, rows, onboarding, obDone: String(obDone), obPct: Math.round(obDone / 6 * 100), branches, plans, ids,
+      tabLabel: TABS.find(t => t[0] === S.tab)[1],
+      bizName: (S.biz || {}).name || 'Ebenezer Unique Ventures', isCompany: S.tab === 'company', notCompany: S.tab !== 'company',
+      bi: (() => { const su = (S.role || 'superuser') === 'superuser'; let saved0 = {}; try { saved0 = JSON.parse(window.localStorage.getItem('ecompos.bizInfo') || 'null') || DEFBIZ; } catch (e) { saved0 = DEFBIZ; } const cur = Object.assign({}, saved0, S.biDraft || {});
+        const F = [['addr', 'Street address', 'text', '12 Oxford Street, Osu'], ['city', 'Town / city and region', 'text', 'Accra, Greater Accra'], ['gps', 'Digital address (GhanaPost GPS)', 'text', 'GA-123-4567'], ['box', 'Postal address', 'text', 'P.O. Box OS 2241'], ['phone', 'Telephone', 'tel', '+233 30 000 1111'], ['mobile', 'Mobile / WhatsApp', 'tel', '+233 24 400 0111'], ['email', 'Email', 'email', 'info@yourbusiness.com.gh'], ['web', 'Website', 'text', 'www.yourbusiness.com.gh'], ['tin', 'TIN (GRA)', 'text', 'C0001234567'], ['vat', 'VAT registration', 'text', 'VAT reg. 714-0029-11'], ['reg', 'Business registration no.', 'text', 'CS-112233-2019']];
+        return { who: su ? 'Only you can change them.' : 'Read only · managed by the Admin.', canEdit: su, ro: !su, inBg: su ? '#ffffff' : '#f6f7f8', hasErr: !!S.biErr, err: S.biErr || '', saved: !!S.biSaved && !S.biDraft,
+          fields: F.map(f => ({ label: f[1], type: f[2], ph: f[3], v: cur[f[0]] || '', in: e => set({ biDraft: Object.assign({}, S.biDraft || {}, { [f[0]]: e.target.value }), biErr: '', biSaved: false }) })),
+          save: () => { if (!su) return; const nxt = Object.assign({}, saved0, S.biDraft || {}); Object.keys(nxt).forEach(k => { nxt[k] = String(nxt[k] || '').trim(); }); if (nxt.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(nxt.email)) { set({ biErr: 'That email address does not look right.' }); return; } if (!nxt.phone && !nxt.mobile) { set({ biErr: 'Add at least one telephone number.' }); return; } try { window.localStorage.setItem('ecompos.bizInfo', JSON.stringify(nxt)); window.dispatchEvent(new CustomEvent('ecompos:bizInfo', { detail: nxt })); } catch (e) {} set({ biDraft: null, biSaved: true, biErr: '' }); } }; })(),
+      cp: (() => { const su = (S.role || 'superuser') === 'superuser'; const nm = String(S.cpName || '').trim() || 'Your business'; const dirty = String(S.cpName || '') !== String((S.biz || {}).name || '') || (S.cpLogo || '') !== ((S.biz || {}).logo || '');
+        return { who: su ? 'Set up at first sign-in. You can change it here at any time.' : 'Read only · managed by the Admin', locked: !su, canEdit: su, nameVal: S.cpName || '', name: nm, ini: nm.split(/\s+/).map(w => w.charAt(0)).join('').slice(0, 2).toUpperCase(), logo: S.cpLogo || '', hasLogo: !!S.cpLogo, noLogo: !S.cpLogo, boxBg: S.cpLogo ? '#ffffff' : '#000000', upLabel: S.cpLogo ? 'Replace logo' : 'Upload logo', hasErr: !!S.cpErr, err: S.cpErr || '', dirty, clean: !dirty, saved: !!S.cpSaved && !dirty, firstSetup: !S.setDone && su, previewNote: dirty ? ' · not saved yet' : '' }; })(),
+      cpTypeName: () => {}, cpTypeName0: e => set({ cpName: e.target.value, cpErr: '', cpSaved: false }),
+      cpPickLogo: e => { const f = e && e.target && e.target.files && e.target.files[0]; try { e.target.value = ''; } catch (x) {} if (!f) return;
+        if (!/^image\/(png|jpeg|svg\+xml|webp)$/.test(f.type)) { set({ cpErr: 'Use a PNG, JPG, SVG or WebP image.' }); return; }
+        if (f.size > 2 * 1024 * 1024) { set({ cpErr: 'The logo must be under 2 MB.' }); return; }
+        const rd = new FileReader(); rd.onload = () => { const src = String(rd.result || ''); if (f.type === 'image/svg+xml') { this.setState({ cpLogo: src, cpErr: '', cpSaved: false }); return; } const im = new Image(); im.onload = () => { try { const m = 256, sc = Math.min(1, m / Math.max(im.width, im.height)); const cv = document.createElement('canvas'); cv.width = Math.round(im.width * sc); cv.height = Math.round(im.height * sc); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); this.setState({ cpLogo: cv.toDataURL('image/png'), cpErr: '', cpSaved: false }); } catch (x) { this.setState({ cpLogo: src, cpErr: '', cpSaved: false }); } }; im.onerror = () => this.setState({ cpErr: 'That image could not be read. Try another file.' }); im.src = src; }; rd.readAsDataURL(f); },
+      cpRemoveLogo: () => set({ cpLogo: '', cpSaved: false }),
+      cpDiscard: () => set({ cpName: (S.biz || {}).name || '', cpLogo: (S.biz || {}).logo || '', cpErr: '' }),
+      cpSave: e => { try { e.preventDefault(); } catch (x) {} if ((S.role || 'superuser') !== 'superuser') return; const nm = String(S.cpName || '').trim(); if (nm.length < 2) { set({ cpErr: 'Enter the business name (at least 2 characters).' }); return; }
+        const biz = { name: nm, logo: S.cpLogo || '' }; try { window.localStorage.setItem('ecompos.biz', JSON.stringify(biz)); window.dispatchEvent(new CustomEvent('ecompos:biz', { detail: biz })); (url => { try { const LS = window.localStorage; if (url) LS.setItem('ecompos.logo', url); else LS.removeItem('ecompos.logo'); let b = {}; try { b = JSON.parse(LS.getItem('ecompos.biz') || '{}') || {}; } catch (e) {} b.logo = url || ''; LS.setItem('ecompos.biz', JSON.stringify(b)); const AC = LS.getItem('ecompos.activeCompany') || 'main'; let M = {}; try { M = JSON.parse(LS.getItem('ecompos.companyMeta') || '{}') || {}; } catch (e) {} M[AC] = Object.assign({}, M[AC] || {}, { logo: url || '' }); LS.setItem('ecompos.companyMeta', JSON.stringify(M)); window.dispatchEvent(new CustomEvent('ecompos:logo', { detail: url || '' })); window.dispatchEvent(new CustomEvent('ecompos:biz', { detail: b })); window.dispatchEvent(new CustomEvent('ecompos:company', { detail: null })); } catch (e) {} })(biz.logo); } catch (x) { set({ cpErr: 'Could not save. The logo may be too large; try a smaller image.' }); return; }
+        pmSet(pmOk('Company details saved', nm + (biz.logo ? ' and its logo now appear' : ' now appears') + ' on Sell Now, receipts and the online store.'));
+        set({ biz, cpName: nm, cpSaved: true, setDone: true, cpErr: '' }); },
+      isBusiness: S.tab === 'business', isBranches: S.tab === 'branches', isPlan: S.tab === 'plan'
+    };
+    return pmApply(__r);
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS supplier account</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5;overflow-wrap:break-word}
+a{color:#000000}a:hover{color:#0b5c5c}
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="suppliers" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="inventory" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">{{title}}</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{note}}</p>
+</div>
+<span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 12px; color: #5f5c5a"><span>{{scope}}</span><span>{{supCount}}</span></span>
+</header>
+
+<div role="tablist" aria-label="Supplier views" style="display: flex; gap: 5px; flex-wrap: wrap">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="7"><button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; font-size: 13.5px; font-weight: 500; padding: 10px 16px; min-height: 42px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for>
+</div>
+
+<sc-if value="{{hasMsg}}" hint-placeholder-val="{{false}}"><div role="status" style="display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 13.5px; padding: 12px 15px; border-radius: 16px; background: {{msgBg}}; border: 1.5px solid {{msgBd}}"><span>{{msg}}</span><button type="button" onClick="{{clearMsg}}" aria-label="Dismiss this message" style="font-family: inherit; width: 28px; height: 28px; flex: none; border-radius: 9px; border: 0; background: transparent; cursor: pointer; font-size: 15px">&#215;</button></div></sc-if>
+
+<sc-if value="{{isOverview}}" hint-placeholder-val="{{true}}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4"><div style="background: {{k.bg}}; color: {{k.fg}}; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 3px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px"><span style="font-size: 12.5px; color: {{k.sub}}">{{k.label}}</span><strong style="font-size: 26px; font-weight: 600; letter-spacing: -0.03em">{{k.value}}</strong><span style="font-size: 11.5px; color: {{k.sub}}">{{k.note}}</span></div></sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="ri-h" style="flex: 1 1 300px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="ri-h" style="margin: 0; font-size: 17px; font-weight: 600">Into the company</h2>
+<sc-if value="{{hasRecentIn}}" hint-placeholder-val="{{true}}"><sc-for list="{{recentIn}}" as="r" hint-placeholder-count="4"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border-radius: 14px; border: 1px solid #ebebeb"><span style="flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 13px; font-weight: 600">{{r.t}}</strong><span style="font-size: 11px; color: #5f5c5a">{{r.id}} · {{r.sub}}</span></span><strong style="font-size: 13px; font-weight: 600">{{r.amt}}</strong></div></sc-for></sc-if>
+<sc-if value="{{hasRecentIn}}" hint-placeholder-val="{{true}}" ><span style="font-size: 11.5px; color: #5f5c5a">New stock from suppliers, with what it cost.</span></sc-if>
+</section>
+<section aria-labelledby="ro-h" style="flex: 1 1 300px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="ro-h" style="margin: 0; font-size: 17px; font-weight: 600">Out of the company</h2>
+<sc-if value="{{hasRecentOut}}" hint-placeholder-val="{{true}}"><sc-for list="{{recentOut}}" as="r" hint-placeholder-count="4"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border-radius: 14px; border: 1px solid #ebebeb"><span style="flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 13px; font-weight: 600">{{r.t}}</strong><span style="font-size: 11px; color: #5f5c5a">{{r.id}} · {{r.sub}}</span></span><span style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; background: {{r.sbg}}; color: #ffffff">{{r.st}}</span></div></sc-for></sc-if>
+<sc-if value="{{hasRecentOut}}" hint-placeholder-val="{{true}}" ><span style="font-size: 11.5px; color: #5f5c5a">Damaged goods leaving the store, and where each one stands.</span></sc-if>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{isIn}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="gi-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="gi-h" style="margin: 0; font-size: 17px; font-weight: 600">Record a delivery from a supplier</h2><span style="font-size: 12px; color: #5f5c5a">This adds the goods to stock straight away.</span></div>
+<span style="font-size: 12px; color: #3d3a38">Supplier</span>
+<div role="group" aria-label="Supplier" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{gi.sups}}" as="s" hint-placeholder-count="6"><button type="button" onClick="{{s.pick}}" aria-pressed="{{s.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{s.bg}}; color: {{s.fg}}; border: 1px solid {{s.bd}}">{{s.label}}</button></sc-for></div>
+<sc-if value="{{gi.hasHeld}}" hint-placeholder-val="{{false}}"><span style="font-size: 11.5px; color: #c62828"><sc-for list="{{gi.held}}" as="h" hint-placeholder-count="1">{{h.t}} · </sc-for>nothing can be received from them until the Admin releases them.</span></sc-if>
+<sc-if value="{{gi.hasSup}}" hint-placeholder-val="{{false}}"><span style="font-size: 11.5px; color: #5f5c5a">{{gi.terms}} · {{gi.leadTxt}}</span></sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 200px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Supplier invoice or waybill number</span><input value="{{gi.ref}}" onChange="{{gi.refIn}}" placeholder="e.g. GG-INV-88214" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 240px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Received into</span><div role="group" aria-label="Received into" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{gi.tos}}" as="t" hint-placeholder-count="4"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for></div></div>
+</div>
+<sc-if value="{{gi.hasCatalogue}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">What {{gi.sup}} supplies · tap to add a line</span><div style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{gi.catalogue}}" as="c" hint-placeholder-count="6"><button type="button" onClick="{{c.pick}}" style="font-family: inherit; font-size: 12px; padding: 8px 13px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: #f2f4f5; color: #000000; border: 1px solid #ebebeb">{{c.label}}</button></sc-for></div></div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Anything else in the catalogue</span><div style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{gi.others}}" as="c" hint-placeholder-count="8"><button type="button" onClick="{{c.pick}}" style="font-family: inherit; font-size: 12px; padding: 8px 13px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: #ffffff; color: #000000; border: 1px solid #ebebeb">{{c.label}}</button></sc-for></div></div>
+<sc-if value="{{gi.hasLines}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 16px; background: #f2f4f5">
+<sc-for list="{{gi.lines}}" as="l" hint-placeholder-count="3"><div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap"><strong style="flex: 1 1 160px; min-width: 0; font-size: 13px; font-weight: 600">{{l.name}}</strong><label style="display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: #3d3a38">Quantity<input value="{{l.qty}}" onChange="{{l.qtyIn}}" inputMode="numeric" style="font: inherit; font-size: 14px; padding: 9px 11px; min-height: 42px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9; max-width: 100px"></label><sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><label style="display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: #3d3a38">Cost each<input value="{{l.cost}}" onChange="{{l.costIn}}" inputMode="decimal" style="font: inherit; font-size: 14px; padding: 9px 11px; min-height: 42px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9; max-width: 120px"></label></sc-if><sc-if value="{{notSu}}" hint-placeholder-val="{{false}}"><span style="display: flex; flex-direction: column; gap: 3px; min-width: 120px"><span style="font-size: 11px; color: #3d3a38">Agreed cost</span><strong style="font-size: 13px; font-weight: 600">{{l.costTxt}}</strong></span></sc-if><strong style="font-size: 13px; font-weight: 600; min-width: 100px; text-align: right">{{l.line}}</strong><button type="button" onClick="{{l.drop}}" aria-label="Remove {{l.name}}" style="font-family: inherit; width: 36px; height: 36px; border-radius: 10px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer; color: #c62828">&#215;</button></div></sc-for>
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; padding-top: 8px; border-top: 1px solid #ffffff"><strong style="font-size: 14px; font-weight: 600">Delivery value</strong><strong style="font-size: 17px; font-weight: 600">{{gi.total}}</strong></div><span style="font-size: 11.5px; color: #5f5c5a">{{gi.costNote}}</span>
+</div>
+</sc-if>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #3d3a38">Note (optional)</span><textarea rows="2" value="{{gi.note}}" onChange="{{gi.noteIn}}" placeholder="Short delivery, driver name, anything worth recording" style="font: inherit; font-size: 15px; padding: 11px 13px; border-radius: 13px; border: 1px solid #d9d9d9; resize: vertical"></textarea></label>
+<sc-if value="{{gi.hasErr}}" hint-placeholder-val="{{false}}"><div role="alert" style="font-size: 12.5px; color: #c62828">{{gi.err}}</div></sc-if>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{gi.receive}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 12px 20px; min-height: 48px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Receive into stock</button><button type="button" onClick="{{gi.clear}}" style="font-family: inherit; font-size: 13px; padding: 12px 18px; min-height: 48px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Clear</button></div>
+</section>
+</sc-if>
+
+<sc-if value="{{isNew}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="np-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="np-h" style="margin: 0; font-size: 17px; font-weight: 600">New product from a supplier</h2><span style="font-size: 12px; color: #5f5c5a">{{np.gate}}</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 2 1 240px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Product name</span><input value="{{np.name}}" onChange="{{np.nameIn}}" placeholder="As it should read on the shelf and the till" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 130px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Cost each (GHS)</span><input value="{{np.cost}}" onChange="{{np.costIn}}" inputMode="decimal" placeholder="0.00" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label></sc-if>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 130px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Shelf price (GHS)</span><input value="{{np.price}}" onChange="{{np.priceIn}}" inputMode="decimal" placeholder="0.00" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 120px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">How many arrived</span><input value="{{np.qty}}" onChange="{{np.qtyIn}}" inputMode="numeric" placeholder="0" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+</div>
+<span style="font-size: 12.5px; font-weight: 600; color: #1f7a2a">{{np.margin}}</span>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Supplier</span><div role="group" aria-label="Supplier" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{np.sups}}" as="s" hint-placeholder-count="6"><button type="button" onClick="{{s.pick}}" aria-pressed="{{s.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{s.bg}}; color: {{s.fg}}; border: 1px solid {{s.bd}}">{{s.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 260px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Category</span><div role="group" aria-label="Category" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{np.cats}}" as="c" hint-placeholder-count="5"><button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}">{{c.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 240px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Stock it into</span><div role="group" aria-label="Stock into" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{np.tos}}" as="t" hint-placeholder-count="4"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for></div></div>
+</div>
+<sc-if value="{{np.hasErr}}" hint-placeholder-val="{{false}}"><div role="alert" style="font-size: 12.5px; color: #c62828">{{np.err}}</div></sc-if>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{np.save}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 12px 20px; min-height: 48px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Add the product</button><button type="button" onClick="{{np.clear}}" style="font-family: inherit; font-size: 13px; padding: 12px 18px; min-height: 48px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Clear</button></div>
+</section>
+</sc-if>
+
+<sc-if value="{{isOut}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="go-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="go-h" style="margin: 0; font-size: 17px; font-weight: 600">Record a damage</h2><span style="font-size: 12px; color: #5f5c5a">Record it, and report it to the supplier where they should answer for it.</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Which item</span><div role="group" aria-label="Item" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{go.items}}" as="i" hint-placeholder-count="10"><button type="button" onClick="{{i.pick}}" aria-pressed="{{i.pressed}}" style="font-family: inherit; font-size: 12px; padding: 8px 13px; min-height: 38px; border-radius: 9999px; cursor: pointer; background: {{i.bg}}; color: {{i.fg}}; border: 1px solid {{i.bd}}">{{i.label}}</button></sc-for></div></div>
+<sc-if value="{{go.hasName}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #5f5c5a">Supplied by {{go.supplier}}</span></sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 0 1 140px"><span style="font-size: 12px; color: #3d3a38">How many</span><input value="{{go.qty}}" onChange="{{go.qtyIn}}" inputMode="numeric" placeholder="0" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 260px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Where it happened</span><div role="group" aria-label="Where" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{go.locs}}" as="l" hint-placeholder-count="4"><button type="button" onClick="{{l.pick}}" aria-pressed="{{l.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{l.bg}}; color: {{l.fg}}; border: 1px solid {{l.bd}}">{{l.label}}</button></sc-for></div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">How it came to light</span><div role="group" aria-label="Source" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{go.srcs}}" as="s" hint-placeholder-count="3"><button type="button" onClick="{{s.pick}}" aria-pressed="{{s.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{s.bg}}; color: {{s.fg}}; border: 1px solid {{s.bd}}">{{s.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">What caused it</span><div role="group" aria-label="Cause" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{go.causes}}" as="c" hint-placeholder-count="6"><button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}">{{c.label}}</button></sc-for></div><span style="font-size: 11.5px; color: #5f5c5a">{{go.liable}}</span></div>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #3d3a38">What happened</span><textarea rows="2" value="{{go.note}}" onChange="{{go.noteIn}}" placeholder="One line. The supplier reads this on the claim." style="font: inherit; font-size: 15px; padding: 11px 13px; border-radius: 13px; border: 1px solid #d9d9d9; resize: vertical"></textarea></label>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 15px; min-height: 44px; box-sizing: border-box; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Attach a photo<input aria-label="Photograph the damaged item" type="file" accept="image/*" capture="environment" onChange="{{go.pick}}" style="position: absolute; width: 1px; height: 1px; opacity: 0"></label>
+<sc-if value="{{go.hasPhoto}}" hint-placeholder-val="{{false}}"><span style="font-size: 12.5px; color: #1f7a2a; font-weight: 600">{{go.photo}}</span></sc-if>
+</div>
+<sc-if value="{{go.hasErr}}" hint-placeholder-val="{{false}}"><div role="alert" style="font-size: 12.5px; color: #c62828">{{go.err}}</div></sc-if>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{go.record}}" style="font-family: inherit; font-size: 14px; padding: 12px 18px; min-height: 48px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Record it only</button>
+<button type="button" onClick="{{go.report}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 12px 20px; min-height: 48px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Record and report to the supplier</button>
+<button type="button" onClick="{{go.clear}}" style="font-family: inherit; font-size: 13px; padding: 12px 18px; min-height: 48px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Clear</button>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{isClaims}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="nc-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="nc-h" style="margin: 0; font-size: 17px; font-weight: 600">Raise a supplier claim</h2><span style="font-size: 12.5px; color: #5f5c5a">Claim on a damaged item you already recorded, or on any product from a supplier (short delivery, faulty, expired, wrong item, overcharged).</span></div>
+<div role="group" aria-label="Claim on" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{nc.srcs}}" as="b" hint-placeholder-count="2"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div>
+<sc-if value="{{nc.isDmg}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Damaged item (not yet claimed)</span><sc-if value="{{nc.noDmg}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f5c5a">No unclaimed damages. Record one under Damages out, or claim on a product instead.</span></sc-if><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{nc.dmgs}}" as="b" hint-placeholder-count="3"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 8px 12px; min-height: 40px; border-radius: 14px; cursor: pointer; text-align: left; background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Supplier</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{nc.sups}}" as="b" hint-placeholder-count="4"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div>
+<sc-if value="{{nc.isProd}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Product</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{nc.prods}}" as="b" hint-placeholder-count="4"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div><label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">Or type the product<input value="{{nc.prodTxt}}" onInput="{{nc.prodIn}}" placeholder="e.g. Standing fan 16&quot;" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9"></label></div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">What is wrong</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{nc.reasons}}" as="b" hint-placeholder-count="6"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">What we want back</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{nc.wants}}" as="b" hint-placeholder-count="3"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">Quantity<input type="text" inputMode="numeric" value="{{nc.qty}}" onInput="{{nc.qtyIn}}" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">Value claimed (GHS, optional)<input type="text" inputMode="decimal" value="{{nc.amt}}" onInput="{{nc.amtIn}}" placeholder="0.00" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">Delivery note / invoice no.<input type="text" value="{{nc.ref}}" onInput="{{nc.refIn}}" placeholder="e.g. DN-4471" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9"></label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #3d3a38">Details for the supplier<input type="text" value="{{nc.note}}" onInput="{{nc.noteIn}}" placeholder="e.g. 3 cartons crushed on arrival, photos kept" style="font: inherit; font-size: 16px; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9"></label>
+<sc-if value="{{nc.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{nc.err}}</span></sc-if>
+<button type="button" onClick="{{nc.go}}" style="align-self: flex-start; font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 18px; min-height: 46px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">{{nc.cta}}</button>
+</section>
+<section aria-labelledby="cl-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="cl-h" style="margin: 0; font-size: 17px; font-weight: 600">Supplier claims</h2><span style="font-size: 12px; color: #5f5c5a">{{claimNote}}</span></div>
+<sc-if value="{{hasClaims}}" hint-placeholder-val="{{true}}">
+<sc-for list="{{claims}}" as="c" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; border: 1px solid #ebebeb">
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap"><span style="display: flex; flex-direction: column"><strong style="font-size: 14px; font-weight: 600">{{c.id}} · {{c.supplier}}</strong><span style="font-size: 11.5px; color: #5f5c5a">{{c.what}} · {{c.cause}} · raised {{c.when}} · {{c.age}}</span></span><span style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; background: {{c.sbg}}; color: #ffffff">{{c.status}}</span></div>
+<span style="font-size: 11.5px; color: #5f5c5a">Their terms: {{c.terms}}</span>
+<sc-if value="{{c.slow}}" hint-placeholder-val="{{false}}"><span role="status" style="font-size: 12px; padding: 8px 12px; border-radius: 12px; background: #fdf0e4; border: 1px solid #b26a00">Open more than two weeks. Worth chasing.</span></sc-if>
+<sc-if value="{{c.hasTrack}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 2px"><sc-for list="{{c.track}}" as="t" hint-placeholder-count="2"><span style="font-size: 11.5px; color: #5f5c5a">{{t.t}}</span></sc-for></div></sc-if>
+<div style="display: flex; gap: 6px; flex-wrap: wrap">
+<sc-if value="{{c.canChase}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{c.chase}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 42px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Chase the supplier</button><button type="button" onClick="{{c.back}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 42px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Replacement received</button></sc-if>
+<sc-if value="{{c.canClose}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{c.settle}}" style="font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 9px 14px; min-height: 42px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Close as settled</button></sc-if>
+</div>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{noClaims}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #5f5c5a">No claim has been raised yet. Raise one above, or report a damage under Damages out.</span></sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{isBook}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="bk-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="bk-h" style="margin: 0; font-size: 17px; font-weight: 600">Supplier details</h2><span style="font-size: 12px; color: #5f5c5a">{{bookNote}}</span></div>
+<sc-for list="{{book}}" as="s" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; border: 1px solid #ebebeb">
+<button type="button" onClick="{{s.open}}" aria-expanded="{{s.isOpen}}" style="font-family: inherit; text-align: left; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 0; border: 0; background: transparent; cursor: pointer">
+<span style="flex: 2 1 200px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 14.5px; font-weight: 600">{{s.name}}</strong><span style="font-size: 11.5px; color: #5f5c5a">{{s.phone}} · {{s.itemN}} · {{s.lead}}</span></span>
+<span style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; background: {{s.sbg}}; color: #ffffff">{{s.statusTxt}}</span>
+<span style="font-size: 11.5px; color: #5f5c5a; flex: 1 1 140px">{{s.deliveries}} · {{s.value}}</span>
+</button>
+<sc-if value="{{s.isOpen}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 14px; background: #f2f4f5; font-size: 12.5px">
+<span><strong style="font-weight: 600">Address</strong> · {{s.addr}}</span>
+<sc-if value="{{s.hasEmail}}" hint-placeholder-val="{{false}}"><span><strong style="font-weight: 600">Email</strong> · {{s.email}}</span></sc-if>
+<span><strong style="font-weight: 600">TIN</strong> · {{s.tin}}</span>
+<span><strong style="font-weight: 600">Terms on damages</strong> · {{s.terms}}</span>
+<span><strong style="font-weight: 600">Payment</strong> · {{s.pay}} · {{s.lead}}</span>
+<span><strong style="font-weight: 600">Supplies</strong> · {{s.items}}</span>
+<span><strong style="font-weight: 600">Record with us</strong> · {{s.deliveries}} worth {{s.value}} · {{s.claims}} · {{s.dmg}}</span>
+<span style="color: #5f5c5a">{{s.addedBy}}</span>
+</div>
+<sc-if value="{{s.hasSupplied}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 5px"><strong style="font-size: 13px; font-weight: 600">Everything they have supplied</strong>
+<div style="overflow-x: auto"><table style="width: 100%; border-collapse: collapse; font-size: 12px; min-width: 420px">
+<thead><tr style="text-align: left; font-size: 10px; color: #5f5c5a; text-transform: uppercase"><th scope="col" style="font-weight: 600; padding: 5px 6px">Item</th><th scope="col" style="font-weight: 600; padding: 5px 6px">Received</th><th scope="col" style="font-weight: 600; padding: 5px 6px">Cost</th><th scope="col" style="font-weight: 600; padding: 5px 6px">Deliveries</th><th scope="col" style="font-weight: 600; padding: 5px 6px; text-align: right">Value</th></tr></thead>
+<tbody><sc-for list="{{s.supplied}}" as="p" hint-placeholder-count="4"><tr style="border-top: 1px solid #ebebeb"><td style="padding: 6px; font-weight: 600">{{p.name}}</td><td style="padding: 6px">{{p.qty}}</td><td style="padding: 6px; color: #5f5c5a">{{p.cost}}</td><td style="padding: 6px; color: #5f5c5a">{{p.times}}</td><td style="padding: 6px; text-align: right; font-weight: 600">{{p.val}}</td></tr></sc-for></tbody></table></div>
+<strong style="font-size: 13px; font-weight: 600; padding-top: 6px">Every delivery</strong>
+<sc-for list="{{s.runs}}" as="r" hint-placeholder-count="3"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 10px; border-radius: 12px; background: #ffffff"><span style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 12.5px; font-weight: 600">{{r.t}}</strong><span style="font-size: 11px; color: #5f5c5a">{{r.sub}}</span></span><strong style="font-size: 12.5px; font-weight: 600">{{r.amt}}</strong></div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{s.hasBack}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 5px"><strong style="font-size: 13px; font-weight: 600">Damages reported to them · {{s.backQty}} items · {{s.backVal}} at cost</strong>
+<sc-for list="{{s.back}}" as="d" hint-placeholder-count="3"><div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 10px; border-radius: 12px; background: #ffffff"><span style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 12.5px; font-weight: 600">{{d.t}}</strong><span style="font-size: 11px; color: #5f5c5a">{{d.sub}}</span></span><span style="font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 9999px; background: {{d.sbg}}; color: #ffffff">{{d.st}}</span></div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{s.hasClm}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 3px"><strong style="font-size: 13px; font-weight: 600">Claims raised against them</strong><sc-for list="{{s.clmRows}}" as="c" hint-placeholder-count="2"><span style="font-size: 11.5px; color: #5f5c5a">{{c.t}} · {{c.sub}} · {{c.st}}</span></sc-for></div>
+</sc-if>
+</sc-if>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{isManage}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="mg-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="mg-h" style="margin: 0; font-size: 17px; font-weight: 600">{{mf.title}}</h2><span style="font-size: 12px; color: #5f5c5a">Only you can add, change, hold or remove a supplier.</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 2 1 220px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Supplier name</span><input value="{{mf.name}}" onChange="{{mf.nameIn}}" placeholder="e.g. Golden Grains Ltd" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 170px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Phone</span><input value="{{mf.phone}}" onChange="{{mf.phoneIn}}" placeholder="+233 30 000 0000" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 200px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Email</span><input value="{{mf.email}}" onChange="{{mf.emailIn}}" placeholder="claims@supplier.example" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 2 1 220px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Address</span><input value="{{mf.addr}}" onChange="{{mf.addrIn}}" placeholder="Town or industrial area" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 150px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">TIN</span><input value="{{mf.tin}}" onChange="{{mf.tinIn}}" placeholder="C000XXXXXXX" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 130px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Lead time (days)</span><input value="{{mf.lead}}" onChange="{{mf.leadIn}}" inputMode="numeric" placeholder="7" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 160px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Payment terms</span><input value="{{mf.pay}}" onChange="{{mf.payIn}}" placeholder="e.g. 30 days" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 100%; min-width: 0"><span style="font-size: 12px; color: #3d3a38">What they do about damages</span><input value="{{mf.terms}}" onChange="{{mf.termsIn}}" placeholder="e.g. Replaces damaged bags within 14 days" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+</div>
+<sc-if value="{{mf.hasErr}}" hint-placeholder-val="{{false}}"><div role="alert" style="font-size: 12.5px; color: #c62828">{{mf.err}}</div></sc-if>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{mf.save}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 12px 20px; min-height: 48px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">{{mf.saveTxt}}</button><sc-if value="{{mf.editing}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{mf.cancel}}" style="font-family: inherit; font-size: 13px; padding: 12px 18px; min-height: 48px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Cancel</button></sc-if></div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid #ebebeb">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><strong style="font-size: 14.5px; font-weight: 600">Cost prices</strong><span style="font-size: 11.5px; color: #5f5c5a">{{costNote}}</span></div>
+<sc-if value="{{hasPending}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 16px; background: #fdf0e4; border: 1px solid #b26a00">
+<strong style="font-size: 13px; font-weight: 600">Waiting for a cost</strong>
+<span style="font-size: 11.5px; color: #3d3a38">{{pendNote}}</span>
+<sc-for list="{{pendRows}}" as="p" hint-placeholder-count="3"><div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; padding: 8px 10px; border-radius: 12px; background: #ffffff"><span style="flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 12.5px; font-weight: 600">{{p.name}}</strong><span style="font-size: 11px; color: #5f5c5a">{{p.sup}} · {{p.why}} · {{p.price}}</span></span><label style="display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: #3d3a38">Cost each (GHS)<input value="{{p.value}}" onChange="{{p.input}}" inputMode="decimal" placeholder="0.00" style="font: inherit; font-size: 14px; padding: 9px 11px; min-height: 42px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9; max-width: 130px"></label><button type="button" onClick="{{p.save}}" style="font-family: inherit; font-size: 12px; font-weight: 600; padding: 10px 14px; min-height: 42px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Set the cost</button></div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{hasCosts}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 5px">
+<sc-for list="{{costRows}}" as="c" hint-placeholder-count="5"><div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; padding: 8px 10px; border-radius: 12px; background: #f2f4f5"><span style="flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 12.5px; font-weight: 600">{{c.name}}</strong><span style="font-size: 11px; color: #5f5c5a">{{c.cost}} · {{c.sup}} · {{c.who}}</span></span><label style="display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: #3d3a38">Change to<input value="{{c.value}}" onChange="{{c.input}}" inputMode="decimal" placeholder="0.00" style="font: inherit; font-size: 14px; padding: 9px 11px; min-height: 42px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9; max-width: 130px"></label><button type="button" onClick="{{c.save}}" style="font-family: inherit; font-size: 12px; padding: 10px 14px; min-height: 42px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Save</button></div></sc-for>
+</div>
+</sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid #ebebeb">
+<strong style="font-size: 14.5px; font-weight: 600">Every supplier</strong>
+<sc-for list="{{manageRows}}" as="m" hint-placeholder-count="6"><div style="display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border-radius: 14px; background: #f2f4f5"><span style="display: flex; flex-direction: column; min-width: 0"><span style="display: flex; gap: 8px; align-items: center"><strong style="font-size: 13.5px; font-weight: 600">{{m.name}}</strong><span style="font-size: 10.5px; font-weight: 600; padding: 2px 9px; border-radius: 9999px; background: {{m.sbg}}; color: #ffffff">{{m.statusTxt}}</span></span><span style="font-size: 11px; color: #5f5c5a">{{m.meta}}</span></span><span style="display: flex; gap: 5px; flex-wrap: wrap"><button type="button" onClick="{{m.edit}}" style="font-family: inherit; font-size: 11.5px; padding: 8px 12px; min-height: 38px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Change</button><button type="button" onClick="{{m.hold}}" style="font-family: inherit; font-size: 11.5px; padding: 8px 12px; min-height: 38px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">{{m.holdTxt}}</button><button type="button" onClick="{{m.del}}" style="font-family: inherit; font-size: 11.5px; padding: 8px 12px; min-height: 38px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #c62828; cursor: pointer">Remove</button></span></div></sc-for>
+</div>
+</section>
+</sc-if>
+
+</main>
+</div>
+<script type="text/dc-script" data-dc-script>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let role = 'superuser'; try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {}
+    let tab0 = 'overview'; try { tab0 = window.localStorage.getItem('ecompos.supTab') || 'overview'; } catch (e) {}
+    this.state = { role, tab: tab0, gi: { lines: [] }, go: {}, nf: {}, mf: {}, msg: '', msgBad: false, open: '', sel: '' };
+    this.onAny = () => this.setState({ tick: Date.now() });
+    this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' });
+    this.onTab = e => this.setState({ tab: (e && e.detail) || 'overview', msg: '' });
+  }
+  componentDidMount() { try { ['ecompos:suppliers', 'ecompos:damages', 'ecompos:warehouse', 'ecompos:stock', 'ecompos:branches', 'ecompos:products', 'storage'].forEach(n => window.addEventListener(n, this.onAny)); window.addEventListener('ecompos:role', this.onRole); window.addEventListener('ecompos:supTab', this.onTab); } catch (e) {} }
+  componentWillUnmount() { try { ['ecompos:suppliers', 'ecompos:damages', 'ecompos:warehouse', 'ecompos:stock', 'ecompos:branches', 'ecompos:products', 'storage'].forEach(n => window.removeEventListener(n, this.onAny)); window.removeEventListener('ecompos:role', this.onRole); window.removeEventListener('ecompos:supTab', this.onTab); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Suppliers'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const LS = window.localStorage;
+    const rd = (k, d) => { try { const v = JSON.parse(LS.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+    const wr = (k, v, ev) => { try { LS.setItem(k, JSON.stringify(v)); if (ev) window.dispatchEvent(new CustomEvent(ev, { detail: v })); } catch (e) {} };
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const money = n => 'GHS ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const short = n => 'GHS ' + Math.round(Number(n || 0)).toLocaleString('en-GB');
+    const now = new Date();
+    const stamp = () => now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + now.toTimeString().slice(0, 5);
+    const dayTxt = () => now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    // ---------- who is here ----------
+    const ROLE = S.role || 'superuser';
+    const ses = rd('ecompos.session', null);
+    const ME = ses && ses.name ? ses.name : ({ superuser: 'Kofi Adom', manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei', developer: 'eComPOS Support' })[ROLE] || 'Staff';
+    const SU = ROLE === 'superuser';
+    const DEV = ROLE === 'developer';
+    const LVL = SU ? 'Superuser' : ROLE === 'manager' ? 'Manager' : ROLE === 'supervisor' ? 'Supervisor' : DEV ? 'Developer' : 'Sales staff';
+
+    const BX = rd('ecompos.branches', null);
+    const BR = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })(Array.isArray(BX) && BX.length ? BX : [{ id: 'osu', name: 'Osu branch' }, { id: 'legon', name: 'East Legon branch' }, { id: 'adum', name: 'Adum branch' }]);
+    const brShort = b => String(b.name || '').replace(/\s*branch$/i, '');
+    const LN = { wh: 'Warehouse' }; BR.forEach(b => { LN[b.id] = brShort(b); });
+    const MYBR = SU ? '' : (BR.some(b => b.id === 'osu') ? 'osu' : BR[0].id);
+    let biz = { name: 'Ebenezer Unique Ventures' }; try { biz = Object.assign(biz, rd('ecompos.biz', {}) || {}); } catch (e) {}
+
+    // ---------- the supplier book ----------
+    const SEED = [
+      ['Golden Grains Ltd', ['Jasmine rice 5kg', 'Gari 1kg'], '+233 30 222 1100', 'claims@goldengrains.example', 'Replaces damaged bags within 14 days', 'Accra Central', 7, '30 days', 'C0002211004'],
+      ['Sunrise Oils Ltd', ['Vegetable oil 1L'], '+233 30 222 4410', 'returns@sunriseoils.example', 'Replaces leaking bottles, credit note if out of stock', 'Tema', 5, '30 days', 'C0002244102'],
+      ['Noodle House Distributors', ['Instant noodles 70g'], '+233 24 410 5521', '', 'Credit note within 30 days', 'Spintex, Accra', 3, '14 days', 'C0004105521'],
+      ['Dairy Gold Ltd', ['Evaporated milk 410g'], '+233 30 290 3300', 'quality@dairygold.example', 'Replaces dented or bloated tins', 'Tema Industrial Area', 7, '30 days', 'C0002903300'],
+      ['Coastline Foods', ['Sardines 125g', 'Tomato paste 400g'], '+233 30 230 7788', '', 'Replaces factory defects, photo needed', 'Takoradi', 10, '45 days', 'C0002307788'],
+      ['Akwaaba Beverages', ['Malt drink 330ml', 'Bottled water 1.5L'], '+233 30 210 4040', 'trade@akwaababev.example', 'Replaces broken crates on the next delivery', 'Achimota, Accra', 2, 'On delivery', 'C0002104040'],
+      ['SweetCane Ltd', ['Sugar cubes 500g'], '+233 24 880 1200', '', 'Credit note for wet or crushed cartons', 'Kumasi', 7, '30 days', 'C0008801200'],
+      ['CleanHome Ghana', ['Laundry detergent 1kg', 'Bar soap 200g'], '+233 30 260 9090', 'care@cleanhome.example', 'Repairs packaging or replaces within 10 days', 'Tema', 5, '30 days', 'C0002609090'],
+      ['Nasco Ghana', ['Nasco 32" HD LED TV', 'Nasco 43" Smart Full HD TV', 'Nasco 138L double-door fridge', 'Nasco 200L chest freezer', 'Nasco 1.5HP split air conditioner', 'Nasco 7kg twin-tub washing machine'], '+233 30 274 1800', 'trade@nascogh.example', '12-month warranty, faulty units swapped within 21 days', 'North Industrial Area, Accra', 14, '45 days', 'C0002741800'],
+      ['Hisense Ghana', ['Hisense 43" Smart Full HD TV', 'Hisense 50" 4K UHD Smart TV', 'Hisense 180L double-door fridge', 'Hisense 310L chest freezer', 'Hisense 1.5HP inverter split AC', 'Hisense 8kg front-load washing machine', 'Hisense 7kg vented tumble dryer'], '+233 30 281 5500', 'service@hisensegh.example', '24-month warranty on compressors, engineer visit within 7 days', 'Spintex, Accra', 21, '60 days', 'C0002815500'],
+      ['Electroland Ghana', ['Samsung 55" 4K Crystal UHD TV', 'LG 55" 4K UHD Smart TV', 'Samsung 395L side-by-side fridge', 'LG 438L side-by-side fridge', 'Samsung 9kg front-load washing machine', 'Midea 2HP split air conditioner'], '+233 30 222 6060', 'orders@electroland.example', 'Manufacturer warranty, dead-on-arrival swapped within 14 days', 'Ring Road, Accra', 14, '30 days', 'C0002226060'],
+      ['PowerLine Supplies', ['1.5kVA inverter with 200Ah battery', '2.5kVA petrol generator', '5kVA petrol generator', 'Automatic voltage stabiliser 2000VA', 'Solar home kit, 300W panel'], '+233 24 330 7711', 'sales@powerline.example', '6-month warranty on batteries, 12 on generators', 'Abossey Okai, Accra', 10, '30 days', 'C0003307711']
+    ];
+    let SUP = rd('ecompos.suppliers', null);
+    if (!Array.isArray(SUP) || !SUP.length) {
+      const mainCo = (LS.getItem('ecompos.activeCompany') || 'main') === 'main' && !LS.getItem('ecompos.cleared');
+      SUP = (mainCo ? SEED : SEED.slice(0, 1)).map((x, k) => ({ id: 'SUP-' + String(100 + k), name: x[0], items: x[1], phone: x[2], email: x[3], terms: x[4], addr: x[5], lead: x[6], pay: x[7], tin: x[8], status: 'active', since: 'Since 2024', by: 'eComPOS' }));
+      wr('ecompos.suppliers', SUP);
+    }
+    const supOf = nm => SUP.filter(x => x.name === nm)[0] || null;
+    const COSTS = rd('ecompos.supCosts', {}) || {};
+    const prodCost = nm => {
+      const c = COSTS[nm];
+      if (c && Number(c.cost) > 0) return Number(c.cost);
+      const p = (rd('ecompos.newProducts', []) || []).filter(x => x && x.name === nm && Number(x.cost) > 0)[0];
+      return p ? Number(p.cost) : 0;
+    };
+    const costSetBy = nm => { const c = COSTS[nm]; return c && c.by ? 'Set by ' + c.by + ' on ' + c.at : ''; };
+    const ACTIVE = SUP.filter(x => x.status === 'active');
+    const HELD = SUP.filter(x => x.status === 'held');
+
+    // ---------- what has moved ----------
+    const WMV = (rd('ecompos.whMoves', []) || []).filter(m => m && m.kind === 'sup');
+    const DMG = rd('ecompos.damages', []) || [];
+    const CLM = rd('ecompos.supClaims', []) || [];
+    const PRODREG = rd('ecompos.newProducts', []) || [];
+    const BASEP = ['Jasmine rice 5kg', 'Vegetable oil 1L', 'Instant noodles 70g', 'Evaporated milk 410g', 'Sardines 125g', 'Tomato paste 400g', 'Malt drink 330ml', 'Bottled water 1.5L', 'Sugar cubes 500g', 'Laundry detergent 1kg', 'Bar soap 200g', 'Gari 1kg'];
+    const ALLP = BASEP.concat(PRODREG.map(p => p && p.name).filter(Boolean));
+    const canSee = x => SU || !x.loc || x.loc === MYBR || x.loc === 'wh';
+    const myDmg = DMG.filter(canSee);
+    const myIn = WMV.filter(m => SU || m.to === MYBR || m.to === 'wh');
+
+    // ---------- goods in: a delivery from a supplier ----------
+    const GI = S.gi || { lines: [] };
+    const setGI = o => set({ gi: Object.assign({}, GI, o) });
+    const giLines = GI.lines || [];
+    const giSup = GI.sup || '';
+    const giTo = GI.to || (SU ? 'wh' : MYBR);
+    const lineCost = l => SU ? (Number(l.cost) || 0) : prodCost(l.name);
+    const giTotal = giLines.reduce((a, l) => a + (Number(l.qty) || 0) * lineCost(l), 0);
+    const giNoCost = giLines.filter(l => lineCost(l) <= 0);
+    const giSupRec = supOf(giSup);
+    const giCatalogue = giSupRec ? giSupRec.items : [];
+    const giErr = (() => {
+      if (!giSup) return 'Pick the supplier the goods came from.';
+      if (giSupRec && giSupRec.status === 'held') return giSup + ' is on hold. Only the Admin can release them before you receive goods.';
+      if (!giLines.length) return 'Add at least one item.';
+      if (giLines.some(l => !(Number(l.qty) > 0))) return 'Every line needs a quantity.';
+      if (!String(GI.ref || '').trim()) return 'Enter the supplier’s invoice or waybill number.';
+      if (SU && giLines.some(l => !(Number(l.cost) > 0))) return 'Enter the cost of every line. You are the only one who can set a cost.';
+      return '';
+    })();
+    const giAdd = (name, cost) => { const L = giLines.slice(); const i = L.map(x => x.name).indexOf(name); if (i >= 0) L[i] = Object.assign({}, L[i], { qty: (Number(L[i].qty) || 0) + 1 }); else L.push({ name, qty: 1, cost: Number(cost) || 0 }); setGI({ lines: L }); };
+    const receive = () => {
+      if (giErr) { set({ msg: giErr, msgBad: true }); return; }
+      const id = 'GR-' + String(1000 + WMV.length + 1);
+      const rec = { id, kind: 'sup', from: 'sup', supplier: giSup, ref: String(GI.ref || '').trim(), to: giTo,
+        lines: giLines.map(l => ({ name: l.name, qty: Number(l.qty) || 0, cost: lineCost(l), costPending: lineCost(l) <= 0 })),
+        by: ME, byLevel: LVL, at: stamp(), ts: Date.now(), note: String(GI.note || '').trim(), value: giTotal, costPending: giNoCost.length > 0 };
+      if (SU) { const C = Object.assign({}, COSTS); giLines.forEach(l => { C[l.name] = { cost: Number(l.cost) || 0, by: ME, at: dayTxt(), supplier: giSup }; }); wr('ecompos.supCosts', C, 'ecompos:suppliers'); }
+      wr('ecompos.whMoves', [rec].concat(rd('ecompos.whMoves', []) || []).slice(0, 400), 'ecompos:warehouse');
+      let sm = rd('ecompos.stockMoves', {}) || {};
+      const lg = [];
+      giLines.forEach(l => { sm[l.name] = sm[l.name] || {}; sm[l.name][giTo] = Number(sm[l.name][giTo] || 0) + (Number(l.qty) || 0); lg.push({ ts: Date.now(), at: dayTxt() + ', ' + now.toTimeString().slice(0, 5), name: l.name, br: giTo, qty: Number(l.qty) || 0, kind: 'Supplier delivery', ref: id, by: ME }); });
+      wr('ecompos.stockMoves', sm, 'ecompos:stock');
+      wr('ecompos.stockLog', lg.concat(rd('ecompos.stockLog', []) || []).slice(0, 2000));
+      const tail = giNoCost.length ? ' ' + giNoCost.length + (giNoCost.length === 1 ? ' line has' : ' lines have') + ' no agreed cost yet, so the Admin has been asked to set it.' : '';
+      set({ gi: { lines: [] }, msg: id + ' received into ' + (LN[giTo] || giTo) + ' · ' + giLines.length + (giLines.length === 1 ? ' line' : ' lines') + (giTotal ? ' · ' + money(giTotal) : '') + '. Stock is up to date.' + tail, msgBad: false, tick: Date.now() });
+    };
+
+    // ---------- a new product straight from a supplier ----------
+    const NP = S.nf || {};
+    const setNP = o => set({ nf: Object.assign({}, NP, o) });
+    const npPrice = parseFloat(String(NP.price || '').replace(/[^0-9.]/g, '')) || 0;
+    const npCost = parseFloat(String(NP.cost || '').replace(/[^0-9.]/g, '')) || 0;
+    const npQty = parseInt(String(NP.qty || '').replace(/[^0-9]/g, ''), 10) || 0;
+    const npErr = (() => {
+      if (String(NP.name || '').trim().length < 3) return 'Give the product a name.';
+      if (!NP.sup) return 'Say which supplier it came from.';
+      if (SU && !npCost) return 'Enter what the supplier charged for one.';
+      if (!npPrice) return 'Enter the shelf price.';
+      if (SU && npPrice < npCost) return 'The shelf price is below what you paid. Check both figures.';
+      if (!npQty) return 'Enter how many arrived.';
+      if (ALLP.some(n => String(n).toLowerCase() === String(NP.name || '').trim().toLowerCase())) return 'That product is already in the catalogue. Use Record a delivery instead.';
+      return '';
+    })();
+    const addProduct = () => {
+      if (npErr) { set({ msg: npErr, msgBad: true }); return; }
+      const nm = String(NP.name || '').trim();
+      const to = NP.to || (SU ? 'wh' : MYBR);
+      const reg = (rd('ecompos.newProducts', []) || []).concat([{ name: nm, cat: NP.cat || 'Staples', sku: 'SUP-' + String(1000 + PRODREG.length + 1), bc: '6034' + String(300000000 + PRODREG.length * 7919).slice(0, 9), price: npPrice, cost: SU ? npCost : 0, costPending: !SU, stock: String(npQty), web: NP.web !== false, pos: NP.pos !== false, status: SU ? 'live' : 'pending', scope: 'all', tone: '#e4e7ef', supplier: NP.sup, desc: nm + '. Supplied by ' + NP.sup + '.', by: ME, at: stamp() }]);
+      wr('ecompos.newProducts', reg, 'ecompos:products');
+      if (SU) { const C = Object.assign({}, COSTS); C[nm] = { cost: npCost, by: ME, at: dayTxt(), supplier: NP.sup }; wr('ecompos.supCosts', C, 'ecompos:suppliers'); }
+      let sm = rd('ecompos.stockMoves', {}) || {};
+      sm[nm] = sm[nm] || {}; sm[nm][to] = Number(sm[nm][to] || 0) + npQty;
+      wr('ecompos.stockMoves', sm, 'ecompos:stock');
+      wr('ecompos.stockLog', [{ ts: Date.now(), at: dayTxt() + ', ' + now.toTimeString().slice(0, 5), name: nm, br: to, qty: npQty, kind: 'New product from supplier', ref: NP.sup, by: ME }].concat(rd('ecompos.stockLog', []) || []).slice(0, 2000));
+      const SP = SUP.map(x => x.name === NP.sup ? Object.assign({}, x, { items: (x.items || []).concat([nm]) }) : x);
+      wr('ecompos.suppliers', SP, 'ecompos:suppliers');
+      set({ nf: {}, msg: nm + ' added from ' + NP.sup + ' · ' + npQty + ' into ' + (LN[to] || to) + ' at ' + money(npPrice) + (SU ? '. It is live on the till and the website.' : '. The Admin sets its cost price and approves it before it sells.'), msgBad: false, tick: Date.now() });
+    };
+
+    // ---------- goods out: damages recorded and sent back ----------
+    const GO = S.go || {};
+    const setGO = o => set({ go: Object.assign({}, GO, o) });
+    const CAUSES = ['Packaging failure', 'Manufacturing defect', 'Water damage', 'Broken in transit', 'Expired on the shelf', 'Mishandled in store'];
+    const goQty = parseInt(String(GO.qty || '').replace(/[^0-9]/g, ''), 10) || 0;
+    const goErr = (() => {
+      if (!GO.name) return 'Pick the item that was damaged.';
+      if (!goQty) return 'Enter how many.';
+      if (!GO.cause) return 'Pick what caused it.';
+      if (!String(GO.note || '').trim()) return 'Write one line on what happened. The supplier reads this.';
+      return '';
+    })();
+    const supplierFor = nm => { const s1 = SUP.filter(x => (x.items || []).indexOf(nm) >= 0)[0]; return s1 ? s1.name : ''; };
+    const recordDamage = (andReport) => {
+      if (goErr) { set({ msg: goErr, msgBad: true }); return; }
+      const id = 'DM-' + String(3200 + DMG.length + 1);
+      const sup = supplierFor(GO.name);
+      const atHand = /Packaging failure|Manufacturing defect|Broken in transit/.test(GO.cause);
+      const rec = { id, src: GO.src || 'storage', loc: GO.loc || MYBR || 'osu', name: GO.name, qty: goQty, cause: GO.cause, note: String(GO.note || '').trim(), status: 'reported', by: ME, at: stamp(), ts: Date.now(), supplier: sup, liable: atHand ? 'supplier' : 'us', photo: GO.photo || '' };
+      let D = [rec].concat(DMG);
+      let C = CLM.slice();
+      let msg = id + ' recorded · ' + goQty + ' × ' + GO.name + ' · ' + GO.cause + '.';
+      if (andReport) {
+        if (!sup) { set({ msg: id + ' recorded, but no supplier is linked to ' + GO.name + ' yet. Ask the Admin to add it to a supplier.', msgBad: true, go: {}, tick: Date.now() }); wr('ecompos.damages', D, 'ecompos:damages'); return; }
+        if (!atHand) { set({ msg: id + ' recorded. ' + GO.cause + ' is on us, not the supplier, so there is nothing to claim.', msgBad: false, go: {}, tick: Date.now() }); wr('ecompos.damages', D, 'ecompos:damages'); return; }
+        const cid = 'SC-' + String(500 + CLM.length + 1);
+        D = D.map(d => d.id === id ? Object.assign({}, d, { status: 'at_supplier', claimId: cid }) : d);
+        C = [{ id: cid, supplier: sup, items: [id], status: 'at_supplier', at: stamp(), ts: Date.now(), by: ME, qty: goQty, name: GO.name, cause: GO.cause, terms: (supOf(sup) || {}).terms || '', track: [{ t: 'Claim raised by ' + ME, at: stamp() }] }].concat(C);
+        try { const O = rd('ecompos.outbox', []) || []; O.unshift({ to: sup, subject: 'Claim ' + cid + ' · ' + goQty + ' × ' + GO.name, body: 'Dear ' + sup + ',\n\nWe are claiming on ' + goQty + ' × ' + GO.name + ' received from you. Cause: ' + GO.cause + '. ' + String(GO.note || '').trim() + '\n\nYour terms with us: ' + ((supOf(sup) || {}).terms || 'as agreed') + '. Please confirm replacement or a credit note.\n\n' + biz.name + '\n' + ME, at: stamp(), ts: Date.now(), kind: 'supplier-claim' }); wr('ecompos.outbox', O.slice(0, 400)); } catch (e) {}
+        msg = id + ' recorded and claim ' + cid + ' sent to ' + sup + ' · ' + ((supOf(sup) || {}).terms || '');
+      }
+      wr('ecompos.damages', D, 'ecompos:damages');
+      wr('ecompos.supClaims', C, 'ecompos:damages');
+      set({ go: {}, msg, msgBad: false, tick: Date.now() });
+    };
+
+    // ---------- claims ----------
+    const claimRow = c => {
+      const dmgs = DMG.filter(d => (c.items || []).indexOf(d.id) >= 0);
+      const age = Math.max(0, Math.round((Date.now() - (c.ts || Date.now())) / 86400000));
+      const st = { at_supplier: ['With the supplier', '#b26a00'], settled: ['Settled', '#1f7a2a'], rejected: ['Rejected', '#c62828'], received: ['Goods received back', '#0b5c5c'] }[c.status] || ['Open', '#5f5c5a'];
+      return {
+        id: c.id, supplier: c.supplier, when: c.at, age: age + (age === 1 ? ' day old' : ' days old'),
+        what: c.name ? c.qty + ' × ' + c.name : dmgs.map(d => d.qty + ' × ' + d.name).join(', '),
+        cause: (c.cause || (dmgs[0] || {}).cause || '') + (c.want ? ' \u00b7 wants a ' + c.want.toLowerCase() : '') + (c.amount ? ' \u00b7 GHS ' + Number(c.amount).toFixed(2) : '') + (c.ref ? ' \u00b7 ref ' + c.ref : ''), terms: c.terms || (supOf(c.supplier) || {}).terms || '',
+        status: st[0], sbg: st[1], slow: age > 14 && c.status === 'at_supplier',
+        track: (c.track || []).map(t => ({ t: t.at + ' · ' + t.t })), hasTrack: !!(c.track && c.track.length),
+        canChase: c.status === 'at_supplier', canClose: c.status === 'at_supplier' || c.status === 'received',
+        chase: () => { const C = CLM.map(x => x.id === c.id ? Object.assign({}, x, { track: (x.track || []).concat([{ t: 'Chased by ' + ME, at: stamp() }]) }) : x); wr('ecompos.supClaims', C, 'ecompos:damages'); try { const O = rd('ecompos.outbox', []) || []; O.unshift({ to: c.supplier, subject: 'Chasing claim ' + c.id, body: 'Dear ' + c.supplier + ',\n\nClaim ' + c.id + ' has been open for ' + age + ' days. Your terms with us are: ' + (c.terms || (supOf(c.supplier) || {}).terms || 'as agreed') + '. Please confirm when the replacement or credit note is coming.\n\n' + biz.name, at: stamp(), ts: Date.now(), kind: 'supplier-claim' }); wr('ecompos.outbox', O.slice(0, 400)); } catch (e) {} set({ msg: c.supplier + ' chased on ' + c.id + '.', msgBad: false, tick: Date.now() }); },
+        settle: () => { const C = CLM.map(x => x.id === c.id ? Object.assign({}, x, { status: 'settled', track: (x.track || []).concat([{ t: 'Settled, closed by ' + ME, at: stamp() }]) }) : x); const D = DMG.map(d => (c.items || []).indexOf(d.id) >= 0 ? Object.assign({}, d, { status: 'closed' }) : d); wr('ecompos.supClaims', C, 'ecompos:damages'); wr('ecompos.damages', D, 'ecompos:damages'); set({ msg: c.id + ' closed as settled with ' + c.supplier + '.', msgBad: false, tick: Date.now() }); },
+        back: () => { const C = CLM.map(x => x.id === c.id ? Object.assign({}, x, { status: 'received', track: (x.track || []).concat([{ t: 'Replacement received by ' + ME, at: stamp() }]) }) : x); wr('ecompos.supClaims', C, 'ecompos:damages'); set({ msg: 'Replacement from ' + c.supplier + ' noted on ' + c.id + '. Receive it into stock under Goods in.', msgBad: false, tick: Date.now() }); }
+      };
+    };
+
+    // ---------- supplier directory ----------
+    const supRow = x => {
+      const inN = WMV.filter(m => m.supplier === x.name);
+      const inV = inN.reduce((a, m) => a + (Number(m.value) || (m.lines || []).reduce((q, l) => q + (Number(l.qty) || 0) * (Number(l.cost) || 0), 0)), 0);
+      const cl = CLM.filter(c => c.supplier === x.name);
+      const open = cl.filter(c => c.status === 'at_supplier').length;
+      const dm = DMG.filter(d => d.supplier === x.name);
+      return {
+        id: x.id, name: x.name, phone: x.phone || 'No phone on file', email: x.email || '', hasEmail: !!x.email,
+        addr: x.addr || '', terms: x.terms || 'No terms agreed yet', lead: (x.lead || 0) + ' day lead time', pay: x.pay || 'Not agreed', tin: x.tin || '',
+        items: (x.items || []).slice(0, 6).join(' · ') + ((x.items || []).length > 6 ? ' and ' + ((x.items || []).length - 6) + ' more' : ''),
+        itemN: (x.items || []).length + (((x.items || []).length === 1) ? ' product' : ' products'),
+        held: x.status === 'held', statusTxt: x.status === 'held' ? 'On hold' : 'Active', sbg: x.status === 'held' ? '#c62828' : '#1f7a2a',
+        deliveries: inN.length + (inN.length === 1 ? ' delivery' : ' deliveries'), value: money(inV),
+        addedBy: 'Added by ' + (x.by || 'the Admin') + ' \u00b7 ' + (x.since || ''),
+        supplied: (() => { const t = {}; inN.forEach(m => (m.lines || []).forEach(l => { const k = l.name; t[k] = t[k] || { qty: 0, val: 0, n: 0, cost: 0 }; t[k].qty += Number(l.qty) || 0; t[k].val += (Number(l.qty) || 0) * (Number(l.cost) || 0); t[k].n++; t[k].cost = Number(l.cost) || t[k].cost; }));
+          return Object.keys(t).sort((a, b) => t[b].val - t[a].val).map(k => ({ name: k, qty: String(t[k].qty) + ' received', cost: t[k].cost ? money(t[k].cost) + ' each' : 'Cost not set', val: money(t[k].val), times: t[k].n + (t[k].n === 1 ? ' delivery' : ' deliveries') })); })(),
+        hasSupplied: inN.length > 0,
+        runs: inN.slice(0, 10).map(m => ({ t: m.id + ' \u00b7 ' + m.at + ' \u00b7 ' + (m.lines || []).length + (((m.lines || []).length === 1) ? ' line' : ' lines') + ' into ' + (LN[m.to] || m.to), sub: 'Received by ' + m.by + (m.byLevel ? ' (' + m.byLevel + ')' : '') + (m.ref ? ' \u00b7 ' + m.ref : '') + (m.costPending ? ' \u00b7 cost still to be set' : ''), amt: money(m.value || (m.lines || []).reduce((q, l) => q + (Number(l.qty) || 0) * (Number(l.cost) || 0), 0)) })),
+        back: dm.map(d => { const c = CLM.filter(y => (y.items || []).indexOf(d.id) >= 0)[0]; return { t: d.id + ' \u00b7 ' + d.qty + ' \u00d7 ' + d.name + ' \u00b7 ' + d.cause, sub: (LN[d.loc] || d.loc) + ' \u00b7 ' + d.at + ' \u00b7 reported by ' + d.by + (c ? ' \u00b7 claim ' + c.id : ' \u00b7 not claimed yet'), st: c ? ({ at_supplier: 'With them', settled: 'Settled', received: 'Replaced', rejected: 'Rejected' })[c.status] || 'Open' : 'Recorded', sbg: c && c.status === 'settled' ? '#1f7a2a' : c && c.status === 'received' ? '#0b5c5c' : c && c.status === 'rejected' ? '#c62828' : '#b26a00' }; }),
+        hasBack: dm.length > 0,
+        backQty: dm.reduce((a, d) => a + (Number(d.qty) || 0), 0),
+        backVal: money(dm.reduce((a, d) => a + (Number(d.qty) || 0) * prodCost(d.name), 0)),
+        clmRows: cl.map(c => ({ t: c.id + ' \u00b7 ' + (c.name ? c.qty + ' \u00d7 ' + c.name : 'claim') + ' \u00b7 ' + (c.cause || '') + (c.want ? ' \u00b7 wants ' + c.want.toLowerCase() : '') + (c.amount ? ' \u00b7 GHS ' + Number(c.amount).toFixed(2) : ''), sub: 'raised ' + c.at + ' by ' + c.by, st: ({ at_supplier: 'With them', settled: 'Settled', received: 'Replaced', rejected: 'Rejected' })[c.status] || 'Open' })),
+        hasClm: cl.length > 0,
+        claims: cl.length ? cl.length + (cl.length === 1 ? ' claim' : ' claims') + (open ? ' · ' + open + ' open' : ' · all closed') : 'No claims',
+        dmg: dm.length ? dm.reduce((a, d) => a + (Number(d.qty) || 0), 0) + ' items came back' : 'Nothing came back',
+        open: () => set({ sel: S.sel === x.name ? '' : x.name }), isOpen: S.sel === x.name
+      };
+    };
+
+    // ---------- manage, Admin only ----------
+    const MF = S.mf || {};
+    const setMF = o => set({ mf: Object.assign({}, MF, o) });
+    const editing = MF.id ? SUP.filter(x => x.id === MF.id)[0] : null;
+    const mfErr = (() => {
+      if (String(MF.name || '').trim().length < 2) return 'Enter the supplier’s name.';
+      if (!String(MF.phone || '').trim()) return 'Enter a phone number — claims need somewhere to go.';
+      if (!editing && SUP.some(x => x.name.toLowerCase() === String(MF.name || '').trim().toLowerCase())) return 'That supplier is already on the list.';
+      return '';
+    })();
+    const saveSup = () => {
+      if (!SU) { set({ msg: 'Only the Admin adds or changes a supplier.', msgBad: true }); return; }
+      if (mfErr) { set({ msg: mfErr, msgBad: true }); return; }
+      const rec = { name: String(MF.name || '').trim(), phone: String(MF.phone || '').trim(), email: String(MF.email || '').trim(), addr: String(MF.addr || '').trim(), terms: String(MF.terms || '').trim(), pay: String(MF.pay || '').trim(), tin: String(MF.tin || '').trim().toUpperCase(), lead: parseInt(String(MF.lead || '').replace(/[^0-9]/g, ''), 10) || 7 };
+      let L;
+      if (editing) L = SUP.map(x => x.id === editing.id ? Object.assign({}, x, rec) : x);
+      else L = SUP.concat([Object.assign({ id: 'SUP-' + String(100 + SUP.length), items: [], status: 'active', since: 'Since ' + now.getFullYear(), by: ME }, rec)]);
+      wr('ecompos.suppliers', L, 'ecompos:suppliers');
+      set({ mf: {}, msg: editing ? rec.name + ' updated.' : rec.name + ' added. Staff can now receive goods from them.', msgBad: false, tick: Date.now() });
+    };
+    const PENDING = (() => {
+      const out = [];
+      (rd('ecompos.newProducts', []) || []).forEach(p => { if (p && p.costPending && !(COSTS[p.name] && Number(COSTS[p.name].cost) > 0)) out.push({ name: p.name, sup: p.supplier || supplierFor(p.name) || '', why: 'Added by ' + (p.by || 'a member of staff') + (p.at ? ' on ' + p.at : ''), price: Number(p.price) || 0 }); });
+      WMV.forEach(m => (m.lines || []).forEach(l => { if (l.costPending && !out.some(o => o.name === l.name) && !(COSTS[l.name] && Number(COSTS[l.name].cost) > 0)) out.push({ name: l.name, sup: m.supplier, why: 'Received on ' + m.id + ' by ' + m.by, price: 0 }); }));
+      return out;
+    })();
+    const CF = S.cf || {};
+    const setCost = (nm, sup) => {
+      const v = parseFloat(String(CF[nm] || '').replace(/[^0-9.]/g, '')) || 0;
+      if (!SU) { set({ msg: 'Only the Admin sets a cost price.', msgBad: true }); return; }
+      if (!v) { set({ msg: 'Enter the cost before saving it.', msgBad: true }); return; }
+      const C = Object.assign({}, COSTS); C[nm] = { cost: v, by: ME, at: dayTxt(), supplier: sup || '' };
+      wr('ecompos.supCosts', C, 'ecompos:suppliers');
+      const reg = (rd('ecompos.newProducts', []) || []).map(p => p && p.name === nm ? Object.assign({}, p, { cost: v, costPending: false }) : p);
+      wr('ecompos.newProducts', reg, 'ecompos:products');
+      const W = (rd('ecompos.whMoves', []) || []).map(m => { if (!(m.lines || []).some(l => l.name === nm && l.costPending)) return m; const lines = m.lines.map(l => l.name === nm ? Object.assign({}, l, { cost: v, costPending: false }) : l); return Object.assign({}, m, { lines, value: lines.reduce((a, l) => a + (Number(l.qty) || 0) * (Number(l.cost) || 0), 0), costPending: lines.some(l => l.costPending) }); });
+      wr('ecompos.whMoves', W, 'ecompos:warehouse');
+      set({ cf: Object.assign({}, CF, { [nm]: '' }), msg: nm + ' costs ' + money(v) + ' from now on. Past deliveries of it have been valued at that too.', msgBad: false, tick: Date.now() });
+    };
+    const costRows = Object.keys(COSTS).sort().map(nm => ({ name: nm, cost: money(COSTS[nm].cost), who: costSetBy(nm), sup: COSTS[nm].supplier || '', value: CF[nm] !== undefined ? CF[nm] : '', input: ev => set({ cf: Object.assign({}, CF, { [nm]: ev.target.value }) }), save: () => setCost(nm, COSTS[nm].supplier) }));
+    const pendRows = PENDING.map(p => ({ name: p.name, sup: p.sup || 'No supplier linked', why: p.why, price: p.price ? 'Shelf price ' + money(p.price) : 'No shelf price yet', value: CF[p.name] !== undefined ? CF[p.name] : '', input: ev => set({ cf: Object.assign({}, CF, { [p.name]: ev.target.value }) }), save: () => setCost(p.name, p.sup) }));
+    const manageRows = SUP.map(x => ({
+      name: x.name, meta: (x.items || []).length + ' products · ' + (x.lead || 0) + ' day lead · pays ' + (x.pay || 'not agreed'),
+      held: x.status === 'held', statusTxt: x.status === 'held' ? 'On hold' : 'Active', sbg: x.status === 'held' ? '#c62828' : '#1f7a2a',
+      holdTxt: x.status === 'held' ? 'Release' : 'Put on hold',
+      hold: () => { const L = SUP.map(y => y.id === x.id ? Object.assign({}, y, { status: y.status === 'held' ? 'active' : 'held' }) : y); wr('ecompos.suppliers', L, 'ecompos:suppliers'); set({ msg: x.name + (x.status === 'held' ? ' released. Staff can receive from them again.' : ' put on hold. Nothing can be received from them until you release them.'), msgBad: x.status !== 'held', tick: Date.now() }); },
+      edit: () => set({ mf: { id: x.id, name: x.name, phone: x.phone, email: x.email, addr: x.addr, terms: x.terms, pay: x.pay, tin: x.tin, lead: String(x.lead || '') }, msg: '' }),
+      del: () => { const used = WMV.some(m => m.supplier === x.name) || CLM.some(c => c.supplier === x.name); if (used) { set({ msg: x.name + ' has deliveries or claims on record, so they cannot be removed. Put them on hold instead.', msgBad: true }); return; } const L = SUP.filter(y => y.id !== x.id); wr('ecompos.suppliers', L, 'ecompos:suppliers'); set({ msg: x.name + ' removed.', msgBad: false, tick: Date.now() }); }
+    }));
+
+    // ---------- tabs and the return value ----------
+
+    // ---------- raise a claim directly (on a recorded damage, or on any product) ----------
+    const NC = S.nc || {}; const setNC = o => set({ nc: Object.assign({}, NC, o, { err: '' }) });
+    const ncSrc = NC.src === 'prod' ? 'prod' : 'dmg';
+    const openDmg = myDmg.filter(d => !d.claimId && d.status !== 'closed');
+    const ncD = openDmg.filter(d => d.id === NC.dmg)[0] || null;
+    const ncSup = NC.sup || (ncD ? (ncD.supplier || supplierFor(ncD.name) || '') : '');
+    const supProds = ncSup ? ((supOf(ncSup) || {}).items || []).concat(ALLP.filter(p => supplierFor(p) === ncSup)).filter((p, i, a) => p && a.indexOf(p) === i) : [];
+    const ncName = ncSrc === 'dmg' ? (ncD ? ncD.name : '') : (String(NC.prodTxt || '').trim() || NC.prod || '');
+    const NCR = ['Damaged on delivery', 'Faulty / manufacturing defect', 'Packaging failure', 'Expired or near expiry', 'Short delivery', 'Wrong item delivered', 'Overcharged on invoice'];
+    const ncReason = NC.reason || (ncD ? ncD.cause : '');
+    const ncWant = NC.want || 'Replacement';
+    const ncQty = NC.qty !== undefined ? NC.qty : (ncD ? String(ncD.qty) : '1');
+    const nc = { srcs: [['dmg', 'A damaged item I recorded'], ['prod', 'Any product from a supplier']].map(x => Object.assign({ label: x[1], pick: () => set({ nc: { src: x[0] } }) }, pill(ncSrc === x[0]))),
+      isDmg: ncSrc === 'dmg', isProd: ncSrc === 'prod', noDmg: openDmg.length === 0,
+      dmgs: openDmg.slice(0, 20).map(d => Object.assign({ label: d.id + ' · ' + d.qty + ' × ' + d.name + ' · ' + d.cause, pick: () => set({ nc: { src: 'dmg', dmg: d.id } }) }, pill(NC.dmg === d.id))),
+      sups: ACTIVE.map(x => Object.assign({ label: x.name, pick: () => setNC({ sup: x.name, prod: '' }) }, pill(ncSup === x.name))),
+      prods: supProds.slice(0, 24).map(p => Object.assign({ label: p, pick: () => setNC({ prod: p, prodTxt: '' }) }, pill(NC.prod === p && !NC.prodTxt))),
+      prodTxt: NC.prodTxt || '', prodIn: e => setNC({ prodTxt: e.target.value }),
+      reasons: NCR.concat(ncReason && NCR.indexOf(ncReason) < 0 ? [ncReason] : []).map(r0 => Object.assign({ label: r0, pick: () => setNC({ reason: r0 }) }, pill(ncReason === r0))),
+      wants: ['Replacement', 'Refund', 'Credit note'].map(w => Object.assign({ label: w, pick: () => setNC({ want: w }) }, pill(ncWant === w))),
+      qty: ncQty, qtyIn: e => setNC({ qty: String(e.target.value).replace(/\D/g, '').slice(0, 5) }), amt: NC.amt || '', amtIn: e => setNC({ amt: String(e.target.value).replace(/[^0-9.]/g, '').slice(0, 10) }),
+      ref: NC.ref || '', refIn: e => setNC({ ref: e.target.value }), note: NC.note || '', noteIn: e => setNC({ note: e.target.value }),
+      err: NC.err || '', hasErr: !!NC.err, cta: 'Send claim' + (ncSup ? ' to ' + ncSup : ''),
+      go: () => { const bad = m => set({ nc: Object.assign({}, NC, { err: m }) });
+        if (ncSrc === 'dmg' && !ncD) return bad('Pick the damaged item you are claiming on.');
+        if (!ncSup) return bad('Pick the supplier.');
+        if (!ncName) return bad('Pick or type the product.');
+        if (!ncReason) return bad('Say what is wrong.');
+        const q = parseInt(ncQty, 10) || 0; if (q <= 0) return bad('Enter how many.');
+        const C0 = rd('ecompos.supClaims', []) || []; const cid = 'SC-' + String(500 + C0.length + 1);
+        const rec = { id: cid, supplier: ncSup, items: ncD ? [ncD.id] : [], status: 'at_supplier', at: stamp(), ts: Date.now(), by: ME, qty: q, name: ncName, cause: ncReason, want: ncWant, amount: parseFloat(NC.amt) || 0, ref: String(NC.ref || '').trim(), note: String(NC.note || '').trim(), terms: (supOf(ncSup) || {}).terms || '', track: [{ t: 'Claim raised by ' + ME + (ncD ? ' on ' + ncD.id : ''), at: stamp() }] };
+        wr('ecompos.supClaims', [rec].concat(C0), 'ecompos:damages');
+        if (ncD) { const D0 = rd('ecompos.damages', []) || []; wr('ecompos.damages', D0.map(d => d.id === ncD.id ? Object.assign({}, d, { status: 'at_supplier', claimId: cid, supplier: ncSup }) : d), 'ecompos:damages'); }
+        try { const O = rd('ecompos.outbox', []) || []; O.unshift({ to: ncSup, subject: 'Claim ' + cid + ' · ' + q + ' × ' + ncName, body: 'Dear ' + ncSup + ',\n\nWe are raising a claim on ' + q + ' × ' + ncName + (rec.ref ? ' (delivery note / invoice ' + rec.ref + ')' : '') + '.\nProblem: ' + ncReason + '.' + (rec.note ? ' ' + rec.note : '') + '\nWe would like a ' + ncWant.toLowerCase() + (rec.amount ? ' for GHS ' + rec.amount.toFixed(2) : '') + '.\n\nYour terms with us: ' + (rec.terms || 'as agreed') + '.\n\n' + biz.name + '\n' + ME, at: stamp(), ts: Date.now(), kind: 'supplier-claim' }); wr('ecompos.outbox', O.slice(0, 400)); } catch (e) {}
+        set({ nc: {}, msg: 'Claim ' + cid + ' sent to ' + ncSup + ' · ' + q + ' × ' + ncName + ' · ' + ncWant.toLowerCase() + '. Track it below.', msgBad: false, tick: Date.now() }); } };
+    const TABS = [['overview', 'Overview', true], ['in', 'Goods in', true], ['new', 'New product', true], ['out', 'Damages out', true], ['claims', 'Claims', true], ['book', 'Supplier details', true], ['manage', 'Manage suppliers', SU]].filter(t => t[2]);
+    const TAB = TABS.some(t => t[0] === S.tab) ? S.tab : 'overview';
+    const inVal = myIn.reduce((a, m) => a + (Number(m.value) || (m.lines || []).reduce((q, l) => q + (Number(l.qty) || 0) * (Number(l.cost) || 0), 0)), 0);
+    const outQty = myDmg.reduce((a, d) => a + (Number(d.qty) || 0), 0);
+    const openCl = CLM.filter(c => c.status === 'at_supplier');
+    const toReport = myDmg.filter(d => d.status === 'reported' && d.liable !== 'us');
+    return {
+      role: ROLE, lvl: LVL, coName: biz.name,
+      title: 'Supplier account',
+      note: SU ? 'Goods in from your suppliers, damaged goods back out to them, claims, and the supplier book itself.' : 'Receive goods from suppliers, record and report damages, and see who supplies what. Supplier records are kept by the Admin.',
+      scope: SU ? 'All ' + BR.length + ' branches and the warehouse' : (LN[MYBR] || MYBR) + ' branch',
+      tabs: TABS.map(t => Object.assign({ label: t[1], pick: () => set({ tab: t[0], msg: '' }) }, pill(TAB === t[0]))),
+      isOverview: TAB === 'overview', isIn: TAB === 'in', isNew: TAB === 'new', isOut: TAB === 'out', isClaims: TAB === 'claims', isBook: TAB === 'book', isManage: TAB === 'manage',
+      hasMsg: !!S.msg, msg: S.msg || '', msgBg: S.msgBad ? '#fbeaea' : '#e7f4e8', msgBd: S.msgBad ? '#c62828' : '#1f7a2a', clearMsg: () => set({ msg: '' }),
+      isSu: SU, notSu: !SU,
+      kpis: [
+        { label: 'Goods in', value: short(inVal), note: myIn.length + (myIn.length === 1 ? ' delivery received' : ' deliveries received'), bg: '#ffffff', fg: '#000000', sub: '#5f5c5a' },
+        { label: 'Damaged out', value: String(outQty), note: myDmg.length + (myDmg.length === 1 ? ' record' : ' records') + ' on file', bg: '#ffffff', fg: '#000000', sub: '#5f5c5a' },
+        { label: 'Open claims', value: String(openCl.length), note: openCl.length ? 'Waiting on a supplier' : 'Nothing outstanding', bg: openCl.length ? '#000000' : '#ffffff', fg: openCl.length ? '#ffffff' : '#000000', sub: openCl.length ? '#c9c6c4' : '#5f5c5a' },
+        { label: 'Ready to report', value: String(toReport.length), note: toReport.length ? 'Damages a supplier should answer for' : 'All reported', bg: toReport.length ? '#c62828' : '#ffffff', fg: toReport.length ? '#ffffff' : '#000000', sub: toReport.length ? '#f7d9d9' : '#5f5c5a' }
+      ],
+      supCount: ACTIVE.length + (ACTIVE.length === 1 ? ' active supplier' : ' active suppliers') + (HELD.length ? ' · ' + HELD.length + ' on hold' : ''),
+      recentIn: myIn.slice(0, 6).map(m => ({ id: m.id, t: m.supplier + ' · ' + (m.lines || []).length + (((m.lines || []).length === 1) ? ' line' : ' lines') + ' into ' + (LN[m.to] || m.to), sub: m.at + ' · ' + m.by + (m.ref ? ' · ' + m.ref : ''), amt: money(m.value || (m.lines || []).reduce((q, l) => q + (Number(l.qty) || 0) * (Number(l.cost) || 0), 0)) })),
+      hasRecentIn: myIn.length > 0,
+      recentOut: myDmg.slice(0, 6).map(d => ({ id: d.id, t: d.qty + ' × ' + d.name + ' · ' + d.cause, sub: (LN[d.loc] || d.loc) + ' · ' + d.at + ' · ' + d.by + (d.supplier ? ' · ' + d.supplier : ''), st: d.status === 'at_supplier' ? 'With the supplier' : d.status === 'closed' ? 'Closed' : 'Recorded', sbg: d.status === 'at_supplier' ? '#b26a00' : d.status === 'closed' ? '#1f7a2a' : '#5f5c5a' })),
+      hasRecentOut: myDmg.length > 0,
+      // goods in
+      gi: {
+        sups: ACTIVE.map(x => Object.assign({ label: x.name, pick: () => setGI({ sup: x.name }) }, pill(giSup === x.name))),
+        held: HELD.map(x => ({ t: x.name + ' is on hold' })), hasHeld: HELD.length > 0,
+        sup: giSup, hasSup: !!giSup,
+        tos: [{ id: 'wh', label: 'Warehouse' }].concat(BR.map(b => ({ id: b.id, label: brShort(b) }))).filter(o => SU || o.id === MYBR || o.id === 'wh').map(o => Object.assign({ label: o.label, pick: () => setGI({ to: o.id }) }, pill(giTo === o.id))),
+        ref: GI.ref || '', refIn: ev => setGI({ ref: ev.target.value }),
+        note: GI.note || '', noteIn: ev => setGI({ note: ev.target.value }),
+        catalogue: giCatalogue.map(n => ({ label: n, pick: () => giAdd(n, 0) })),
+        hasCatalogue: giCatalogue.length > 0,
+        others: ALLP.filter(n => giCatalogue.indexOf(n) < 0).slice(0, 14).map(n => ({ label: n, pick: () => giAdd(n, 0) })),
+        lines: giLines.map((l, k) => ({ name: l.name, qty: String(l.qty || ''), cost: String(l.cost || ''),
+          qtyIn: ev => { const L = giLines.slice(); L[k] = Object.assign({}, L[k], { qty: parseInt(String(ev.target.value).replace(/[^0-9]/g, ''), 10) || 0 }); setGI({ lines: L }); },
+          costIn: ev => { const L = giLines.slice(); L[k] = Object.assign({}, L[k], { cost: parseFloat(String(ev.target.value).replace(/[^0-9.]/g, '')) || 0 }); setGI({ lines: L }); },
+          line: lineCost(l) ? money((Number(l.qty) || 0) * lineCost(l)) : 'Cost not set',
+          costTxt: lineCost(l) ? money(lineCost(l)) + ' each' : 'Set by the Admin',
+          drop: () => setGI({ lines: giLines.filter((x, j) => j !== k) }) })),
+        hasLines: giLines.length > 0,
+        total: giTotal ? money(giTotal) : 'Valued once the Admin sets the costs',
+        costNote: SU ? 'You are the only one who can set a cost price, so enter what the supplier charged.' : (giNoCost.length ? giNoCost.length + (giNoCost.length === 1 ? ' line has' : ' lines have') + ' no agreed cost. Receive it anyway \u2014 the Admin sets the cost.' : 'Costs come from the list the Admin agreed. You do not need to enter them.'),
+        err: giErr, hasErr: !!giErr && giLines.length > 0,
+        terms: giSupRec ? giSupRec.terms : '', leadTxt: giSupRec ? (giSupRec.lead || 0) + ' day lead time · pays ' + (giSupRec.pay || 'as agreed') : '',
+        receive, clear: () => set({ gi: { lines: [] } })
+      },
+      // new product
+      np: {
+        name: NP.name || '', nameIn: ev => setNP({ name: ev.target.value }),
+        sups: ACTIVE.map(x => Object.assign({ label: x.name, pick: () => setNP({ sup: x.name }) }, pill(NP.sup === x.name))),
+        cats: ['Electronics', 'Staples', 'Tins', 'Drinks', 'Household'].map(c => Object.assign({ label: c, pick: () => setNP({ cat: c }) }, pill((NP.cat || 'Staples') === c))),
+        cost: NP.cost || '', costIn: ev => setNP({ cost: ev.target.value }),
+        price: NP.price || '', priceIn: ev => setNP({ price: ev.target.value }),
+        qty: NP.qty || '', qtyIn: ev => setNP({ qty: ev.target.value }),
+        tos: [{ id: 'wh', label: 'Warehouse' }].concat(BR.map(b => ({ id: b.id, label: brShort(b) }))).filter(o => SU || o.id === MYBR || o.id === 'wh').map(o => Object.assign({ label: o.label, pick: () => setNP({ to: o.id }) }, pill((NP.to || (SU ? 'wh' : MYBR)) === o.id))),
+        margin: SU ? (npPrice && npCost ? Math.round((npPrice - npCost) / npPrice * 100) + '% margin \u00b7 ' + money(npPrice - npCost) + ' a unit' : 'Enter both prices to see the margin') : 'The Admin sets the cost price, so the margin is worked out once they do.',
+        err: npErr, hasErr: !!npErr && !!NP.name,
+        gate: SU ? 'It goes live on the till and the website as soon as you add it.' : 'It is added for the Admin to approve before it sells.',
+        save: addProduct, clear: () => set({ nf: {} })
+      },
+      // goods out
+      go: {
+        items: ALLP.slice(0, 18).map(n => Object.assign({ label: n, pick: () => setGO({ name: n }) }, pill(GO.name === n))),
+        name: GO.name || '', hasName: !!GO.name,
+        qty: GO.qty || '', qtyIn: ev => setGO({ qty: ev.target.value }),
+        causes: CAUSES.map(c => Object.assign({ label: c, pick: () => setGO({ cause: c }) }, pill(GO.cause === c))),
+        srcs: [['storage', 'Found in the store'], ['customer', 'Brought back by a customer'], ['delivery', 'Damaged on delivery']].map(x => Object.assign({ label: x[1], pick: () => setGO({ src: x[0] }) }, pill((GO.src || 'storage') === x[0]))),
+        locs: BR.concat([{ id: 'wh', name: 'Warehouse' }]).filter(o => SU || o.id === MYBR || o.id === 'wh').map(o => Object.assign({ label: LN[o.id] || brShort(o), pick: () => setGO({ loc: o.id }) }, pill((GO.loc || MYBR) === o.id))),
+        note: GO.note || '', noteIn: ev => setGO({ note: ev.target.value }),
+        photo: GO.photo || '', hasPhoto: !!GO.photo,
+        pick: ev => { try { const fl = ev.target.files && ev.target.files[0]; if (fl) setGO({ photo: fl.name }); } catch (e) {} },
+        supplier: GO.name ? (supplierFor(GO.name) || 'No supplier linked to this item yet') : '',
+        liable: GO.cause ? (/Packaging failure|Manufacturing defect|Broken in transit/.test(GO.cause) ? 'The supplier should answer for this, so it can be claimed.' : 'This one is on us, so there is nothing to claim from the supplier.') : '',
+        canClaim: !!GO.cause && /Packaging failure|Manufacturing defect|Broken in transit/.test(GO.cause) && !!supplierFor(GO.name || ''),
+        err: goErr, hasErr: !!goErr && !!GO.name,
+        record: () => recordDamage(false), report: () => recordDamage(true),
+        clear: () => set({ go: {} })
+      },
+      // claims
+      claims: CLM.map(claimRow), hasClaims: CLM.length > 0, noClaims: CLM.length === 0, nc,
+      claimNote: openCl.length ? openCl.length + (openCl.length === 1 ? ' claim is' : ' claims are') + ' with a supplier' : 'No claim is waiting on a supplier',
+      // directory
+      book: SUP.map(supRow), hasBook: SUP.length > 0,
+      bookNote: SU ? 'Tap a supplier to see everything on them. Add, change or hold one under Manage suppliers.' : 'Read-only. The Admin keeps these records up to date.',
+      // manage
+      manageRows, costRows, hasCosts: Object.keys(COSTS).length > 0,
+      pendRows, hasPending: PENDING.length > 0,
+      pendNote: PENDING.length ? PENDING.length + (PENDING.length === 1 ? ' item is' : ' items are') + ' in stock with no cost price yet. Set them so margin and profit read correctly.' : 'Every item in stock has a cost price.',
+      costNote: 'Only you can set these. Staff can stock anything from a supplier, but they never see or type a cost.',
+      mf: {
+        editing: !!editing, title: editing ? 'Change ' + editing.name : 'Add a supplier',
+        name: MF.name || '', nameIn: ev => setMF({ name: ev.target.value }),
+        phone: MF.phone || '', phoneIn: ev => setMF({ phone: ev.target.value }),
+        email: MF.email || '', emailIn: ev => setMF({ email: ev.target.value }),
+        addr: MF.addr || '', addrIn: ev => setMF({ addr: ev.target.value }),
+        terms: MF.terms || '', termsIn: ev => setMF({ terms: ev.target.value }),
+        pay: MF.pay || '', payIn: ev => setMF({ pay: ev.target.value }),
+        tin: MF.tin || '', tinIn: ev => setMF({ tin: ev.target.value }),
+        lead: MF.lead || '', leadIn: ev => setMF({ lead: ev.target.value }),
+        err: mfErr, hasErr: !!mfErr && !!MF.name,
+        save: saveSup, cancel: () => set({ mf: {} }), saveTxt: editing ? 'Save changes' : 'Add the supplier'
+      }
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS damages</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* UX fixes: keyboard focus, touch targets, mobile text, reduced motion */
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+body{overflow-wrap:break-word}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5}
+a{color:#000000}a:hover{color:#0b5c5c}
+@media print{body *{visibility:hidden !important}.claim-print,.claim-print *{visibility:visible !important}.claim-print{position:absolute !important;left:0 !important;top:0 !important;width:100% !important}.no-print{display:none !important}}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="damages" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="inventory" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">Damages &amp; suppliers</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{scopeLine}}</p>
+</div>
+<div role="tablist" aria-label="Damage views" style="display: flex; gap: 4px; padding: 4px; border-radius: 9999px; background: #ffffff; flex-wrap: wrap; box-shadow: rgba(0, 0, 0, 0.06) 0 2px 8px 0">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="5"><button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; font-size: 14px; padding: 10px 14px; min-height: 42px; border-radius: 9999px; border: 0; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}">{{t.label}}</button></sc-for>
+</div>
+</header>
+
+<sc-if value="{{hasMsg}}" hint-placeholder-val="{{false}}"><div role="status" style="display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 16px; background: {{msgBg}}; color: #ffffff; font-size: 14px; font-weight: 500"><span style="flex: 1">{{msg}}</span><button type="button" onClick="{{hideMsg}}" aria-label="Dismiss" style="width: 28px; height: 28px; border-radius: 9999px; border: 0; background: rgba(255, 255, 255, 0.25); color: #ffffff; cursor: pointer">×</button></div></sc-if>
+
+<section aria-label="Damage pipeline" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="6"><button type="button" onClick="{{k.go}}" style="font-family: inherit; text-align: left; background: #ffffff; border-radius: 20px; padding: 14px 16px; border: 0; display: flex; flex-direction: column; gap: 4px; cursor: pointer; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px"><span style="font-size: 12px; color: #5f5c5a">{{k.label}}</span><strong style="font-size: 24px; font-weight: 600; letter-spacing: -0.04em; color: {{k.c}}">{{k.value}}</strong><span style="font-size: 12px; color: #3d3a38">{{k.note}}</span></button></sc-for>
+</section>
+
+<sc-if value="{{tabOverview}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="ai-h" style="flex: 3 1 520px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center"><h2 id="ai-h" style="margin: 0; font-size: 17px; font-weight: 600">✨ Damage intelligence</h2><span style="font-size: 12px; color: #5f5c5a">Patterns found in every damage record across the company</span></div>
+<sc-for list="{{insights}}" as="i" hint-placeholder-count="4"><div style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 16px; background: {{i.bg}}"><span aria-hidden="true" style="font-size: 18px">{{i.icon}}</span><span style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 14px; font-weight: 600">{{i.title}}</strong><span style="font-size: 13px; color: #3d3a38">{{i.body}}</span></span></div></sc-for>
+</section>
+<section aria-labelledby="nx-h" style="flex: 2 1 340px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="nx-h" style="margin: 0; font-size: 17px; font-weight: 600">Needs action</h2>
+<sc-if value="{{noTodo}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: #5f5c5a">Nothing waiting. Every damage is with a supplier or closed.</span></sc-if>
+<sc-for list="{{todo}}" as="d" hint-placeholder-count="4"><button type="button" onClick="{{d.open}}" style="font-family: inherit; text-align: left; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 14px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer"><span style="display: flex; justify-content: space-between; gap: 8px"><strong style="font-size: 13px">{{d.id}} · {{d.qty}} × {{d.name}}</strong><span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: {{d.sbg}}; color: #ffffff">{{d.stTxt}}</span></span><span style="font-size: 12px; color: #5f5c5a">{{d.next}}</span></button></sc-for>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{tabRecords}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center"><span style="font-size: 13px; color: #5f5c5a">Show</span><sc-for list="{{filters}}" as="f" hint-placeholder-count="5"><button type="button" onClick="{{f.pick}}" aria-pressed="{{f.pressed}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; cursor: pointer; background: {{f.bg}}; color: {{f.fg}}; border: 1px solid {{f.bd}}">{{f.label}}</button></sc-for><sc-if value="{{canClaimSel}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{claimSel}}" style="font-family: inherit; margin-left: auto; font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">{{claimSelTxt}}</button></sc-if></div>
+<sc-if value="{{noRecs}}" hint-placeholder-val="{{false}}"><div style="background: #ffffff; border-radius: 20px; padding: 18px; font-size: 14px; color: #5f5c5a">No damage records here.</div></sc-if>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 12px">
+<sc-for list="{{recs}}" as="d" hint-placeholder-count="4"><article style="background: #ffffff; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 8px; border: 2px solid {{d.ring}}; box-shadow: rgba(0, 0, 0, 0.08) 0 2px 6px 0">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: flex-start"><span style="display: flex; gap: 8px; align-items: flex-start"><sc-if value="{{d.selectable}}" hint-placeholder-val="{{false}}"><input type="checkbox" checked="{{d.sel}}" onChange="{{d.toggle}}" aria-label="Select {{d.id}} for a supplier claim" style="width: 18px; height: 18px; margin: 2px 0 0"></sc-if><span style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 15px; font-weight: 600">{{d.qty}} × {{d.name}}</strong><span style="font-size: 12px; color: #5f5c5a">{{d.id}} · {{d.srcTxt}} · {{d.locTxt}} · {{d.at}}</span></span></span><span style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; background: {{d.sbg}}; color: #ffffff; white-space: nowrap">{{d.stTxt}}</span></div>
+<span style="font-size: 13px">{{d.note}}</span>
+<div style="display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 14px; background: #eef6f6; font-size: 12px"><strong style="font-size: 12px; color: #084848">✨ {{d.cause}} · {{d.liab}}</strong><span style="color: #3d3a38">{{d.advice}}</span><span style="color: #5f5c5a">Supplier: {{d.supplier}} · value {{d.value}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding-left: 10px; border-left: 2px solid #ebebeb"><sc-for list="{{d.track}}" as="t" hint-placeholder-count="2"><span style="font-size: 12px; color: #3d3a38">{{t.t}}</span></sc-for></div>
+<sc-if value="{{d.rcvOpen}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: #e8f5e9; border: 1.5px solid #1f7a2a">
+<strong style="font-size: 13px; color: #1f5f24">📦 {{d.rcvOutcome}}</strong>
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px"><span style="font-weight: 600">How many came back?</span><button type="button" onClick="{{d.rcvDec}}" aria-label="Fewer" style="width: 30px; height: 30px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">−</button><strong style="min-width: 28px; text-align: center">{{d.rcvQty}}</strong><button type="button" onClick="{{d.rcvInc}}" aria-label="More" style="width: 30px; height: 30px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">+</button><span style="color: #5f5c5a">of {{d.qty}} sent</span></div>
+<div style="display: flex; flex-direction: column; gap: 5px"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">Add them to</span><div role="radiogroup" aria-label="Where to restock" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{d.rcvDests}}" as="x" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{x.pressed}}" onClick="{{x.pick}}" style="font-family: inherit; font-size: 12px; padding: 6px 12px; border-radius: 9999px; cursor: pointer; background: {{x.bg}}; color: {{x.fg}}; border: 1px solid {{x.bd}}">{{x.label}}</button></sc-for></div></div>
+<span style="font-size: 12px; color: #3d3a38">Anything the supplier did not send back stays on this record so you can chase it.</span>
+<div style="display: flex; gap: 6px"><button type="button" onClick="{{d.rcvCancel}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Cancel</button><button type="button" onClick="{{d.rcvGo}}" style="font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Add to stock</button></div>
+</div></sc-if>
+<div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-if value="{{d.canClaim}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{d.claim}}" style="font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Send to supplier</button></sc-if><sc-if value="{{d.canRestock}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{d.restock}}" style="font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Receive &amp; add to stock</button></sc-if><sc-if value="{{d.canWrite}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{d.writeOff}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; border-radius: 9999px; border: 1px solid #c62828; background: #ffffff; color: #c62828; cursor: pointer">Write off</button></sc-if><sc-if value="{{d.hasClaim}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{d.openClaim}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Open claim {{d.claimId}}</button></sc-if></div>
+</article></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{tabReport}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="rp-h" style="max-width: 760px; background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="rp-h" style="margin: 0; font-size: 18px; font-weight: 600">Report a damaged item</h2><span style="font-size: 13px; color: #5f5c5a">For damage found while storing goods, or items a customer brought back damaged. Damaged stock is taken out of what can be sold.</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">Where was it found?</span><div role="radiogroup" aria-label="Source" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{rp.srcOpts}}" as="o" hint-placeholder-count="2"><button type="button" role="radio" aria-checked="{{o.pressed}}" onClick="{{o.pick}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; cursor: pointer; background: {{o.bg}}; color: {{o.fg}}; border: 1px solid {{o.bd}}">{{o.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">Location</span><div role="radiogroup" aria-label="Location" style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{rp.locOpts}}" as="o" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{o.pressed}}" onClick="{{o.pick}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; cursor: pointer; background: {{o.bg}}; color: {{o.fg}}; border: 1px solid {{o.bd}}">{{o.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="dm-q" style="font-size: 12px; font-weight: 600; color: #3d3a38">Product</label><input id="dm-q" type="search" autocomplete="off" value="{{rp.q}}" onInput="{{rp.qIn}}" placeholder="Search products" style="font: inherit; font-size: 15px; padding: 11px 14px; border-radius: 9999px; border: 1px solid rgba(0, 0, 0, 0.18)"><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{rp.res}}" as="p" hint-placeholder-count="6"><button type="button" onClick="{{p.pick}}" aria-pressed="{{p.pressed}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; border-radius: 9999px; cursor: pointer; background: {{p.bg}}; color: {{p.fg}}; border: 1px solid {{p.bd}}">{{p.label}}</button></sc-for></div></div>
+<div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">Quantity damaged</span><button type="button" onClick="{{rp.dec}}" aria-label="Fewer" style="width: 34px; height: 34px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">−</button><strong style="min-width: 30px; text-align: center; font-size: 16px">{{rp.qty}}</strong><button type="button" onClick="{{rp.inc}}" aria-label="More" style="width: 34px; height: 34px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">+</button><span style="font-size: 12px; color: #5f5c5a">{{rp.stockTxt}}</span></div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: #3d3a38">What happened?<textarea rows="3" value="{{rp.note}}" onInput="{{rp.noteIn}}" placeholder="e.g. Two bags leaking at the seam when the carton was opened · or · roof leak soaked the bottom row" style="font: inherit; font-size: 14px; font-weight: 400; padding: 10px 14px; border-radius: 16px; border: 1px solid rgba(0, 0, 0, 0.18); resize: vertical"></textarea></label>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 16px; background: #eef6f6"><strong style="font-size: 13px; color: #084848">✨ {{rp.aiHead}}</strong><span style="font-size: 13px; color: #3d3a38">{{rp.aiBody}}</span><div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{rp.causeOpts}}" as="c" hint-placeholder-count="6"><button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="font-family: inherit; font-size: 12px; padding: 6px 11px; border-radius: 9999px; cursor: pointer; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}">{{c.label}}</button></sc-for></div></div>
+<sc-if value="{{rp.hasErr}}" hint-placeholder-val="{{false}}"><span role="alert" style="font-size: 13px; color: #c62828">{{rp.err}}</span></sc-if>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{rp.save}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 12px 20px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Save damage record</button><button type="button" onClick="{{rp.saveClaim}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 12px 20px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Save &amp; send to supplier</button></div>
+</section>
+</sc-if>
+
+<sc-if value="{{tabClaims}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{noClaims}}" hint-placeholder-val="{{false}}"><div style="background: #ffffff; border-radius: 20px; padding: 18px; font-size: 14px; color: #5f5c5a">No supplier claims yet. Pick damaged items in Damage records and send them to their supplier.</div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{claims}}" as="c" hint-placeholder-count="2"><article style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px; border: 2px solid {{c.ring}}; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center"><span style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 17px; font-weight: 600">{{c.id}} · {{c.supplier}}</strong><span style="font-size: 12px; color: #5f5c5a">{{c.contact}} · {{c.terms}}</span></span><span style="font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; background: {{c.sbg}}; color: #ffffff">{{c.stTxt}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><sc-for list="{{c.items}}" as="i" hint-placeholder-count="2"><span style="display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 6px 0; border-top: 1px solid #ebebeb"><span>{{i.qty}} × {{i.name}} · {{i.loc}} · {{i.cause}}</span><span style="color: {{i.c}}; font-weight: 600">{{i.st}}</span></span></sc-for></div>
+<sc-if value="{{c.showLetter}}" hint-placeholder-val="{{false}}"><div class="claim-print" style="display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 16px; border: 1px dashed #0b5c5c; background: #f5fafa; font-size: 13px; line-height: 1.55; white-space: pre-wrap">{{c.letter}}</div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 2px; padding-left: 10px; border-left: 2px solid #ebebeb"><sc-for list="{{c.track}}" as="t" hint-placeholder-count="2"><span style="font-size: 12px; color: #3d3a38">{{t.t}}</span></sc-for></div>
+<div class="no-print" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
+<button type="button" onClick="{{c.toggleLetter}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">{{c.letterBtn}}</button>
+<sc-if value="{{c.canSend}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{c.send}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Send claim to supplier</button></sc-if>
+<sc-if value="{{c.canCollect}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{c.collect}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Supplier collected the items</button></sc-if>
+<sc-if value="{{c.canReturn}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">Supplier sent back:</span><sc-for list="{{c.outcomes}}" as="o" hint-placeholder-count="3"><button type="button" onClick="{{o.go}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 9999px; border: 0; background: {{o.bg}}; color: #ffffff; cursor: pointer">{{o.label}}</button></sc-for></sc-if>
+<sc-if value="{{c.canRestockAll}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; font-weight: 600; color: #3d3a38">Add everything to</span><sc-for list="{{c.clDests}}" as="x" hint-placeholder-count="4"><button type="button" onClick="{{x.pick}}" aria-pressed="{{x.pressed}}" style="font-family: inherit; font-size: 12px; padding: 6px 12px; border-radius: 9999px; cursor: pointer; background: {{x.bg}}; color: {{x.fg}}; border: 1px solid {{x.bd}}">{{x.label}}</button></sc-for><button type="button" onClick="{{c.restockAll}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Receive all &amp; add to stock</button></sc-if>
+<sc-if value="{{c.showLetter}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{printLetter}}" style="font-family: inherit; font-size: 13px; padding: 8px 14px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer">Print claim</button></sc-if>
+</div>
+</article></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{tabSuppliers}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="sp-h" style="background: #ffffff; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px; overflow-x: auto">
+<h2 id="sp-h" style="margin: 0; font-size: 17px; font-weight: 600">Suppliers &amp; damage terms</h2>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px"><thead><tr style="text-align: left; font-size: 12px; color: #5f5c5a"><th scope="col" style="font-weight: 500; padding: 8px">Supplier</th><th scope="col" style="font-weight: 500; padding: 8px">Products</th><th scope="col" style="font-weight: 500; padding: 8px">Contact</th><th scope="col" style="font-weight: 500; padding: 8px">Damage terms</th><th scope="col" style="font-weight: 500; padding: 8px">Damaged units</th><th scope="col" style="font-weight: 500; padding: 8px">Recovered</th></tr></thead>
+<tbody><sc-for list="{{sups}}" as="s" hint-placeholder-count="6"><tr style="border-top: 1px solid #ebebeb; vertical-align: top"><td style="padding: 8px; font-weight: 600">{{s.name}}</td><td style="padding: 8px">{{s.products}}</td><td style="padding: 8px">{{s.contact}}</td><td style="padding: 8px">{{s.terms}}</td><td style="padding: 8px">{{s.dmg}}</td><td style="padding: 8px; color: {{s.c}}; font-weight: 600">{{s.rec}}</td></tr></sc-for></tbody></table>
+</section>
+</sc-if>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let role = 'superuser'; try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {}
+    this.state = { role, tab: 'overview', filt: 'open', sel: {}, rp: { src: 'storage', qty: 1 }, msg: '', msgBad: false, letter: {}, focus: '' };
+    this.onAny = () => this.setState({ tick: Date.now() });
+    this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' });
+  }
+  componentDidMount() { try { ['ecompos:damages', 'ecompos:returns', 'ecompos:stock', 'ecompos:branches', 'storage'].forEach(n => window.addEventListener(n, this.onAny)); window.addEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  componentWillUnmount() { try { ['ecompos:damages', 'ecompos:returns', 'ecompos:stock', 'ecompos:branches', 'storage'].forEach(n => window.removeEventListener(n, this.onAny)); window.removeEventListener('ecompos:role', this.onRole); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Damages'); }
+  renderValsH() {
+    let __SUdm = false; try { __SUdm = (window.localStorage.getItem('ecompos.role') || 'superuser') === 'superuser'; } catch (e) {}
+    const S = this.state;
+    const set = o => this.setState(o);
+    const LS = window.localStorage;
+    const rd = (k, d) => { try { const v = JSON.parse(LS.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+    const wr = (k, v, ev) => { try { LS.setItem(k, JSON.stringify(v)); if (ev) window.dispatchEvent(new CustomEvent(ev, { detail: v })); } catch (e) {} };
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const money = n => 'GHS ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const nowTxt = () => { const d = new Date(); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toTimeString().slice(0, 5); };
+    const ses = rd('ecompos.session', null);
+    const ME = ses && ses.name ? ses.name : ({ superuser: 'Kofi Adom', manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei', developer: 'eComPOS Support' })[S.role] || 'Staff';
+    const LOCK = ({ manager: 'osu', supervisor: 'osu', staff: 'osu' })[S.role] || '';
+    const CAN_M = S.role !== 'staff';
+    let biz = 'Ebenezer Unique Ventures'; try { biz = (JSON.parse(LS.getItem('ecompos.biz') || '{}') || {}).name || biz; } catch (e) {}
+
+    const BX = rd('ecompos.branches', null);
+    const BR = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })((Array.isArray(BX) && BX.length ? BX : [{ id: 'osu', name: 'Osu branch' }, { id: 'legon', name: 'East Legon branch' }, { id: 'adum', name: 'Adum branch' }]));
+    const LN = { wh: 'Warehouse' }; BR.forEach(b => { LN[b.id] = String(b.name || '').replace(/\s*branch$/i, ''); });
+    const lockOk = LOCK && BR.some(b => b.id === LOCK) ? LOCK : '';
+
+    const SUP = {
+      'Golden Grains Ltd': { p: ['Jasmine rice 5kg', 'Gari 1kg'], c: '+233 30 222 1100 · claims@goldengrains.example', t: 'Replaces damaged bags within 14 days' },
+      'Sunrise Oils Ltd': { p: ['Vegetable oil 1L'], c: '+233 30 222 4410 · returns@sunriseoils.example', t: 'Replaces leaking bottles · credit note if out of stock' },
+      'Noodle House Distributors': { p: ['Instant noodles 70g'], c: '+233 24 410 5521', t: 'Credit note within 30 days' },
+      'Dairy Gold Ltd': { p: ['Evaporated milk 410g'], c: '+233 30 290 3300 · quality@dairygold.example', t: 'Replaces dented or bloated tins' },
+      'Coastline Foods': { p: ['Sardines 125g', 'Tomato paste 400g'], c: '+233 30 230 7788', t: 'Replaces factory defects · photo needed' },
+      'Akwaaba Beverages': { p: ['Malt drink 330ml', 'Bottled water 1.5L'], c: '+233 30 210 4040 · trade@akwaababev.example', t: 'Replaces broken crates on next delivery' },
+      'SweetCane Ltd': { p: ['Sugar cubes 500g'], c: '+233 24 880 1200', t: 'Credit note for wet or crushed cartons' },
+      'CleanHome Ghana': { p: ['Laundry detergent 1kg', 'Bar soap 200g'], c: '+233 30 260 9090 · care@cleanhome.example', t: 'Repairs packaging or replaces within 10 days' }
+    };
+    const supOf = name => { const k = Object.keys(SUP).find(s => SUP[s].p.some(p => String(name || '').indexOf(p) === 0)); return k || 'General supplier'; };
+    const COST = { 'Jasmine rice 5kg': 118, 'Vegetable oil 1L': 31, 'Instant noodles 70g': 3.4, 'Evaporated milk 410g': 11, 'Sardines 125g': 9.5, 'Malt drink 330ml': 7.2, 'Bottled water 1.5L': 4.4, 'Laundry detergent 1kg': 25, 'Gari 1kg': 13, 'Tomato paste 400g': 8.2, 'Sugar cubes 500g': 12.5, 'Bar soap 200g': 4.8 };
+    const costOf = name => { const k = Object.keys(COST).find(n => String(name || '').indexOf(n) === 0); return k ? COST[k] : 10; };
+    const baseName = name => { const k = Object.keys(COST).find(n => String(name || '').indexOf(n) === 0); return k || String(name || '').split(' · ')[0]; };
+
+    // AI: classify cause, liability and advice
+    const CAUSES = [
+      ['Manufacturing defect', /defect|faulty|not working|bloat|swollen|\brust|wrong (weight|size)|factory|mou?ld|smell/i, true, 'Replace'],
+      ['Packaging failure', /leak|burst|seam|\btear|torn|split|crack(ed)? bottle|\bcaps?\b|\blids?\b|punctur/i, true, 'Replace'],
+      ['Damaged in transit', /transit|delivery|\bvan\b|truck|arriv|dropped by (the )?driver/i, true, 'Replace'],
+      ['Expired', /expir|past (its )?date|best before|out of date/i, true, 'Credit note'],
+      ['Water damage', /water|wet|rain|flood|soak|damp|roof/i, false, 'Write off'],
+      ['Pests', /\b(rats?|mouse|mice|pests?|insects?|weevils?|cockroach(es)?|ants?|termites?)\b/i, false, 'Write off'],
+      ['Handling & storage', /drop|fell|fall|broke|broken|knock|stack|shelf|forklift|crush/i, false, 'Write off']
+    ];
+    const classify = txt => { const t = String(txt || ''); const hit = CAUSES.find(c => c[1].test(t)); return hit ? hit[0] : ''; };
+    const causeInfo = c => CAUSES.find(x => x[0] === c) || ['Other', null, true, 'Replace'];
+    const adviceFor = (d) => { const ci = causeInfo(d.cause); const sp = supOf(d.name); if (d.src === 'customer' && ci[2]) return 'Customer return with a ' + d.cause.toLowerCase() + '. The supplier is liable: ask ' + sp + ' to ' + (ci[3] === 'Credit note' ? 'issue a credit note' : 'repair or replace') + ' and restock when it comes back.'; if (ci[2]) return 'Claim from ' + sp + ' (' + (SUP[sp] ? SUP[sp].t.toLowerCase() : 'standard terms') + '). Restock when the replacement arrives.'; return 'This looks like our own ' + (d.cause || 'storage').toLowerCase() + ', so the supplier is unlikely to accept a claim. Write it off and fix the cause.'; };
+
+    // load + seed + import
+    let DM = rd('ecompos.damages', null);
+    let CL = rd('ecompos.supClaims', null);
+    let changed = false;
+    if (!Array.isArray(DM)) {
+      DM = []; changed = true;
+      let main = true; try { main = (LS.getItem('ecompos.activeCompany') || 'main') === 'main' && !LS.getItem('ecompos.cleared'); } catch (e) {}
+      if (main) {
+        const t0 = Date.now();
+        DM = [
+          { id: 'DM-3104', src: 'customer', loc: 'osu', name: 'Laundry detergent 1kg', qty: 2, cause: 'Packaging failure', note: 'Customer brought back 2 bags leaking at the seam · return R-1022', status: 'reported', by: 'Akua Kyei', at: 'Yesterday, 15:40', ts: t0 - 86400000, track: [{ t: 'Logged from customer return R-1022 by Akua Kyei · Yesterday, 15:40' }] },
+          { id: 'DM-3097', src: 'storage', loc: 'wh', name: 'Sugar cubes 500g', qty: 6, cause: 'Water damage', note: 'Roof leak soaked the bottom row of cartons in bay 3', status: 'reported', by: 'Kofi Adom', at: '28 Oct, 09:12', ts: t0 - 2 * 86400000, track: [{ t: 'Reported in storage by Kofi Adom · 28 Oct, 09:12' }] },
+          { id: 'DM-3088', src: 'storage', loc: 'legon', name: 'Tomato paste 400g', qty: 9, cause: 'Manufacturing defect', note: 'Tins bloated on the shelf, batch TP-2209', status: 'at_supplier', supplier: 'Coastline Foods', claimId: 'SC-0412', by: 'Efua Sarpong', at: '25 Oct, 11:30', ts: t0 - 5 * 86400000, track: [{ t: 'Reported in storage by Efua Sarpong · 25 Oct, 11:30' }, { t: 'Sent to Coastline Foods on claim SC-0412 · 26 Oct, 10:05' }, { t: 'Collected by the supplier · 27 Oct, 14:20' }] }
+        ];
+      }
+    }
+    if (!Array.isArray(CL)) { CL = DM.some(d => d.claimId === 'SC-0412') ? [{ id: 'SC-0412', supplier: 'Coastline Foods', items: ['DM-3088'], status: 'at_supplier', at: '26 Oct, 10:05', ts: Date.now() - 4 * 86400000, by: 'Kofi Adom', track: [{ t: 'Claim sent to Coastline Foods by Kofi Adom · 26 Oct, 10:05' }, { t: 'Supplier collected the items · 27 Oct, 14:20' }] }] : []; changed = true; }
+    const IMP = rd('ecompos.dmgImported', {}) || {};
+    (rd('ecompos.returns', []) || []).forEach(r => (r.lines || []).forEach((l, i) => { const k = 'R:' + r.id + ':' + i; if (!l.dmg || IMP[k]) return; IMP[k] = 1; changed = true; DM.unshift({ id: 'DM-' + String(1000 + Math.floor(Math.random() * 9000)), src: 'customer', loc: r.branch || 'osu', name: l.base || l.name, qty: l.dmg, cause: classify((r.reason || '') + ' ' + (r.how || '')) || 'Manufacturing defect', note: 'Customer return ' + r.id + (r.ref ? ' on ' + r.ref : '') + (l.reason || r.reason ? ' · ' + (l.reason || r.reason) : '') + (l.note ? ' · ' + l.note : ''), status: 'reported', supplier: l.supplier || undefined, by: String(r.by || 'Till').split(' (')[0], at: r.at || nowTxt(), ts: r.ts || Date.now(), ref: r.id, track: [{ t: 'Logged automatically from customer return ' + r.id + ' · ' + (r.at || nowTxt()) }] }); }));
+    (rd('ecompos.webOrders', []) || []).forEach(o => { const rt = o.returned; const k = 'W:' + o.id; if (!rt || !rt.dmg || IMP[k]) return; IMP[k] = 1; changed = true; const nm = (o.items && o.items[0] && o.items[0][1]) || 'Online order items'; DM.unshift({ id: 'DM-' + String(1000 + Math.floor(Math.random() * 9000)), src: 'customer', loc: o.brId || 'osu', name: String(nm).split(' · ')[0], qty: rt.dmg, cause: 'Packaging failure', note: 'Online order ' + o.id + ' returned damaged by the customer', status: 'reported', by: rt.by || 'Branch', at: rt.at || nowTxt(), ts: Date.now(), ref: o.id, track: [{ t: 'Logged automatically from online return ' + o.id }] }); });
+    if (changed) { wr('ecompos.damages', DM); wr('ecompos.supClaims', CL); wr('ecompos.dmgImported', IMP); }
+
+    const smvAdd = moves => { const cur = rd('ecompos.stockMoves', {}); moves.forEach(m => { if (!m[0] || !m[2]) return; cur[m[0]] = cur[m[0]] || {}; cur[m[0]][m[1]] = Number(cur[m[0]][m[1]] || 0) + m[2]; }); wr('ecompos.stockMoves', cur, 'ecompos:stock'); };
+    const slog = es => { const L = rd('ecompos.stockLog', []) || []; const at = nowTxt(); wr('ecompos.stockLog', es.map(e => Object.assign({ ts: Date.now(), at }, e)).concat(L).slice(0, 800)); };
+    const save = (D, C, msg, bad, extra) => { wr('ecompos.damages', D, 'ecompos:damages'); if (C) wr('ecompos.supClaims', C, 'ecompos:damages'); set(Object.assign({ msg: msg || '', msgBad: !!bad, tick: Date.now() }, extra || {})); };
+    const outbox = (to, subject, body) => { try { const O = rd('ecompos.outbox', []) || []; O.unshift({ to, subject, body, at: nowTxt(), ts: Date.now(), kind: 'supplier-claim' }); wr('ecompos.outbox', O.slice(0, 300)); } catch (e) {} };
+
+    const ST = { reported: ['Reported', '#b26a00'], claimed: ['Claim sent', '#0b5c5c'], at_supplier: ['With supplier', '#084848'], returned: ['Back from supplier', '#0b6e8a'], restocked: ['Restocked', '#1f7a2a'], credited: ['Credit note', '#1f7a2a'], written_off: ['Written off', '#6b6866'] };
+    const CST = { draft: ['Draft', '#6b6866'], sent: ['Sent to supplier', '#0b5c5c'], at_supplier: ['Items with supplier', '#084848'], returned: ['Returned to us', '#0b6e8a'], closed: ['Closed', '#1f7a2a'] };
+    const SRC = { storage: 'Found in storage', customer: 'Customer return', transit: 'Damaged in transit' };
+    const mine = d => !lockOk || d.loc === lockOk || d.loc === 'wh';
+    const VIS = DM.filter(mine).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const newId = (p, L) => { let id = ''; do { id = p + '-' + String(1000 + Math.floor(Math.random() * 9000)); } while (L.some(x => x.id === id)); return id; };
+    const claimable = d => causeInfo(d.cause)[2];
+    const DESTS = (lockOk ? [lockOk, 'wh'] : ['wh'].concat(BR.map(b => b.id)));
+
+    const letterFor = c => {
+      const its = c.items.map(id => DM.find(d => d.id === id)).filter(Boolean);
+      const val = its.reduce((a, d) => a + d.qty * costOf(d.name), 0);
+      const want = its.some(d => causeInfo(d.cause)[3] === 'Credit note') && its.every(d => causeInfo(d.cause)[3] === 'Credit note') ? 'a credit note' : 'repair or replacement';
+      return 'To: ' + c.supplier + ' · ' + (SUP[c.supplier] ? SUP[c.supplier].c : '') + '\nFrom: ' + biz + ' · ' + ME + '\nRef: ' + c.id + ' · ' + (c.at || nowTxt()) + '\n\nDear ' + c.supplier + ' team,\n\nWe are returning the items below, which were found damaged. We ask for ' + want + ' under your terms (' + (SUP[c.supplier] ? SUP[c.supplier].t.toLowerCase() : 'standard terms') + ').\n\n' + its.map((d, i) => (i + 1) + '. ' + d.qty + ' × ' + d.name + ' · ' + d.cause + ' · ' + SRC[d.src].toLowerCase() + ' at ' + (LN[d.loc] || d.loc) + (d.note ? ' · ' + d.note : '')).join('\n') + '\n\nTotal value at cost: ' + money(val) + '.\nPhotos and the damage records (' + its.map(d => d.id).join(', ') + ') are available on request. Please confirm a collection date.\n\nThank you,\n' + ME + '\n' + biz;
+    };
+    const makeClaims = ids => {
+      const pick = DM.filter(d => ids.indexOf(d.id) >= 0 && d.status === 'reported');
+      if (!pick.length) return '';
+      const bySup = {}; pick.forEach(d => { const sp = supOf(d.name); (bySup[sp] = bySup[sp] || []).push(d.id); });
+      const now = nowTxt(); let C = CL.slice(); const made = [];
+      Object.keys(bySup).forEach(sp => { const c = { id: newId('SC', C), supplier: sp, items: bySup[sp], status: 'sent', at: now, ts: Date.now(), by: ME, track: [{ t: 'Claim sent to ' + sp + ' by ' + ME + ' · ' + now }] }; C = [c].concat(C); made.push(c); });
+      const D = DM.map(d => { const c = made.find(x => x.items.indexOf(d.id) >= 0); return c ? Object.assign({}, d, { status: 'claimed', supplier: c.supplier, claimId: c.id, track: (d.track || []).concat([{ t: 'Sent to ' + c.supplier + ' on claim ' + c.id + ' · ' + now }]) }) : d; });
+      DM = D; made.forEach(c => outbox(c.supplier, 'Damage claim ' + c.id, letterFor(c)));
+      save(D, C, made.length + ' claim' + (made.length > 1 ? 's' : '') + ' sent: ' + made.map(c => c.id + ' to ' + c.supplier).join(', ') + '. The claim letter was drafted and sent automatically.', false, { sel: {}, tab: 'claims', focus: made[0].id });
+      return made[0].id;
+    };
+    const restock = (ids, msgTxt, dest, qtys) => {
+      const now = nowTxt(); const R = DM.filter(d => ids.indexOf(d.id) >= 0 && d.status === 'returned');
+      if (!R.length) return;
+      const toOf = d => (dest && (dest[d.id] || dest.__all)) || d.loc;
+      const qOf = d => { const q = qtys && qtys[d.id] !== undefined ? Number(qtys[d.id]) : d.qty; return Math.max(0, Math.min(d.qty, isNaN(q) ? d.qty : q)); };
+      const got = R.filter(d => qOf(d) > 0);
+      if (!got.length) { set({ msg: 'Enter how many came back from the supplier before restocking.', msgBad: true }); return; }
+      smvAdd(got.map(d => [baseName(d.name), toOf(d), -qOf(d)]));
+      slog(got.map(d => ({ name: baseName(d.name), br: toOf(d), qty: qOf(d), kind: 'Received from supplier · ' + (d.outcome || 'returned') + ' · ' + d.id, ref: d.claimId || d.id, by: ME })));
+      const D = DM.map(d => got.some(x => x.id === d.id) ? Object.assign({}, d, { status: 'restocked', restockedTo: toOf(d), restockedQty: qOf(d), track: (d.track || []).concat([{ t: (d.outcome === 'Replaced' ? 'New replacement items' : d.outcome === 'Repaired' ? 'Repaired items' : 'Items') + ' received from ' + (d.supplier || 'the supplier') + ' and added to stock at ' + (LN[toOf(d)] || toOf(d)) + ' · ' + qOf(d) + ' of ' + d.qty + ' · by ' + ME + ' · ' + now }]) }) : d);
+      const C = CL.map(c => c.items.every(id => { const x = D.find(d => d.id === id); return x && ['restocked', 'credited', 'written_off'].indexOf(x.status) >= 0; }) && c.status !== 'closed' ? Object.assign({}, c, { status: 'closed', track: (c.track || []).concat([{ t: 'Closed · all items restocked or settled · ' + now }]) }) : c);
+      save(D, C, msgTxt || (got.reduce((a, d) => a + qOf(d), 0) + ' items received from the supplier and added to stock at ' + [...new Set(got.map(d => LN[toOf(d)] || toOf(d)))].join(' and ') + '. They can be sold again.'), false, { rcv: '', rcvTo: {}, rcvQ: {} });
+    };
+
+    const TABS = [['overview', 'Overview'], ['records', 'Damage records'], ['report', 'Report damage'], ['claims', 'Supplier claims'], ['suppliers', 'Suppliers']];
+    const TAB = TABS.some(t => t[0] === S.tab) ? S.tab : 'overview';
+    const tabs = TABS.map(t => Object.assign({ label: t[1], pick: () => set({ tab: t[0], msg: '' }) }, pill(TAB === t[0])));
+
+    const recView = d => {
+      const st = ST[d.status] || ST.reported; const ci = causeInfo(d.cause);
+      return {
+        id: d.id, name: d.name, qty: String(d.qty), srcTxt: SRC[d.src] || d.src, locTxt: LN[d.loc] || d.loc, at: d.at, note: d.note || '—', stTxt: st[0], sbg: st[1],
+        cause: d.cause || 'Unclassified', liab: ci[2] ? 'supplier liable · ' + ci[3].toLowerCase() : 'our loss · not claimable', advice: adviceFor(d), supplier: d.supplier || supOf(d.name), value: money(d.qty * costOf(d.name)),
+        track: (d.track || []).map(t => ({ t: t.t })), ring: S.focus === d.id ? '#0b5c5c' : '#ffffff',
+        selectable: d.status === 'reported' && claimable(d), sel: S.sel[d.id] ? 'true' : null, toggle: () => set({ sel: Object.assign({}, S.sel, { [d.id]: !S.sel[d.id] }) }),
+        canClaim: d.status === 'reported' && CAN_M, claim: () => makeClaims([d.id]),
+        canRestock: d.status === 'returned', restock: () => set({ rcv: d.id, rcvTo: Object.assign({}, S.rcvTo, { [d.id]: d.loc }), rcvQ: Object.assign({}, S.rcvQ, { [d.id]: d.qty }) }),
+        rcvOpen: S.rcv === d.id, rcvQty: String((S.rcvQ || {})[d.id] === undefined ? d.qty : S.rcvQ[d.id]), rcvMax: d.qty, rcvOutcome: d.outcome === 'Replaced' ? 'New replacement items from ' + (d.supplier || 'the supplier') : d.outcome === 'Repaired' ? 'Repaired items back from ' + (d.supplier || 'the supplier') : 'Items back from ' + (d.supplier || 'the supplier'),
+        rcvInc: () => set({ rcvQ: Object.assign({}, S.rcvQ, { [d.id]: Math.min(d.qty, ((S.rcvQ || {})[d.id] === undefined ? d.qty : S.rcvQ[d.id]) + 1) }) }),
+        rcvDec: () => set({ rcvQ: Object.assign({}, S.rcvQ, { [d.id]: Math.max(0, ((S.rcvQ || {})[d.id] === undefined ? d.qty : S.rcvQ[d.id]) - 1) }) }),
+        rcvDests: DESTS.map(x => Object.assign({ label: (LN[x] || x) + (x === d.loc ? ' (where it came from)' : ''), pick: () => set({ rcvTo: Object.assign({}, S.rcvTo, { [d.id]: x }) }) }, pill(((S.rcvTo || {})[d.id] || d.loc) === x))),
+        rcvCancel: () => set({ rcv: '' }),
+        rcvGo: () => restock([d.id], '', S.rcvTo || {}, S.rcvQ || {}),
+        canWrite: d.status === 'reported' && CAN_M, writeOff: () => save(DM.map(x => x.id === d.id ? Object.assign({}, x, { status: 'written_off', track: (x.track || []).concat([{ t: 'Written off by ' + ME + ' · ' + money(d.qty * costOf(d.name)) + ' · ' + nowTxt() }]) }) : x), null, d.id + ' written off.'),
+        hasClaim: !!d.claimId, claimId: d.claimId || '', openClaim: () => set({ tab: 'claims', focus: d.claimId }),
+        next: d.status === 'reported' ? (ci[2] ? 'Send to ' + supOf(d.name) : 'Write off · not claimable') : d.status === 'returned' ? 'Back from supplier · restock it' : d.status === 'claimed' ? 'Waiting for ' + d.supplier + ' to collect' : '',
+        open: () => set({ tab: 'records', filt: 'all', focus: d.id })
+      };
+    };
+    const FILTS = [['open', 'Open'], ['all', 'All'], ['storage', 'Storage'], ['customer', 'Customer returns'], ['transit', 'Transit'], ['closed', 'Closed']];
+    const FL = FILTS.some(f => f[0] === S.filt) ? S.filt : 'open';
+    const isClosed = d => ['restocked', 'credited', 'written_off'].indexOf(d.status) >= 0;
+    const recs = VIS.filter(d => FL === 'all' || (FL === 'open' ? !isClosed(d) : FL === 'closed' ? isClosed(d) : d.src === FL)).map(recView);
+    const selIds = Object.keys(S.sel).filter(k => S.sel[k] && DM.some(d => d.id === k && d.status === 'reported'));
+
+    // report form
+    const RP = Object.assign({ src: 'storage', qty: 1, loc: lockOk || 'wh', name: '', note: '', q: '', cause: '' }, S.rp || {});
+    const setRP = o => set({ rp: Object.assign({}, RP, o) });
+    const locs = (lockOk ? [lockOk, 'wh'] : ['wh'].concat(BR.map(b => b.id)));
+    if (locs.indexOf(RP.loc) < 0) RP.loc = locs[0];
+    const PN = Object.keys(COST).concat((rd('ecompos.newProducts', []) || []).filter(n => n && n.name && n.status !== 'rejected' && n.status !== 'pending').map(n => n.name));
+    const rq = String(RP.q || '').trim().toLowerCase();
+    const aiCause = classify(RP.note);
+    const useCause = RP.cause || aiCause;
+    const ciR = causeInfo(useCause);
+    const smv = rd('ecompos.stockMoves', {});
+    const saveRec = sendNow => {
+      if (!RP.name) { setRP({ err: 'Pick the damaged product.' }); return; }
+      if (!(RP.qty > 0)) { setRP({ err: 'Enter how many are damaged.' }); return; }
+      if (String(RP.note || '').trim().length < 4) { setRP({ err: 'Say briefly what happened, so the supplier claim is clear.' }); return; }
+      const now = nowTxt();
+      const d = { id: newId('DM', DM), src: RP.src, loc: RP.loc, name: RP.name, qty: RP.qty, cause: useCause || 'Manufacturing defect', note: String(RP.note).trim(), status: 'reported', by: ME, at: now, ts: Date.now(), track: [{ t: (RP.src === 'customer' ? 'Customer return logged' : 'Reported in storage') + ' by ' + ME + ' · ' + now + (aiCause && !RP.cause ? ' · cause suggested automatically' : '') }] };
+      if (RP.src === 'storage') { smvAdd([[baseName(RP.name), RP.loc, RP.qty]]); slog([{ name: baseName(RP.name), br: RP.loc, qty: -RP.qty, kind: 'Damaged in storage · ' + d.cause, ref: d.id, by: ME }]); }
+      DM = [d].concat(DM);
+      if (sendNow && claimable(d) && CAN_M) { wr('ecompos.damages', DM); set({ rp: { src: RP.src, qty: 1, loc: RP.loc } }); makeClaims([d.id]); return; }
+      save(DM, null, d.id + ' saved: ' + d.qty + ' × ' + d.name + ' (' + d.cause + ')' + (RP.src === 'storage' ? '. Taken out of sellable stock at ' + LN[RP.loc] + '.' : '.') + (sendNow && !claimable(d) ? ' Not sent: this cause is not claimable from the supplier.' : ''), false, { rp: { src: RP.src, qty: 1, loc: RP.loc }, tab: 'records', filt: 'open', focus: d.id });
+    };
+    const rp = {
+      srcOpts: [['storage', 'Found in storage'], ['customer', 'Returned by a customer']].map(o => Object.assign({ label: o[1], pick: () => setRP({ src: o[0] }) }, pill(RP.src === o[0]))),
+      locOpts: locs.map(l => Object.assign({ label: LN[l] || l, pick: () => setRP({ loc: l }) }, pill(RP.loc === l))),
+      q: RP.q || '', qIn: e => setRP({ q: e.target.value }),
+      res: PN.filter(n => !rq || n.toLowerCase().indexOf(rq) >= 0).slice(0, 12).map(n => Object.assign({ label: n, pick: () => setRP({ name: n, err: '' }) }, pill(RP.name === n))),
+      qty: String(RP.qty), inc: () => setRP({ qty: RP.qty + 1 }), dec: () => setRP({ qty: Math.max(1, RP.qty - 1) }),
+      stockTxt: RP.name ? (RP.src === 'storage' ? 'Will be taken out of sellable stock at ' + (LN[RP.loc] || RP.loc) : 'Returned items were never put back on sale, so stock does not change') : '',
+      note: RP.note || '', noteIn: e => setRP({ note: e.target.value, err: '' }),
+      aiHead: useCause ? 'Likely cause: ' + useCause + (RP.cause ? ' (chosen)' : ' (suggested from your note)') : 'Describe what happened and the cause is suggested for you',
+      aiBody: useCause ? (ciR[2] ? 'Supplier liable. Recommended: ' + ciR[3].toLowerCase() + ' by ' + (RP.name ? supOf(RP.name) : 'the supplier') + '.' + (__SUdm ? ' Value at cost ' + money(RP.qty * costOf(RP.name)) + '.' : '') : 'Likely our own loss, so a claim may be refused. Recommended: write off and fix the cause. Value ' + money(RP.qty * costOf(RP.name)) + '.') : 'Words like leaking, bloated, expired, wet or dropped help pick the cause, the supplier and whether to claim.',
+      causeOpts: CAUSES.map(c => Object.assign({ label: c[0], pick: () => setRP({ cause: RP.cause === c[0] ? '' : c[0] }) }, pill(useCause === c[0]))),
+      hasErr: !!RP.err, err: RP.err || '',
+      save: () => saveRec(false), saveClaim: () => saveRec(true)
+    };
+
+    // claims
+    const CLV = CL.filter(c => !lockOk || c.items.some(id => { const d = DM.find(x => x.id === id); return d && mine(d); })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const claims = CLV.map(c => {
+      const st = CST[c.status] || CST.sent; const its = c.items.map(id => DM.find(d => d.id === id)).filter(Boolean);
+      const setOutcome = (oc, lbl) => { const now = nowTxt(); const D = DM.map(d => c.items.indexOf(d.id) >= 0 && ['claimed', 'at_supplier'].indexOf(d.status) >= 0 ? Object.assign({}, d, oc === 'credit' ? { status: 'credited', outcome: lbl, credit: d.qty * costOf(d.name), track: (d.track || []).concat([{ t: 'Supplier issued a credit note of ' + money(d.qty * costOf(d.name)) + ' · ' + now }]) } : { status: 'returned', outcome: lbl, track: (d.track || []).concat([{ t: lbl + ' items returned by ' + c.supplier + ' · ' + now }]) }) : d); const C = CL.map(x => x.id === c.id ? Object.assign({}, x, { status: oc === 'credit' ? 'closed' : 'returned', outcome: lbl, track: (x.track || []).concat([{ t: (oc === 'credit' ? 'Credit note received' : lbl + ' items received back') + ' · ' + now }]) }) : x); DM = D; CL = C; save(D, C, oc === 'credit' ? c.id + ' settled with a credit note.' : c.id + ': ' + lbl.toLowerCase() + ' items are back. Restock them to sell again.'); };
+      return {
+        id: c.id, supplier: c.supplier, contact: SUP[c.supplier] ? SUP[c.supplier].c : '—', terms: SUP[c.supplier] ? SUP[c.supplier].t : 'Standard terms', stTxt: st[0], sbg: st[1], ring: S.focus === c.id ? '#0b5c5c' : '#ffffff',
+        items: its.map(d => ({ qty: d.qty, name: d.name, loc: LN[d.loc] || d.loc, cause: d.cause, st: (ST[d.status] || ST.reported)[0], c: (ST[d.status] || ST.reported)[1] })),
+        track: (c.track || []).map(t => ({ t: t.t })),
+        showLetter: !!S.letter[c.id], letter: letterFor(c), letterBtn: S.letter[c.id] ? 'Hide claim letter' : '✨ View AI-drafted claim letter', toggleLetter: () => set({ letter: Object.assign({}, S.letter, { [c.id]: !S.letter[c.id] }) }),
+        canSend: c.status === 'draft' && CAN_M, send: () => { outbox(c.supplier, 'Damage claim ' + c.id, letterFor(c)); save(DM, CL.map(x => x.id === c.id ? Object.assign({}, x, { status: 'sent', track: (x.track || []).concat([{ t: 'Sent by ' + ME + ' · ' + nowTxt() }]) }) : x), c.id + ' sent to ' + c.supplier + '.'); },
+        canCollect: c.status === 'sent', collect: () => { const now = nowTxt(); const D = DM.map(d => c.items.indexOf(d.id) >= 0 && d.status === 'claimed' ? Object.assign({}, d, { status: 'at_supplier', track: (d.track || []).concat([{ t: 'Collected by ' + c.supplier + ' · ' + now }]) }) : d); DM = D; save(D, CL.map(x => x.id === c.id ? Object.assign({}, x, { status: 'at_supplier', track: (x.track || []).concat([{ t: 'Supplier collected the items · ' + now }]) }) : x), c.supplier + ' collected the items on ' + c.id + '.'); },
+        canReturn: c.status === 'at_supplier' || c.status === 'sent', outcomes: [['repair', 'Repaired', '#0b6e8a'], ['replace', 'Replaced', '#1f7a2a'], ['credit', 'Credit note', '#084848']].map(o => ({ label: o[1], bg: o[2], go: () => setOutcome(o[0], o[1]) })),
+        canRestockAll: its.some(d => d.status === 'returned'), restockAll: () => restock(its.filter(d => d.status === 'returned').map(d => d.id), '', Object.assign({}, S.rcvTo || {}, S.clTo && S.clTo[c.id] ? { __all: S.clTo[c.id] } : {}), S.rcvQ || {}),
+        clDests: [['', 'Back to where each came from']].concat(DESTS.map(x => [x, LN[x] || x])).map(x => Object.assign({ label: x[1], pick: () => set({ clTo: Object.assign({}, S.clTo || {}, { [c.id]: x[0] }) }) }, pill(((S.clTo || {})[c.id] || '') === x[0])))
+      };
+    });
+
+    // insights (AI)
+    const all = VIS;
+    const units = all.reduce((a, d) => a + d.qty, 0);
+    const val = all.reduce((a, d) => a + d.qty * costOf(d.name), 0);
+    const recov = all.filter(d => ['restocked', 'credited'].indexOf(d.status) >= 0).reduce((a, d) => a + d.qty * costOf(d.name), 0);
+    const lost = all.filter(d => d.status === 'written_off').reduce((a, d) => a + d.qty * costOf(d.name), 0);
+    const tally = f => { const m = {}; all.forEach(d => { const k = f(d); m[k] = (m[k] || 0) + d.qty; }); return Object.keys(m).map(k => [k, m[k]]).sort((a, b) => b[1] - a[1]); };
+    const byProd = tally(d => baseName(d.name)), byLoc = tally(d => LN[d.loc] || d.loc), byCause = tally(d => d.cause || 'Other'), bySup = tally(d => supOf(d.name));
+    const pendClaim = all.filter(d => d.status === 'reported' && claimable(d));
+    const ins = [];
+    if (pendClaim.length) ins.push(['💰', 'Recover ' + money(pendClaim.reduce((a, d) => a + d.qty * costOf(d.name), 0)) + ' from suppliers', pendClaim.length + ' damage record' + (pendClaim.length > 1 ? 's are' : ' is') + ' claimable but not yet sent (' + [...new Set(pendClaim.map(d => supOf(d.name)))].join(', ') + '). Open Damage records, tick them and send one claim per supplier.', '#e3f0f0']);
+    if (byCause[0]) { const c = byCause[0]; const ours = !causeInfo(c[0])[2]; ins.push([ours ? '🛠️' : '📦', c[0] + ' is the top cause (' + c[1] + ' units)', ours ? 'This is an in-house cause, so suppliers will not pay for it. ' + (c[0] === 'Water damage' ? 'Check the roof and keep cartons on pallets off the floor.' : c[0] === 'Pests' ? 'Book pest control and seal food stock in bins.' : 'Review stacking heights and shelf edges, and train staff on carton handling.') : 'Supplier-side problem. Raise it with the worst supplier and ask for better packaging or batch checks.', ours ? '#fff4e5' : '#e7f4e8']); }
+    if (byLoc[0] && byLoc.length > 1) ins.push(['📍', byLoc[0][0] + ' has the most damage (' + byLoc[0][1] + ' units)', 'That is ' + Math.round(byLoc[0][1] / Math.max(1, units) * 100) + '% of all damaged units. Check its storage area and how deliveries are unloaded there.', '#f2f4f5']);
+    if (byProd[0]) ins.push(['🔁', byProd[0][0] + ' is damaged most often', byProd[0][1] + ' units so far, mostly from ' + supOf(byProd[0][0]) + '. Consider smaller stacks, a different shelf, or asking the supplier for stronger packaging.', '#f2f4f5']);
+    if (bySup[0] && bySup[0][0] !== 'General supplier') ins.push(['🏭', 'Supplier to watch: ' + bySup[0][0], bySup[0][1] + ' damaged units linked to this supplier. Terms: ' + (SUP[bySup[0][0]] ? SUP[bySup[0][0]].t.toLowerCase() : 'standard') + '.', '#f2f4f5']);
+    ins.push(['📊', 'Recovery rate ' + (val ? Math.round(recov / val * 100) : 0) + '%', money(recov) + ' recovered through restocking and credit notes, ' + money(lost) + ' written off, out of ' + money(val) + ' damaged in total.', '#e3f0fb']);
+    const insights = ins.slice(0, 6).map(i => ({ icon: i[0], title: i[1], body: i[2], bg: i[3] }));
+    const todo = VIS.filter(d => d.status === 'reported' || d.status === 'returned').slice(0, 8).map(recView);
+
+    const kp = [
+      ['Reported', VIS.filter(d => d.status === 'reported').length, 'Waiting for a decision', '#b26a00', 'open'],
+      ['With suppliers', VIS.filter(d => d.status === 'claimed' || d.status === 'at_supplier').length, 'Claims sent or collected', '#084848', 'open'],
+      ['Back to restock', VIS.filter(d => d.status === 'returned').length, 'Repaired or replaced', '#0b6e8a', 'open'],
+      ['Restocked', VIS.filter(d => d.status === 'restocked').length, 'Selling again', '#1f7a2a', 'closed'],
+      ['Damaged value', money(val), units + ' units in total', '#c62828', 'all'],
+      ['Recovered', money(recov), 'Restocked + credit notes', '#1f7a2a', 'closed']
+    ];
+    const kpis = kp.map(k => ({ label: k[0], value: String(k[1]), note: k[2], c: k[3], go: () => set({ tab: 'records', filt: k[4] }) }));
+    const sups = Object.keys(SUP).map(s => { const ds = DM.filter(d => supOf(d.name) === s); const u = ds.reduce((a, d) => a + d.qty, 0); const r = ds.filter(d => ['restocked', 'credited'].indexOf(d.status) >= 0).reduce((a, d) => a + d.qty, 0); return { name: s, products: SUP[s].p.join(', '), contact: SUP[s].c, terms: SUP[s].t, dmg: String(u), rec: u ? r + ' of ' + u : '—', c: u && r === u ? '#1f7a2a' : '#000000' }; });
+
+    return {
+      scopeLine: (lockOk ? LN[lockOk] + ' & warehouse · ' : 'All branches & warehouse · ') + 'damage found in storage, in transit and on customer returns, sent to suppliers to repair or replace, then restocked',
+      tabs, kpis, insights, todo, noTodo: !todo.length,
+      tabOverview: TAB === 'overview', tabRecords: TAB === 'records', tabReport: TAB === 'report', tabClaims: TAB === 'claims', tabSuppliers: TAB === 'suppliers',
+      hasMsg: !!S.msg, msg: S.msg || '', msgBg: S.msgBad ? '#c62828' : '#1f7a2a', hideMsg: () => set({ msg: '' }),
+      filters: FILTS.map(f => Object.assign({ label: f[1], pick: () => set({ filt: f[0] }) }, pill(FL === f[0]))),
+      recs, noRecs: !recs.length, canClaimSel: CAN_M && selIds.length > 0, claimSelTxt: 'Send ' + selIds.length + ' selected to supplier' + (selIds.length > 1 ? 's' : ''), claimSel: () => makeClaims(selIds),
+      rp, claims, noClaims: !claims.length, printLetter: () => { try { window.print(); } catch (e) {} },
+      sups,
+      ids: ['Damage records', 'Storage, transit & customer damage', 'AI cause & liability', 'AI-drafted supplier claims', 'Repair / replace / credit note', 'Receive back & restock anywhere', 'Supplier deliveries', 'Damage insights'].map(t => ({ t }))
+    };
+  }
+}
+</script>
+</body>
+</html>

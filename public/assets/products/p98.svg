@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eeeaff"/><stop offset="0.6" stop-color="#f6f1ff"/><stop offset="1" stop-color="#ffe9d6"/></linearGradient>
+<radialGradient id="glow" cx="0.5" cy="0.42" r="0.55"><stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+<linearGradient id="scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(112,70%,18%)"/><stop offset="0.5" stop-color="hsl(142,75%,45%)"/><stop offset="0.8" stop-color="hsl(272,90%,62%)"/><stop offset="1" stop-color="#ffd166"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b9bfc8"/><stop offset="0.45" stop-color="#f4f6f9"/><stop offset="1" stop-color="#a7adb7"/></linearGradient>
+<linearGradient id="white" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3e7ed"/><stop offset="0.5" stop-color="#ffffff"/><stop offset="1" stop-color="#d6dbe2"/></linearGradient>
+<linearGradient id="black" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34343b"/><stop offset="1" stop-color="#0e0e12"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c2533"/><stop offset="1" stop-color="#3d4b63"/></linearGradient>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1a1240" flood-opacity="0.28"/></filter>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/><rect width="800" height="800" fill="url(#glow)"/>
+<ellipse cx="400" cy="690" rx="220" ry="26" fill="#1a1240" opacity="0.10"/>
+<g filter="url(#sh)"><rect x="300" y="120" width="200" height="560" rx="30" fill="url(#white)"/>
+<rect x="326" y="170" width="148" height="260" rx="14" fill="#e6eaf0"/><rect x="336" y="186" width="128" height="8" rx="4" fill="#c9ced6"/><rect x="336" y="212" width="128" height="8" rx="4" fill="#c9ced6"/><rect x="336" y="238" width="128" height="8" rx="4" fill="#c9ced6"/><rect x="336" y="264" width="128" height="8" rx="4" fill="#c9ced6"/><rect x="336" y="290" width="128" height="8" rx="4" fill="#c9ced6"/><rect x="336" y="316" width="128" height="8" rx="4" fill="#c9ced6"/><rect x="336" y="342" width="128" height="8" rx="4" fill="#c9ced6"/><rect x="336" y="368" width="128" height="8" rx="4" fill="#c9ced6"/><rect x="336" y="394" width="128" height="8" rx="4" fill="#c9ced6"/>
+<rect x="350" y="470" width="100" height="40" rx="8" fill="#1f2a3a"/><text x="400" y="497" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#5fd4ff" letter-spacing="0">24°C</text>
+<text x="400" y="620" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#6b7280" letter-spacing="2">MIDEA</text><text x="400" y="646" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#9aa1ab" letter-spacing="2">3HP</text></g></svg>

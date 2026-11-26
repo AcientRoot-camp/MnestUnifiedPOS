@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eComPOS expenses</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2f4f5;overflow-wrap:break-word}
+a{color:#000000}a:hover{color:#0b5c5c}
+:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible,[role="switch"]:focus-visible{outline:3px solid #0b5c5c;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #0b5c5c;outline-offset:1px}
+@media (max-width:640px){input,select,textarea{font-size:16px !important}}
+/* responsive shell */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%}
+@media (max-width:900px){main table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}main pre{white-space:pre-wrap}}
+@media (max-width:1024px){main{padding:22px 20px 44px !important}}
+@media (max-width:640px){main{padding:14px 12px 40px !important;gap:16px !important}main h1{font-size:clamp(24px,7vw,34px) !important;line-height:1.1 !important}table{font-size:13px}[role="tablist"]{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #f2f4f5; font-family: Inter, system-ui, -apple-system, sans-serif; color: #000000; letter-spacing: -0.01em">
+<div style="flex: 0 0 auto; display: flex"><dc-import name="Sidebar" active="expenses" hint-size="232px,1200px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<div aria-hidden="true" style="flex: 1 1 0px; min-width: 0"></div>
+<div style="flex: 0 1 520px; min-width: 300px"><dc-import name="SearchBar" scope="inventory" hint-size="100%,50px"></dc-import></div>
+<div style="flex: 1 1 0px; display: flex; justify-content: flex-end; margin-left: auto"><dc-import name="AccountBar" hint-size="380px,46px"></dc-import></div>
+</div>
+
+<header style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 500; letter-spacing: -0.05em">{{title}}</h1>
+<p style="margin: 0; font-size: 14px; color: #5f5c5a">{{note}}</p>
+</div>
+<sc-if value="{{isSu}}" hint-placeholder-val="{{true}}"><div role="group" aria-label="Branch" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{brFilters}}" as="b" hint-placeholder-count="4"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" style="font-family: inherit; font-size: 13px; font-weight: 500; padding: 9px 15px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></sc-if>
+</header>
+
+<div role="tablist" aria-label="Expenses views" style="display: flex; gap: 5px; flex-wrap: wrap">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="9"><button type="button" role="tab" aria-selected="{{t.pressed}}" onClick="{{t.pick}}" style="font-family: inherit; font-size: 13.5px; font-weight: 500; padding: 10px 16px; min-height: 42px; border-radius: 9999px; cursor: pointer; background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}">{{t.label}}</button></sc-for>
+</div>
+
+<sc-if value="{{hasMsg}}" hint-placeholder-val="{{false}}"><div role="status" style="display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 13.5px; padding: 12px 15px; border-radius: 16px; background: {{msgBg}}; border: 1.5px solid {{msgBd}}"><span>{{msg}}</span><button type="button" onClick="{{clearMsg}}" aria-label="Dismiss this message" style="font-family: inherit; width: 28px; height: 28px; flex: none; border-radius: 9px; border: 0; background: transparent; cursor: pointer; font-size: 15px">&#215;</button></div></sc-if>
+
+<sc-if value="{{isOverview}}" hint-placeholder-val="{{true}}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4"><div style="background: {{k.bg}}; color: {{k.fg}}; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 3px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px"><span style="font-size: 12.5px; color: {{k.sub}}">{{k.label}}</span><strong style="font-size: 26px; font-weight: 600; letter-spacing: -0.03em">{{k.value}}</strong><span style="font-size: 11.5px; color: {{k.sub}}">{{k.note}}</span></div></sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-labelledby="bb-h" style="flex: 2 1 340px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="bb-h" style="margin: 0; font-size: 17px; font-weight: 600">Branch profit this month</h2><span style="font-size: 11.5px; color: #5f5c5a">{{profitNote}}</span></div>
+<table style="width: 100%; border-collapse: collapse; font-size: 13px"><thead><tr style="text-align: left; font-size: 10.5px; color: #5f5c5a; text-transform: uppercase"><th scope="col" style="font-weight: 600; padding: 6px 4px">Branch</th><th scope="col" style="font-weight: 600; padding: 6px 4px; text-align: right">Sales</th><th scope="col" style="font-weight: 600; padding: 6px 4px; text-align: right">Expenses</th><th scope="col" style="font-weight: 600; padding: 6px 4px; text-align: right">Profit</th></tr></thead>
+<tbody><sc-for list="{{byBranch}}" as="b" hint-placeholder-count="3"><tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 4px; font-weight: 600">{{b.br}}</td><td style="padding: 8px 4px; text-align: right">{{b.sales}}</td><td style="padding: 8px 4px; text-align: right">{{b.amt}}</td><td style="padding: 8px 4px; text-align: right; font-weight: 600">{{b.profit}}</td></tr></sc-for></tbody></table>
+</section>
+<section aria-labelledby="bc-h" style="flex: 1 1 260px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="bc-h" style="margin: 0; font-size: 17px; font-weight: 600">Where the money went</h2>
+<sc-if value="{{hasCat}}" hint-placeholder-val="{{true}}"><sc-for list="{{byCat}}" as="c" hint-placeholder-count="5"><div style="display: flex; flex-direction: column; gap: 3px"><span style="display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px"><span>{{c.name}}</span><strong style="font-weight: 600">{{c.amt}}</strong></span><span aria-hidden="true" style="height: 6px; border-radius: 9999px; background: #f2f4f5; display: block"><span style="display: block; height: 6px; width: {{c.pct}}; border-radius: 9999px; background: #0b5c5c"></span></span></div></sc-for></sc-if>
+<sc-if value="{{hasCat}}" hint-placeholder-val="{{true}}" ><span style="font-size: 11.5px; color: #5f5c5a">Approved and paid expenses dated this month.</span></sc-if>
+</section>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<sc-if value="{{hasGauges}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="bg-h" style="flex: 1 1 300px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="bg-h" style="margin: 0; font-size: 17px; font-weight: 600">Budgets worth watching</h2>
+<sc-for list="{{gauges}}" as="g" hint-placeholder-count="4"><div style="display: flex; flex-direction: column; gap: 3px"><span style="display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px"><span>{{g.t}}</span><strong style="font-weight: 600">{{g.v}}</strong></span><span aria-hidden="true" style="height: 7px; border-radius: 9999px; background: #f2f4f5; display: block"><span style="display: block; height: 7px; width: {{g.w}}; border-radius: 9999px; background: {{g.bg}}"></span></span></div></sc-for>
+</section>
+</sc-if>
+<sc-if value="{{hasFlagged}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="fl-h" style="flex: 1 1 300px; min-width: 0; background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="fl-h" style="margin: 0; font-size: 17px; font-weight: 600">Flagged by the assistant</h2>
+<sc-for list="{{flaggedRows}}" as="r" hint-placeholder-count="4"><button type="button" onClick="{{r.open}}" style="font-family: inherit; text-align: left; display: flex; gap: 10px; align-items: center; padding: 10px 12px; min-height: 44px; border-radius: 14px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer"><span style="flex: 1; display: flex; flex-direction: column; min-width: 0"><strong style="font-size: 13px; font-weight: 600">{{r.vendor}} · {{r.amount}}</strong><span style="font-size: 11.5px; color: #5f5c5a">{{r.by}} · {{r.br}} · {{r.date}}</span></span><span style="font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 9999px; background: {{r.rbg}}; color: {{r.rfg}}">{{r.risk}}</span></button></sc-for>
+</section>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isNew}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="ne-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap"><h2 id="ne-h" style="margin: 0; font-size: 17px; font-weight: 600">New expense</h2><div role="group" aria-label="How to record it" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{nf.modes}}" as="m" hint-placeholder-count="3"><button type="button" onClick="{{m.pick}}" aria-pressed="{{m.pressed}}" style="font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.bd}}">{{m.label}}</button></sc-for></div></div>
+
+<sc-if value="{{nf.isSnap}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; background: #f2f4f5">
+<strong style="font-size: 13.5px; font-weight: 600">Snap the receipt and the assistant fills the form</strong>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 15px; min-height: 44px; box-sizing: border-box; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Choose a photo<input aria-label="Photograph or choose the receipt" type="file" accept="image/*" capture="environment" onChange="{{nf.pickRcpt}}" style="position: absolute; width: 1px; height: 1px; opacity: 0"></label>
+<button type="button" onClick="{{nf.fakeSnap}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 15px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Read a sample receipt</button>
+</div>
+<sc-if value="{{nf.readOk}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #3d3a38; padding: 10px 12px; border-radius: 12px; background: #fdf0e4; border: 1px solid #b26a00">Suggested by the assistant · {{nf.readTxt}}</span></sc-if>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<sc-if value="{{nf.isMile}}" hint-placeholder-val="{{false}}">
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 170px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Distance travelled (km)</span><input value="{{nf.miles}}" onChange="{{nf.milesIn}}" inputMode="decimal" placeholder="e.g. 48" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"><span style="font-size: 11.5px; color: #5f5c5a">{{nf.mileNote}}</span></label>
+</sc-if>
+<sc-if value="{{nf.isMile}}" hint-placeholder-val="{{false}}" ></sc-if>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 150px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Amount (GHS)</span><input value="{{nf.amount}}" onChange="{{nf.amountIn}}" inputMode="decimal" placeholder="0.00" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 150px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Date</span><input type="date" value="{{nf.date}}" onChange="{{nf.dateIn}}" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 2 1 220px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Who you paid</span><input value="{{nf.vendor}}" onChange="{{nf.vendorIn}}" placeholder="Shop, supplier or person" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+</div>
+
+<sc-if value="{{nf.hasSugg}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 11px 13px; border-radius: 14px; background: #eef1f8; border: 1px solid #0b5c5c">
+<span style="flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 13px; font-weight: 600">Assistant suggests: {{nf.sugg.t}}</strong><span style="font-size: 11.5px; color: #3d3a38">{{nf.sugg.why}} You can ignore this.</span></span>
+<button type="button" onClick="{{nf.sugg.take}}" style="font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 9px 14px; min-height: 40px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Use it</button>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Category</span><div role="group" aria-label="Category" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{nf.cats}}" as="c" hint-placeholder-count="8"><button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}">{{c.label}}</button></sc-for></div></div>
+<sc-if value="{{nf.hasSubs}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #3d3a38">Sub-category</span><div role="group" aria-label="Sub-category" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{nf.subs}}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bd}}">{{c.label}}</button></sc-for></div></div></sc-if>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 260px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Branch</span><div role="group" aria-label="Branch" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{nf.brs}}" as="b" hint-placeholder-count="3"><button type="button" onClick="{{b.pick}}" aria-pressed="{{b.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.label}}</button></sc-for></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 300px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">How it was paid</span><div role="group" aria-label="Payment method" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{nf.methods}}" as="m" hint-placeholder-count="5"><button type="button" onClick="{{m.pick}}" aria-pressed="{{m.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.bd}}">{{m.label}}</button></sc-for></div><sc-if value="{{nf.isPetty}}" hint-placeholder-val="{{false}}"><span style="font-size: 11.5px; color: #5f5c5a">{{nf.pettyNote}}</span></sc-if></div>
+</div>
+
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #3d3a38">What the money was for</span><textarea rows="2" value="{{nf.note}}" onChange="{{nf.noteIn}}" placeholder="One line is enough — approvers read this first" style="font: inherit; font-size: 15px; padding: 11px 13px; border-radius: 13px; border: 1px solid #d9d9d9; resize: vertical"></textarea></label>
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end">
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 15px; min-height: 44px; box-sizing: border-box; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Attach a receipt<input aria-label="Attach a receipt photo or PDF" type="file" accept="image/*,application/pdf" onChange="{{nf.pickRcpt}}" style="position: absolute; width: 1px; height: 1px; opacity: 0"></label>
+<sc-if value="{{nf.hasRcpt}}" hint-placeholder-val="{{false}}"><span style="font-size: 12.5px; color: #1f7a2a; font-weight: 600">Attached: {{nf.rcptName}}</span></sc-if>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 240px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">If there is no receipt, say why</span><input value="{{nf.noRcpt}}" onChange="{{nf.noRcptIn}}" placeholder="e.g. Market trader gave no receipt" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<button type="button" role="switch" aria-checked="{{nf.reclaim}}" onClick="{{nf.reclaimToggle}}" style="font-family: inherit; font-size: 12.5px; padding: 11px 15px; min-height: 44px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">{{nf.reclaimTxt}}</button>
+</div>
+
+<sc-if value="{{nf.hasDup}}" hint-placeholder-val="{{false}}"><div role="alert" style="font-size: 12.5px; padding: 11px 13px; border-radius: 14px; background: #fbeaea; border: 1.5px solid #c62828">{{nf.dup.t}} — check before you send it.</div></sc-if>
+<sc-if value="{{nf.hasPolicy}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 4px; padding: 11px 13px; border-radius: 14px; background: #fdf0e4; border: 1px solid #b26a00"><strong style="font-size: 12.5px; font-weight: 600">Policy check</strong><sc-for list="{{nf.policy}}" as="p" hint-placeholder-count="2"><span style="font-size: 12px; color: #3d3a38">• {{p.t}}</span></sc-for></div></sc-if>
+<sc-if value="{{nf.hasRisk}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 4px; padding: 11px 13px; border-radius: 14px; background: #f2f4f5"><span style="display: flex; gap: 8px; align-items: center"><span style="font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 9999px; background: {{nf.riskBg}}; color: #ffffff">Risk {{nf.risk}}</span><span style="font-size: 11.5px; color: #5f5c5a">What the approver will see</span></span><sc-for list="{{nf.riskWhy}}" as="r" hint-placeholder-count="2"><span style="font-size: 12px; color: #3d3a38">• {{r.t}}</span></sc-for></div></sc-if>
+
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid #ebebeb">
+<span style="display: flex; flex-direction: column"><strong style="font-size: 19px; font-weight: 600">{{nf.total}}</strong><span style="font-size: 11.5px; color: #5f5c5a">{{nf.tier}} · {{nf.chainTxt}}</span></span>
+<span style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{nf.clear}}" style="font-family: inherit; font-size: 13px; padding: 11px 16px; min-height: 46px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Clear</button><button type="button" onClick="{{nf.submit}}" style="font-family: inherit; font-size: 14px; font-weight: 600; padding: 12px 20px; min-height: 46px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">{{nf.submitTxt}}</button></span>
+</div>
+<sc-if value="{{nf.hasErr}}" hint-placeholder-val="{{false}}"><div role="alert" style="font-size: 12.5px; color: #c62828">{{nf.err}}</div></sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{isMine}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="mi-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="mi-h" style="margin: 0; font-size: 17px; font-weight: 600">My expenses</h2><span style="font-size: 12px; color: #5f5c5a">{{mineNote}}</span></div>
+<sc-for list="{{mineRows}}" as="r" hint-placeholder-count="5"><button type="button" onClick="{{r.open}}" aria-expanded="{{r.isOpen}}" style="font-family: inherit; text-align: left; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 11px 13px; min-height: 48px; border-radius: 15px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer"><span style="flex: 2 1 180px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 13.5px; font-weight: 600">{{r.vendor}} · {{r.amount}}</strong><span style="font-size: 11.5px; color: #5f5c5a">{{r.id}} · {{r.cat}} · {{r.date}}</span></span><span style="font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; background: {{r.sbg}}; color: #ffffff">{{r.status}}</span><span style="font-size: 11.5px; color: #5f5c5a; flex: 1 1 140px">{{r.waiting}}</span></button></sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{isInbox}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="in-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap"><div style="display: flex; flex-direction: column"><h2 id="in-h" style="margin: 0; font-size: 17px; font-weight: 600">Waiting for you</h2><span style="font-size: 12px; color: #5f5c5a">{{inboxNote}}</span></div><sc-if value="{{canBulk}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{bulkApprove}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 11px 16px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">{{bulkTxt}}</button></sc-if></div>
+<sc-for list="{{inboxRows}}" as="r" hint-placeholder-count="4"><button type="button" onClick="{{r.open}}" aria-expanded="{{r.isOpen}}" style="font-family: inherit; text-align: left; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 11px 13px; min-height: 48px; border-radius: 15px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer"><span style="flex: 2 1 190px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 13.5px; font-weight: 600">{{r.vendor}} · {{r.amount}}</strong><span style="font-size: 11.5px; color: #5f5c5a">{{r.by}} · {{r.br}} · {{r.cat}} · {{r.date}}</span></span><span style="font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; background: {{r.rbg}}; color: {{r.rfg}}">Risk {{r.risk}}</span><span style="font-size: 11.5px; color: #5f5c5a; flex: 1 1 120px">{{r.waiting}}</span></button></sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{isAll}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="al-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap"><div style="display: flex; flex-direction: column"><h2 id="al-h" style="margin: 0; font-size: 17px; font-weight: 600">All expenses</h2><span style="font-size: 12px; color: #5f5c5a">{{scope}} · {{allCount}}</span></div><a href="{{csvHref}}" download="{{csvName}}" style="font-size: 13px; font-weight: 600; padding: 11px 16px; min-height: 44px; box-sizing: border-box; border-radius: 9999px; background: #000000; color: #ffffff; text-decoration: none">Export CSV</a></div>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #3d3a38">Search</span><input value="{{q}}" onChange="{{qIn}}" placeholder="Reference, person, vendor or purpose" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<div role="group" aria-label="Status" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{stFilters}}" as="f" hint-placeholder-count="6"><button type="button" onClick="{{f.pick}}" aria-pressed="{{f.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{f.bg}}; color: {{f.fg}}; border: 1px solid {{f.bd}}">{{f.label}}</button></sc-for><button type="button" onClick="{{riskFilter.pick}}" aria-pressed="{{riskFilter.pressed}}" style="font-family: inherit; font-size: 12.5px; padding: 9px 14px; min-height: 40px; border-radius: 9999px; cursor: pointer; background: {{riskFilter.bg}}; color: {{riskFilter.fg}}; border: 1px solid {{riskFilter.bd}}">{{riskFilter.label}}</button></div>
+<div role="group" aria-label="Category" style="display: flex; gap: 5px; flex-wrap: wrap"><sc-for list="{{catFilters}}" as="f" hint-placeholder-count="6"><button type="button" onClick="{{f.pick}}" aria-pressed="{{f.pressed}}" style="font-family: inherit; font-size: 12px; padding: 8px 13px; min-height: 36px; border-radius: 9999px; cursor: pointer; background: {{f.bg}}; color: {{f.fg}}; border: 1px solid {{f.bd}}">{{f.label}}</button></sc-for></div>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 760px">
+<thead><tr style="text-align: left; font-size: 10.5px; color: #5f5c5a; text-transform: uppercase"><th scope="col" style="font-weight: 600; padding: 7px 6px">Reference</th><th scope="col" style="font-weight: 600; padding: 7px 6px">Date</th><th scope="col" style="font-weight: 600; padding: 7px 6px">Employee</th><th scope="col" style="font-weight: 600; padding: 7px 6px">Branch</th><th scope="col" style="font-weight: 600; padding: 7px 6px">Category</th><th scope="col" style="font-weight: 600; padding: 7px 6px">Vendor</th><th scope="col" style="font-weight: 600; padding: 7px 6px; text-align: right">Amount</th><th scope="col" style="font-weight: 600; padding: 7px 6px">Status</th><th scope="col" style="font-weight: 600; padding: 7px 6px">Risk</th><th scope="col" style="font-weight: 600; padding: 7px 6px"></th></tr></thead>
+<tbody><sc-for list="{{allRows}}" as="r" hint-placeholder-count="8"><tr style="border-top: 1px solid #ebebeb"><td style="padding: 8px 6px; font-weight: 600">{{r.id}}</td><td style="padding: 8px 6px">{{r.date}}</td><td style="padding: 8px 6px">{{r.by}}</td><td style="padding: 8px 6px">{{r.br}}</td><td style="padding: 8px 6px">{{r.cat}}</td><td style="padding: 8px 6px">{{r.vendor}}</td><td style="padding: 8px 6px; text-align: right; font-weight: 600">{{r.amount}}</td><td style="padding: 8px 6px"><span style="font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: 9999px; background: {{r.sbg}}; color: #ffffff">{{r.status}}</span></td><td style="padding: 8px 6px"><span style="font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 9999px; background: {{r.rbg}}; color: {{r.rfg}}">{{r.risk}}</span></td><td style="padding: 6px"><button type="button" onClick="{{r.open}}" aria-label="Open {{r.id}}" style="font-family: inherit; font-size: 12px; padding: 7px 12px; min-height: 32px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Open</button></td></tr></sc-for></tbody></table>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{hasDetail}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="dt-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px; border: 2px solid #000000">
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="dt-h" style="margin: 0; font-size: 17px; font-weight: 600">{{detail.id}} · {{detail.vendor}} · {{detail.amount}}</h2><span style="font-size: 12px; color: #5f5c5a">{{detail.by}} ({{detail.lvl}}) · {{detail.br}} · {{detail.when}} · {{detail.tier}}</span></div>
+<div style="display: flex; gap: 6px; align-items: center"><span style="font-size: 10.5px; font-weight: 700; padding: 4px 11px; border-radius: 9999px; background: {{detail.riskBg}}; color: #ffffff">Risk {{detail.riskBand}} · {{detail.riskScore}}</span><button type="button" onClick="{{closeDetail}}" aria-label="Close this expense" style="font-family: inherit; width: 32px; height: 32px; border-radius: 10px; border: 1px solid #ebebeb; background: #ffffff; cursor: pointer; font-size: 15px">&#215;</button></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 14px 24px">
+<span style="display: flex; flex-direction: column"><span style="font-size: 10.5px; color: #5f5c5a; text-transform: uppercase; letter-spacing: 0.05em">Category</span><strong style="font-size: 13px; font-weight: 600">{{detail.cat}} · {{detail.sub}}</strong></span>
+<span style="display: flex; flex-direction: column"><span style="font-size: 10.5px; color: #5f5c5a; text-transform: uppercase; letter-spacing: 0.05em">Paid by</span><strong style="font-size: 13px; font-weight: 600">{{detail.method}}</strong></span>
+<span style="display: flex; flex-direction: column"><span style="font-size: 10.5px; color: #5f5c5a; text-transform: uppercase; letter-spacing: 0.05em">Tax</span><strong style="font-size: 13px; font-weight: 600">{{detail.tax}} · {{detail.reclaim}}</strong></span>
+<span style="display: flex; flex-direction: column; flex: 1 1 220px; min-width: 0"><span style="font-size: 10.5px; color: #5f5c5a; text-transform: uppercase; letter-spacing: 0.05em">Business purpose</span><strong style="font-size: 13px; font-weight: 500">{{detail.note}}</strong></span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12.5px"><sc-if value="{{detail.hasRcpt}}" hint-placeholder-val="{{true}}"><span style="padding: 7px 12px; border-radius: 10px; background: #e4f3f3; color: #0b5c5c; font-weight: 600">Receipt on file · {{detail.rcpt}}</span></sc-if><sc-if value="{{detail.noRcpt}}" hint-placeholder-val="{{''}}"><span style="padding: 7px 12px; border-radius: 10px; background: #fdf0e4; color: #b26a00">No receipt — {{detail.noRcpt}}</span></sc-if></div>
+
+<sc-if value="{{detail.hasFlags}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 15px; background: #fbeaea; border: 1px solid #c62828"><strong style="font-size: 12.5px; font-weight: 600">Why the assistant flagged this</strong><sc-for list="{{detail.flags}}" as="f" hint-placeholder-count="2"><span style="font-size: 12px; color: #3d3a38">• {{f.t}}</span></sc-for></div></sc-if>
+<sc-if value="{{detail.hasPolicy}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 15px; background: #fdf0e4; border: 1px solid #b26a00"><strong style="font-size: 12.5px; font-weight: 600">Policy</strong><sc-for list="{{detail.policy}}" as="f" hint-placeholder-count="2"><span style="font-size: 12px; color: #3d3a38">• {{f.t}}</span></sc-for></div></sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 7px"><strong style="font-size: 13.5px; font-weight: 600">Approval</strong>
+<sc-if value="{{detail.noChain}}" hint-placeholder-val="{{false}}"><span style="font-size: 12.5px; color: #5f5c5a">Under the auto-approval limit, so nobody had to sign it off. It is still visible to everyone above.</span></sc-if>
+<sc-for list="{{detail.timeline}}" as="s" hint-placeholder-count="3"><div style="display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap"><span style="font-size: 10.5px; font-weight: 700; padding: 4px 11px; border-radius: 9999px; background: {{s.bg}}; color: {{s.fg}}; flex: none">{{s.state}}</span><span style="display: flex; flex-direction: column; min-width: 0"><strong style="font-size: 12.5px; font-weight: 600">{{s.role}} · {{s.who}}</strong><span style="font-size: 11.5px; color: #5f5c5a">{{s.note}}</span></span></div></sc-for>
+</div>
+
+<sc-if value="{{detail.canAct}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; background: #f2f4f5">
+<strong style="font-size: 13px; font-weight: 600">Your decision as {{detail.actWho}}</strong>
+<span style="display: flex; flex-wrap: wrap; gap: 5px"><sc-for list="{{detail.quick}}" as="q" hint-placeholder-count="3"><button type="button" onClick="{{q.pick}}" style="font-family: inherit; font-size: 11.5px; padding: 7px 12px; min-height: 36px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer; text-align: left">{{q.t}}</button></sc-for></span>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #3d3a38">Reason or comment — required to reject or return</span><textarea rows="2" value="{{detail.why}}" onChange="{{detail.whyIn}}" placeholder="{{detail.by}} will see this" style="font: inherit; font-size: 15px; padding: 11px 13px; border-radius: 13px; border: 1px solid #d9d9d9; resize: vertical"></textarea></label>
+<span style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{detail.approve}}" style="font-family: inherit; font-size: 13.5px; font-weight: 600; padding: 12px 18px; min-height: 46px; border-radius: 9999px; border: 0; background: #1f7a2a; color: #ffffff; cursor: pointer">Approve</button><button type="button" onClick="{{detail.ret}}" style="font-family: inherit; font-size: 13.5px; padding: 12px 18px; min-height: 46px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Return for changes</button><button type="button" onClick="{{detail.reject}}" style="font-family: inherit; font-size: 13.5px; padding: 12px 18px; min-height: 46px; border-radius: 9999px; border: 1px solid #c62828; background: #ffffff; color: #c62828; cursor: pointer">Reject</button></span>
+</div>
+</sc-if>
+<sc-if value="{{detail.mayPay}}" hint-placeholder-val="{{false}}"><span><button type="button" onClick="{{detail.pay}}" style="font-family: inherit; font-size: 13.5px; font-weight: 600; padding: 12px 18px; min-height: 46px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Mark reimbursed</button></span></sc-if>
+<sc-if value="{{detail.hasHistory}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 3px; padding-top: 10px; border-top: 1px solid #ebebeb"><strong style="font-size: 12.5px; font-weight: 600">History</strong><sc-for list="{{detail.history}}" as="h" hint-placeholder-count="3"><span style="font-size: 11.5px; color: #5f5c5a">{{h.t}}</span></sc-for></div></sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{isPetty}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="pc-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<h2 id="pc-h" style="margin: 0; font-size: 17px; font-weight: 600">Petty cash</h2>
+<sc-for list="{{pcRows}}" as="p" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 15px; border-radius: 18px; border: 1px solid #ebebeb">
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap"><span style="display: flex; flex-direction: column"><strong style="font-size: 14.5px; font-weight: 600">{{p.br}}</strong><span style="font-size: 11.5px; color: #5f5c5a">Custodian {{p.custodian}} · float {{p.float}} · topped up {{p.topped}} · spent {{p.spent}}</span></span><strong style="font-size: 20px; font-weight: 600">{{p.bal}}</strong></div>
+<sc-if value="{{p.low}}" hint-placeholder-val="{{false}}"><span role="status" style="font-size: 12px; padding: 8px 12px; border-radius: 12px; background: #fdf0e4; border: 1px solid #b26a00">The float is running low — top it up before the next cash purchase.</span></sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end">
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 150px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Top up by (GHS)</span><input value="{{p.topVal}}" onChange="{{p.topIn}}" inputMode="decimal" placeholder="0.00" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<button type="button" onClick="{{p.top}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 12px 16px; min-height: 46px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Record top-up</button>
+<label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 150px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Cash counted in the box</span><input value="{{p.cntVal}}" onChange="{{p.cntIn}}" inputMode="decimal" placeholder="0.00" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label>
+<button type="button" onClick="{{p.count}}" style="font-family: inherit; font-size: 13px; padding: 12px 16px; min-height: 46px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Record the count</button>
+</div>
+<sc-if value="{{p.hasCounts}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 3px; padding-top: 8px; border-top: 1px solid #ebebeb"><sc-for list="{{p.counts}}" as="c" hint-placeholder-count="2"><span style="font-size: 11.5px; color: #5f5c5a">{{c.t}}</span></sc-for></div></sc-if>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{isBudget}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="bu-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap"><div style="display: flex; flex-direction: column"><h2 id="bu-h" style="margin: 0; font-size: 17px; font-weight: 600">Budgets this month</h2><span style="font-size: 12px; color: #5f5c5a">{{budNote}}</span></div><sc-if value="{{canEditBud}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{saveBud}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 11px 16px; min-height: 44px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Save budgets</button></sc-if></div>
+<sc-for list="{{budRows}}" as="b" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 8px"><strong style="font-size: 14.5px; font-weight: 600">{{b.br}}</strong>
+<sc-for list="{{b.cats}}" as="c" hint-placeholder-count="6">
+<div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 9px 11px; border-radius: 14px; background: #f2f4f5">
+<span style="flex: 1 1 150px; min-width: 0; display: flex; flex-direction: column"><strong style="font-size: 12.5px; font-weight: 600">{{c.name}}</strong><span style="font-size: 11px; color: #5f5c5a">{{c.spent}} of {{c.budget}} · {{c.state}} · {{c.pct}}</span><span aria-hidden="true" style="height: 6px; margin-top: 3px; border-radius: 9999px; background: #ffffff; display: block"><span style="display: block; height: 6px; width: {{c.w}}; border-radius: 9999px; background: {{c.bg}}"></span></span></span>
+<sc-if value="{{canEditBud}}" hint-placeholder-val="{{true}}"><label style="display: flex; flex-direction: column; gap: 3px; flex: 0 1 140px"><span style="font-size: 11px; color: #3d3a38">Monthly budget (GHS)</span><input value="{{c.value}}" onChange="{{c.input}}" inputMode="decimal" style="font: inherit; font-size: 14px; padding: 9px 11px; min-height: 42px; box-sizing: border-box; border-radius: 12px; border: 1px solid #d9d9d9"></label></sc-if><sc-if value="{{budReadOnly}}" hint-placeholder-val="{{false}}"><span style="display: flex; flex-direction: column; gap: 3px; flex: 0 1 140px"><span style="font-size: 11px; color: #3d3a38">Monthly budget</span><strong style="font-size: 14px; font-weight: 600">{{c.budget}}</strong></span></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{isReimb}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="rb-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="rb-h" style="margin: 0; font-size: 17px; font-weight: 600">Reimbursements</h2><span style="font-size: 12px; color: #5f5c5a">{{reimbNote}}</span></div>
+<sc-if value="{{hasReimb}}" hint-placeholder-val="{{true}}">
+<sc-for list="{{reimbRows}}" as="r" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; border: 1px solid #ebebeb">
+<div style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap"><span style="display: flex; flex-direction: column"><strong style="font-size: 14px; font-weight: 600">{{r.who}}</strong><span style="font-size: 11.5px; color: #5f5c5a">{{r.n}}</span></span><strong style="font-size: 18px; font-weight: 600">{{r.total}}</strong></div>
+<sc-for list="{{r.lines}}" as="l" hint-placeholder-count="2"><span style="font-size: 11.5px; color: #5f5c5a">{{l.t}}</span></sc-for>
+<sc-if value="{{r.canPay}}" hint-placeholder-val="{{true}}"><span style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" onClick="{{r.pay}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 11px 16px; min-height: 44px; border-radius: 9999px; border: 0; background: #0b5c5c; color: #ffffff; cursor: pointer">Pay now</button><button type="button" onClick="{{r.payroll}}" style="font-family: inherit; font-size: 13px; padding: 11px 16px; min-height: 44px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Add to the next payslip</button></span></sc-if>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{hasReimb}}" hint-placeholder-val="{{true}}" ></sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{isSet}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="st-h" style="background: #ffffff; border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.1) 0 2px 4px -2px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap"><h2 id="st-h" style="margin: 0; font-size: 17px; font-weight: 600">Approval rules</h2><span style="font-size: 12px; color: #5f5c5a">{{tierNote}}</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end">
+<sc-for list="{{rulesForm}}" as="r" hint-placeholder-count="5"><label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 190px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">{{r.label}} (GHS)</span><input value="{{r.value}}" onChange="{{r.input}}" inputMode="decimal" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label></sc-for>
+<button type="button" onClick="{{saveRules}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 12px 18px; min-height: 46px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Save rules</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid #ebebeb">
+<strong style="font-size: 14.5px; font-weight: 600">Categories</strong>
+<sc-for list="{{catRows}}" as="c" hint-placeholder-count="6"><div style="display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; padding: 9px 12px; border-radius: 14px; background: #f2f4f5"><span style="display: flex; flex-direction: column; min-width: 0"><strong style="font-size: 13px; font-weight: 600">{{c.name}}</strong><span style="font-size: 11px; color: #5f5c5a">{{c.subs}} · {{c.suTxt}}</span></span><span style="display: flex; gap: 5px"><button type="button" onClick="{{c.toggle}}" style="font-family: inherit; font-size: 11.5px; padding: 8px 12px; min-height: 36px; border-radius: 9999px; border: 1px solid #d9d9d9; background: #ffffff; cursor: pointer">Change who signs</button><button type="button" onClick="{{c.del}}" style="font-family: inherit; font-size: 11.5px; padding: 8px 12px; min-height: 36px; border-radius: 9999px; border: 1px solid #ebebeb; background: #ffffff; color: #c62828; cursor: pointer">Remove</button></span></div></sc-for>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end"><label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 220px; min-width: 0"><span style="font-size: 12px; color: #3d3a38">Add a category</span><input value="{{addCat.name}}" onChange="{{addCat.input}}" placeholder="e.g. Security &amp; cleaning" style="font: inherit; font-size: 15px; padding: 11px 13px; min-height: 46px; box-sizing: border-box; border-radius: 13px; border: 1px solid #d9d9d9"></label><button type="button" onClick="{{addCat.save}}" style="font-family: inherit; font-size: 13px; font-weight: 600; padding: 12px 18px; min-height: 46px; border-radius: 9999px; border: 0; background: #000000; color: #ffffff; cursor: pointer">Add</button></div>
+</div>
+<sc-if value="{{hasAudit}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 3px; padding-top: 12px; border-top: 1px solid #ebebeb"><strong style="font-size: 14.5px; font-weight: 600">Audit log</strong><span style="font-size: 11.5px; color: #5f5c5a">Every create, approve, reject and payment, newest first. It cannot be edited.</span><sc-for list="{{audit}}" as="a" hint-placeholder-count="6"><span style="font-size: 11.5px; color: #3d3a38">{{a.t}}</span></sc-for></div></sc-if>
+</section>
+</sc-if>
+
+</main>
+</div>
+<script type="text/dc-script" data-dc-script>
+;(function(){try{var L=window.localStorage;if(L.getItem('ecompos.logoSeed2')==='1')return;var D='data:image/jpeg;base64,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',O='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAgMTIwIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI2MCIgZmlsbD0iIzBiNWM1YyIvPjxwYXRoIGQ9Ik00NCA0NmMwLTkgNy0xNiAxNi0xNnMxNiA3IDE2IDE2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmMmI3MDUiIHN0cm9rZS13aWR0aD0iNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTMyIDQ2aDU2bC01IDQ2YTYgNiAwIDAgMS02IDVINDNhNiA2IDAgMCAxLTYtNXoiIGZpbGw9IiNmZmZmZmYiLz48cGF0aCBkPSJNNTAgNThoMjJ2N0g1OHY2aDEydjdINTh2NmgxNHY3SDUweiIgZmlsbD0iIzBiNWM1YyIvPjwvc3ZnPg==';var b={};try{b=JSON.parse(L.getItem('ecompos.biz')||'{}')||{};}catch(e){}if(!b.logo||b.logo===O){b.logo=D;if(!b.name)b.name='Ebenezer Unique Ventures';L.setItem('ecompos.biz',JSON.stringify(b));}var g=L.getItem('ecompos.logo');if(!g||g===O)L.setItem('ecompos.logo',D);L.setItem('ecompos.logoSeed','1');L.setItem('ecompos.logoSeed2','1');}catch(e){}})();
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let role = 'superuser'; try { role = window.localStorage.getItem('ecompos.role') || 'superuser'; } catch (e) {}
+    let tab0 = 'overview'; try { tab0 = window.localStorage.getItem('ecompos.expTab') || 'overview'; } catch (e) {}
+    this.state = { role, tab: tab0, nf: {}, flt: {}, msg: '', msgBad: '', open: '', why: {}, ask: '', bud: {}, pc: {}, cf: {} };
+    this.onAny = () => this.setState({ tick: Date.now() });
+    this.onRole = e => this.setState({ role: (e && e.detail) || 'superuser' });
+    this.onTab = e => this.setState({ tab: (e && e.detail) || 'overview', open: '', msg: '' });
+  }
+  componentDidMount() { try { ['ecompos:expenses', 'ecompos:branches', 'ecompos:hr', 'ecompos:sales', 'storage'].forEach(n => window.addEventListener(n, this.onAny)); window.addEventListener('ecompos:role', this.onRole); window.addEventListener('ecompos:expTab', this.onTab); } catch (e) {} }
+  componentWillUnmount() { try { ['ecompos:expenses', 'ecompos:branches', 'ecompos:hr', 'ecompos:sales', 'storage'].forEach(n => window.removeEventListener(n, this.onAny)); window.removeEventListener('ecompos:role', this.onRole); window.removeEventListener('ecompos:expTab', this.onTab); } catch (e) {} }
+  httpOf(m) { const t = String(m || '').toLowerCase(); const R = [
+    [429, /too many|rate limit|slow down/],
+    [402, /licen[cs]e|subscription|settle .*payment|payment is overdue|plan has (ended|expired)/],
+    [423, /\blocked\b|on hold|is suspended/],
+    [408, /timed out|timeout|took too long/],
+    [504, /gateway time/],
+    [502, /provider (returned|rejected|error)|bad response from|gateway returned/],
+    [507, /storage is full|out of storage|quota|storage limit/],
+    [413, /must be under|too large|too big|file is over|over \d+ ?mb/],
+    [415, /file type|unsupported|not an image|could not be read|only (png|jpe?g|csv|pdf)|use a (png|jpg|csv|pdf)/],
+    [501, /browser cannot|not supported (in|on|by) this|cannot read qr/],
+    [503, /needs the internet|offline|no internet|not connected|unavailable|could not open the camera|no camera|not set up yet|connect an? .*provider|service is down/],
+    [401, /is not this company|wrong pin|wrong password|incorrect|not right|password was reset|session (has )?expired|sign in again|not signed in|code is wrong|invalid (pin|password|code|key|token)|wrong (code|key)/],
+    [403, /\bonly (the |a |an )?(superuser|manager|supervisor|developer|owner|chairman|support)|not allowed|permission|no access|cannot sell|can ?not (edit|change|delete|approve|see|open|view)|sign in as|cannot sign in|not on the staff list|is restricted|turned off for|not authori[sz]ed/],
+    [410, /expired|no longer (exists|available)|was deleted|has been removed|was cancelled/],
+    [409, /already|another (account|company|branch|product|user|customer)|exists|duplicate|somebody with that name|in use|different from the temporary|out of stock|left in stock|not enough stock|only \d+ (left|in stock)|was delivered/],
+    [404, /not found|could not find|couldn.t find|cannot find|no online order|no (sale|receipt|invoice|customer|order|product|account|branch|supplier|item)s? (found|matches|uses|with)|does not match any|no match|not recognised|does not exist|^no \w+( or \w+)? has the|doesn.t exist|no such/],
+    [412, /\bfirst[.!,]|\bfirst$|before (taking|closing|proceeding|you|continuing|sending|printing)|accept the terms|agree to the terms|must be approved|get .* approved/],
+    [500, /could not (create|save|write|load|read|complete)|something went wrong|failed to|unexpected error|internal error/],
+    [400, /valid|does not look right|wrong .*(number|phone|format)|must be exactly|exactly \d+ digits|digits|check the (email|phone|number|code)|format|letters only|numbers only|not a number/]
+  ]; const imp = /^(please )?(enter|choose|pick|give|type|add|write|say|select|fill|tick|take|scan|tell|set|upload|attach|name|describe)\b/.test(t); for (const r of R) { if (imp && [412, 400, 413, 415].indexOf(r[0]) < 0) continue; if (r[1].test(t)) return r[0]; } return 422; }
+  httpFix(o, page) { const HN = { 400: 'Bad Request', 401: 'Unauthorized', 402: 'Payment Required', 403: 'Forbidden', 404: 'Not Found', 408: 'Request Timeout', 409: 'Conflict', 410: 'Gone', 412: 'Precondition Failed', 413: 'Content Too Large', 415: 'Unsupported Media Type', 422: 'Unprocessable Content', 423: 'Locked', 429: 'Too Many Requests', 500: 'Internal Server Error', 501: 'Not Implemented', 502: 'Bad Gateway', 503: 'Service Unavailable', 504: 'Gateway Timeout', 507: 'Insufficient Storage' };
+    const seen = this.__httpSeen || (this.__httpSeen = {}); const log = [];
+    const fix = (obj, path) => { Object.keys(obj).forEach(k => { const v = obj[k]; if (typeof v === 'string' && /err(or)?$/i.test(k) && v.trim() && !/^\d{3} [A-Z]/.test(v)) { const c = this.httpOf(v); obj[k] = c + ' ' + HN[c] + ' · ' + v; const fl = ['has' + k.charAt(0).toUpperCase() + k.slice(1), k.replace(/Err(or)?$/, 'HasErr'), k.replace(/err(or)?$/, 'HasErr')].find(n => n !== k && typeof obj[n] === 'boolean'); const vis = fl ? obj[fl] : true; if (vis && seen[path + k] !== v) { seen[path + k] = v; log.push({ code: c, msg: v, key: path + k }); } else if (!vis) seen[path + k] = ''; } else if (typeof v === 'string' && /err(or)?$/i.test(k) && !v) { seen[path + k] = ''; } }); };
+    fix(o, ''); Object.keys(o).forEach(k => { const v = o[k]; if (v && typeof v === 'object' && !Array.isArray(v) && Object.getPrototypeOf(v) === Object.prototype) fix(v, k + '.'); });
+    if (log.length) { try { const LS = window.localStorage; let L = JSON.parse(LS.getItem('ecompos.httpLog') || '[]') || []; let by = ''; try { const s = JSON.parse(LS.getItem('ecompos.session') || 'null'); by = (s && (s.name || s.id)) || LS.getItem('ecompos.role') || ''; } catch (e) {} log.forEach(x => L.unshift({ id: 'H' + Date.now() + Math.random().toString(36).slice(2, 6), ts: Date.now(), page, key: x.key, code: x.code, reason: HN[x.code], msg: x.msg, by })); LS.setItem('ecompos.httpLog', JSON.stringify(L.slice(0, 1000))); setTimeout(() => { try { window.dispatchEvent(new CustomEvent('ecompos:httpLog')); } catch (e) {} }, 0); } catch (e) {} }
+    return o; }
+  renderVals() { return this.httpFix(this.renderValsH(), 'Expenses'); }
+  renderValsH() {
+    const S = this.state;
+    const set = o => this.setState(o);
+    const LS = window.localStorage;
+    const rd = (k, d) => { try { const v = JSON.parse(LS.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+    const wr = (k, v, ev) => { try { LS.setItem(k, JSON.stringify(v)); if (ev) window.dispatchEvent(new CustomEvent(ev, { detail: v })); } catch (e) {} };
+    const pill = on => ({ bg: on ? '#000000' : '#ffffff', fg: on ? '#ffffff' : '#000000', bd: on ? '#000000' : '#ebebeb', pressed: on ? 'true' : 'false' });
+    const money = n => 'GHS ' + Number(n || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const short = n => 'GHS ' + Math.round(Number(n || 0)).toLocaleString('en-GB');
+    const now = new Date();
+    const dayKey = d => d.toISOString().slice(0, 10);
+    const dTxt = k => new Date(k + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const stamp = () => now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + now.toTimeString().slice(0, 5);
+
+    // ---------- who is here ----------
+    const ses = rd('ecompos.session', null);
+    const ROLE = S.role || 'superuser';
+    const ME = ses && ses.name ? ses.name : ({ superuser: 'Kofi Adom', manager: 'Ama Darko', supervisor: 'Kwame Asante', staff: 'Akua Kyei', developer: 'eComPOS Support' })[ROLE] || 'Staff';
+    const SU = ROLE === 'superuser' || ROLE === 'developer';
+    const MGR = ROLE === 'manager';
+    const SUP = ROLE === 'supervisor';
+    const LVL = SU ? 'Superuser' : MGR ? 'Manager' : SUP ? 'Supervisor' : 'Sales staff';
+    const HOME = ({ manager: 'osu', supervisor: 'osu', staff: 'osu' })[ROLE] || 'osu';
+
+    const BX = rd('ecompos.branches', null);
+    const BR = (__L => { const __k = __L.filter(b => b.status !== 'archived'); return __k.length ? __k : __L.slice(0, 1); })(Array.isArray(BX) && BX.length ? BX : [{ id: 'osu', name: 'Osu branch' }, { id: 'legon', name: 'East Legon branch' }, { id: 'adum', name: 'Adum branch' }]);
+    const brShort = b => String(b.name || '').replace(/\s*branch$/i, '');
+    const LN = {}; BR.forEach(b => { LN[b.id] = brShort(b); });
+    const BRIDS = BR.map(b => b.id);
+    const MYBR = SU ? '' : (BRIDS.indexOf(HOME) >= 0 ? HOME : BRIDS[0]);
+    const VIEWBR = SU ? (S.vbr && BRIDS.indexOf(S.vbr) >= 0 ? S.vbr : '') : MYBR;
+
+    let biz = { name: 'Ebenezer Unique Ventures' }; try { biz = Object.assign(biz, rd('ecompos.biz', {}) || {}); } catch (e) {}
+
+    // the reporting line: sales staff -> supervisor -> manager -> superuser
+    const HR = rd('ecompos.hr', {}) || {};
+    const SYS = [['Kofi Adom', 'Superuser', 'all'], ['Ama Darko', 'Manager', 'osu'], ['Kwame Asante', 'Supervisor', 'osu'], ['Akua Kyei', 'Sales staff', 'osu'], ['Kwesi Ofori', 'Sales staff', 'osu'], ['Efua Sarpong', 'Manager', 'legon'], ['Nana Ampofo', 'Supervisor', 'legon'], ['Adjoa Badu', 'Sales staff', 'legon'], ['Yaw Boakye', 'Manager', 'adum'], ['Abena Mensah', 'Supervisor', 'adum'], ['Kojo Appiah', 'Sales staff', 'adum']];
+    const main = (LS.getItem('ecompos.activeCompany') || 'main') === 'main';
+    const PEOPLE = (main ? SYS : SYS.slice(0, 1)).map(u => ({ name: u[0], level: u[1], br: u[2] }));
+    Object.keys(HR).forEach(n => { const h = HR[n] || {}; if (h.added && !PEOPLE.some(p => p.name === n)) PEOPLE.push({ name: n, level: h.role === 'Branch manager' ? 'Manager' : (h.role || 'Sales staff'), br: h.br || BRIDS[0] }); });
+    const meRec = PEOPLE.filter(p => p.name === ME)[0] || { name: ME, level: LVL, br: MYBR || 'all' };
+    const supOf = br => (PEOPLE.filter(p => p.level === 'Supervisor' && p.br === br)[0] || {}).name || '';
+    const mgrOf = br => (PEOPLE.filter(p => p.level === 'Manager' && p.br === br)[0] || {}).name || '';
+    const suName = (PEOPLE.filter(p => p.level === 'Superuser')[0] || {}).name || 'Kofi Adom';
+    const myTeam = PEOPLE.filter(p => p.br === meRec.br && p.level === 'Sales staff').map(p => p.name);
+
+    // ---------- settings the Admin controls ----------
+    const CATD = [
+      ['util', 'Utilities', ['Electricity', 'Water', 'Internet & airtime'], false],
+      ['trans', 'Transport', ['Fuel', 'Taxi & delivery', 'Vehicle repair'], false],
+      ['stock', 'Stock', ['Emergency purchase', 'Packaging'], false],
+      ['repair', 'Repairs & maintenance', ['Shop repairs', 'Equipment service'], false],
+      ['rent', 'Rent & rates', ['Shop rent', 'Council rates'], false],
+      ['staff', 'Staff welfare', ['Lunch & refreshments', 'Uniforms', 'Medical'], false],
+      ['mkt', 'Marketing', ['Printing & flyers', 'Online ads'], false],
+      ['asset', 'Asset purchase', ['Equipment', 'Furniture'], true],
+      ['loan', 'Loans & advances', ['Staff advance'], true],
+      ['ent', 'Entertainment', ['Client hosting'], true]
+    ];
+    let CATS = rd('ecompos.expCats', null);
+    if (!Array.isArray(CATS) || !CATS.length) { CATS = CATD.map(c => ({ key: c[0], name: c[1], subs: c[2], su: c[3], active: true })); wr('ecompos.expCats', CATS); }
+    const catOf = k => CATS.filter(c => c.key === k)[0] || { key: k, name: k, subs: [], su: false };
+
+    const RULED = { t1: 200, t2: 1000, t3: 10000, receiptAbove: 100, purposeAbove: 500, dupDays: 3, tol: 5 };
+    let RULES = rd('ecompos.expRules', null);
+    if (!RULES || typeof RULES !== 'object') { RULES = Object.assign({}, RULED); wr('ecompos.expRules', RULES); }
+    RULES = Object.assign({}, RULED, RULES);
+
+    const PMETH = [['petty', 'Petty cash'], ['card', 'Company card'], ['bank', 'Bank transfer'], ['momo', 'Mobile money'], ['own', 'Personal money (reimburse me)']];
+    const pmName = k => (PMETH.filter(p => p[0] === k)[0] || ['', k])[1];
+
+    const mKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    // ---------- the expense book ----------
+    const seeded = rd('ecompos.expSeeded', false);
+    let EXP = rd('ecompos.expenses', null);
+    if (!Array.isArray(EXP)) EXP = [];
+
+    const AUD = rd('ecompos.expAudit', []) || [];
+    const logIt = (entity, action, extra) => { const A = [{ entity, action, by: ME, level: LVL, at: stamp(), ts: Date.now(), detail: extra || '' }].concat(AUD).slice(0, 400); wr('ecompos.expAudit', A); return A; };
+    const saveExp = (list, msg, bad, audit) => { wr('ecompos.expenses', list, 'ecompos:expenses'); if (audit) logIt(audit[0], audit[1], audit[2]); set({ msg: msg || '', msgBad: !!bad, tick: Date.now() }); };
+
+    // ---------- the approval chain ----------
+    const chainFor = x => {
+      const c = catOf(x.cat); const a = Number(x.amount) || 0;
+      const sub = PEOPLE.filter(p => p.name === x.by)[0] || { level: 'Sales staff', br: x.br };
+      if (sub.level === 'Superuser' || x.by === suName) return { steps: [], tier: 'Recorded by the Admin \u2014 no approval needed' };
+      const steps = [];
+      const addSup = () => { const n = supOf(x.br); if (n && n !== x.by) steps.push({ role: 'Supervisor', who: n }); };
+      const addMgr = () => { const n = mgrOf(x.br); if (n && n !== x.by) steps.push({ role: 'Manager', who: n }); };
+      const addSu = () => { if (suName !== x.by) steps.push({ role: 'Superuser', who: suName }); };
+      if (c.su) { if (sub.level === 'Sales staff') addSup(); if (sub.level !== 'Manager') addMgr(); addSu(); return { steps, tier: 'Category always needs the Admin' }; }
+      if (a <= RULES.t1) return { steps: [], tier: 'Tier 1 · auto-approved under ' + short(RULES.t1) };
+      if (a <= RULES.t2) { if (sub.level === 'Sales staff') addSup(); else addMgr(); return { steps, tier: 'Tier 2 · ' + (steps[0] ? steps[0].role : 'Manager') }; }
+      if (a <= RULES.t3) { if (sub.level === 'Sales staff') addSup(); if (sub.level !== 'Manager') addMgr(); if (!steps.length) addSu(); return { steps, tier: 'Tier 3 · Supervisor then Manager' }; }
+      if (sub.level === 'Sales staff') addSup(); if (sub.level !== 'Manager') addMgr(); addSu();
+      return { steps, tier: 'Tier 4 · Admin must sign off' };
+    };
+    const stepsOf = x => (x.steps && x.steps.length ? x.steps : chainFor(x).steps.map(s => Object.assign({}, s, { action: '' })));
+    const waitingOn = x => { if (x.status !== 'pending') return null; const st = stepsOf(x); for (let i = 0; i < st.length; i++) { if (!st[i].action) return Object.assign({ i }, st[i]); } return null; };
+    const myTurn = x => { const w = waitingOn(x); if (!w) return false; if (w.who === ME) return true; return (w.role === 'Superuser' && SU) || (w.role === 'Manager' && MGR && x.br === MYBR) || (w.role === 'Supervisor' && SUP && x.br === MYBR); };
+
+    // ---------- the expense assistant ----------
+    const CATHINT = [[/shell|goil|total|fuel|petrol|diesel/i, 'trans', 'Fuel'], [/bolt|uber|taxi|yango|trotro/i, 'trans', 'Taxi & delivery'], [/ecg|electric|prepaid|meter/i, 'util', 'Electricity'], [/mtn|vodafone|telecel|airteltigo|internet|airtime|data/i, 'util', 'Internet & airtime'], [/water|gwcl/i, 'util', 'Water'], [/makola|wholesale|market|supplier/i, 'stock', 'Emergency purchase'], [/press|print|flyer|banner|advert/i, 'mkt', 'Printing & flyers'], [/pharmac|clinic|hospital|first aid/i, 'staff', 'Medical'], [/papaye|chop|food|lunch|refreshment|water sachet/i, 'staff', 'Lunch & refreshments'], [/carpent|plumb|repair|mason|weld/i, 'repair', 'Shop repairs'], [/compughana|freezer|fridge|equipment|laptop|printer/i, 'asset', 'Equipment'], [/rent|landlord|properties/i, 'rent', 'Shop rent']];
+    const suggestCat = (vendor, note) => { const t = String(vendor || '') + ' ' + String(note || ''); for (let i = 0; i < CATHINT.length; i++) { if (CATHINT[i][0].test(t)) return { cat: CATHINT[i][1], sub: CATHINT[i][2], why: 'Past expenses with “' + String(vendor || note).split(/\s+/)[0] + '” were filed under ' + catOf(CATHINT[i][1]).name + '.' }; } const past = EXP.filter(e => String(e.vendor || '').toLowerCase() === String(vendor || '').toLowerCase())[0]; if (past) return { cat: past.cat, sub: past.sub, why: 'This vendor was last filed under ' + catOf(past.cat).name + ' · ' + past.sub + '.' }; return null; };
+    const dupOf = (x, list) => { const a = Number(x.amount) || 0; const t = new Date(x.date + 'T00:00:00').getTime(); return (list || EXP).filter(e => e.id !== x.id && String(e.vendor || '').toLowerCase() === String(x.vendor || '').toLowerCase() && Math.abs((Number(e.amount) || 0) - a) < 0.01 && Math.abs(new Date(e.date + 'T00:00:00').getTime() - t) <= RULES.dupDays * 86400000)[0] || null; };
+    const policyOf = x => {
+      const out = []; const a = Number(x.amount) || 0;
+      if (a > RULES.receiptAbove && !x.receipt && !x.noRcpt) out.push('A receipt is required above ' + short(RULES.receiptAbove) + '.');
+      if (a > RULES.purposeAbove && !String(x.note || '').trim()) out.push('A business purpose is required above ' + short(RULES.purposeAbove) + '.');
+      const d = new Date(x.date + 'T00:00:00').getDay(); if (d === 0) out.push('Dated a Sunday — approvers will ask why.');
+      if (new Date(x.date + 'T00:00:00').getTime() > Date.now()) out.push('The date is in the future.');
+      const c = catOf(x.cat); if (c.su) out.push(c.name + ' always needs the Admin, whatever the amount.');
+      return out;
+    };
+    const riskOf = (x, list) => {
+      const r = []; const a = Number(x.amount) || 0;
+      if (dupOf(x, list)) r.push('Possible duplicate of an expense with the same vendor, amount and date');
+      if (a > RULES.t3 * 0.9 && a <= RULES.t3) r.push('Just under the ' + short(RULES.t3) + ' Admin threshold');
+      if (a >= 500 && a % 500 === 0) r.push('A round ' + short(a) + ' — round numbers are worth a second look');
+      if (a > RULES.receiptAbove && !x.receipt) r.push('No receipt attached above ' + short(RULES.receiptAbove));
+      const same = (list || EXP).filter(e => e.by === x.by && String(e.vendor || '').toLowerCase() === String(x.vendor || '').toLowerCase() && Math.abs(new Date(e.date + 'T00:00:00').getTime() - new Date(x.date + 'T00:00:00').getTime()) <= 7 * 86400000);
+      const sameSum = same.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+      if (same.length > 2 && sameSum > RULES.t2) r.push(same.length + ' payments to ' + x.vendor + ' in a week totalling ' + short(sameSum) + ' — looks like a split purchase');
+      const seen = (list || EXP).some(e => e.id !== x.id && String(e.vendor || '').toLowerCase() === String(x.vendor || '').toLowerCase());
+      if (!seen && a > RULES.t2) r.push('First time this vendor has been used, and the amount is large');
+      const hist = (list || EXP).filter(e => e.cat === x.cat && e.br === x.br && e.id !== x.id).map(e => Number(e.amount) || 0);
+      if (hist.length >= 3) { const avg = hist.reduce((s, n) => s + n, 0) / hist.length; if (a > avg * 2.5) r.push('More than twice the usual ' + catOf(x.cat).name + ' spend at ' + (LN[x.br] || x.br) + ' (' + short(avg) + ' on average)'); }
+      const score = Math.min(100, r.length * 22 + (a > RULES.t3 ? 18 : 0));
+      return { score, reasons: r, band: score >= 60 ? 'High' : score >= 25 ? 'Watch' : 'Low' };
+    };
+
+    if (!EXP.length && !seeded && main && !LS.getItem('ecompos.cleared')) {
+      const D = (mAgo, day) => { const d = new Date(now.getFullYear(), now.getMonth() - mAgo, Math.min(day, new Date(now.getFullYear(), now.getMonth() - mAgo + 1, 0).getDate())); return dayKey(d > now ? now : d); };
+      const seedRows = [
+        [2, 4, 'osu', 'Akua Kyei', 'util', 'Electricity', 'ECG Prepaid', 480, 'petty', 'approved', 'Shop meter top-up'],
+        [2, 8, 'osu', 'Kwame Asante', 'trans', 'Fuel', 'Shell Osu', 320, 'card', 'approved', 'Delivery runs for the week'],
+        [2, 11, 'legon', 'Adjoa Badu', 'staff', 'Lunch & refreshments', 'Papaye', 180, 'own', 'paid', 'Stock-count day lunch'],
+        [2, 15, 'adum', 'Abena Mensah', 'repair', 'Shop repairs', 'Kofi Carpentry', 1450, 'bank', 'approved', 'Replaced the shop door'],
+        [2, 25, 'osu', 'Ama Darko', 'rent', 'Shop rent', 'Mensah Properties', 9000, 'bank', 'approved', 'Shop rent for the month'],
+        [1, 3, 'legon', 'Nana Ampofo', 'trans', 'Taxi & delivery', 'Bolt', 95, 'momo', 'approved', 'Bank deposit trip'],
+        [1, 7, 'osu', 'Kwesi Ofori', 'stock', 'Emergency purchase', 'Makola Wholesale', 2400, 'petty', 'approved', 'Ran out of rice before delivery'],
+        [1, 10, 'adum', 'Yaw Boakye', 'asset', 'Equipment', 'CompuGhana', 12500, 'bank', 'approved', 'New freezer for the Adum branch'],
+        [1, 14, 'legon', 'Efua Sarpong', 'util', 'Internet & airtime', 'MTN Business', 350, 'momo', 'approved', 'Branch internet for the month'],
+        [1, 18, 'osu', 'Akua Kyei', 'mkt', 'Printing & flyers', 'Buck Press', 640, 'own', 'approved', 'Flyers for the Christmas promo'],
+        [1, 22, 'adum', 'Kojo Appiah', 'trans', 'Fuel', 'Shell Adum', 300, 'petty', 'approved', 'Fuel for the delivery bike'],
+        [1, 26, 'osu', 'Kwame Asante', 'staff', 'Uniforms', 'Woodin', 820, 'bank', 'rejected', 'Three new staff shirts'],
+        [1, 28, 'legon', 'Adjoa Badu', 'util', 'Electricity', 'ECG Prepaid', 520, 'petty', 'approved', 'Meter top-up'],
+        [0, 1, 'osu', 'Ama Darko', 'rent', 'Shop rent', 'Mensah Properties', 9000, 'bank', 'approved', 'Shop rent for the month'],
+        [0, 1, 'osu', 'Akua Kyei', 'util', 'Electricity', 'ECG Prepaid', 450, 'petty', 'approved', 'Meter top-up'],
+        [0, 1, 'legon', 'Nana Ampofo', 'trans', 'Fuel', 'Shell Legon', 280, 'petty', 'approved', 'Delivery fuel'],
+        [0, 2, 'adum', 'Abena Mensah', 'stock', 'Packaging', 'Accra Plastics', 760, 'bank', 'approved', 'Carrier bags for the month'],
+        [0, 5, 'osu', 'Kwesi Ofori', 'trans', 'Fuel', 'Shell Osu', 300, 'petty', 'pending', 'Weekend deliveries'],
+        [0, 3, 'adum', 'Abena Mensah', 'repair', 'Equipment service', 'CoolTech', 1800, 'bank', 'pending', 'Freezer service call'],
+        [0, 3, 'legon', 'Nana Ampofo', 'ent', 'Client hosting', 'Marina Mall', 1250, 'card', 'pending', 'Hosting a wholesale buyer'],
+        [0, 4, 'osu', 'Akua Kyei', 'stock', 'Emergency purchase', 'Makola Wholesale', 15400, 'bank', 'pending', 'Bulk cooking oil before the price rise'],
+        [0, 4, 'adum', 'Yaw Boakye', 'asset', 'Furniture', 'Orca Deco', 6200, 'bank', 'pending', 'Shelving for the new aisle'],
+        [0, 5, 'osu', 'Akua Kyei', 'trans', 'Fuel', 'Shell Osu', 300, 'petty', 'pending', 'Fuel top-up'],
+        [0, 5, 'osu', 'Kwesi Ofori', 'trans', 'Fuel', 'Shell Osu', 300, 'petty', 'pending', 'Fuel top-up'],
+        [0, 6, 'legon', 'Efua Sarpong', 'staff', 'Medical', 'Pharmacy', 240, 'own', 'pending', 'First aid kit refill'],
+        [0, 6, 'legon', 'Adjoa Badu', 'repair', 'Shop repairs', 'Nii Builders', 9800, 'bank', 'pending', 'Re-tiling the shop floor']
+      ];
+      EXP = seedRows.map((r, k) => {
+        const date = D(r[0], r[1]);
+        const rec = { id: 'EXP-' + String(1000 + k), date, br: r[2], by: r[3], cat: r[4], sub: r[5], vendor: r[6],
+          amount: r[7], tax: Math.round(r[7] * 0.15 * 100) / 100, reclaim: r[4] !== 'staff' && r[4] !== 'ent',
+          method: r[8], status: r[9], note: r[10], receipt: r[7] <= 100 ? '' : 'receipt-' + (1000 + k) + '.jpg',
+          noRcpt: r[7] <= 100 ? 'Small cash purchase, no receipt given' : '',
+          at: dTxt(date), ts: new Date(date + 'T09:00:00').getTime(), steps: [], log: [{ at: dTxt(date), by: r[3], t: 'Submitted' }] };
+        const ch = chainFor(rec);
+        rec.steps = ch.steps.map(s => Object.assign({}, s, { action: '' }));
+        if (r[9] === 'approved' || r[9] === 'paid') rec.steps = rec.steps.map(s => Object.assign({}, s, { action: 'approved', by: s.who, at: dTxt(date), why: '' }));
+        else if (r[9] === 'rejected') { if (rec.steps[0]) rec.steps[0] = Object.assign({}, rec.steps[0], { action: 'rejected', by: rec.steps[0].who, at: dTxt(date), why: 'Buy these from the usual supplier, it is cheaper' }); }
+        else if (rec.steps.length > 1 && r[7] > 5000) { rec.steps = rec.steps.map((s, i) => i < rec.steps.length - 1 ? Object.assign({}, s, { action: 'approved', by: s.who, at: dTxt(date), why: '' }) : s); }
+        const rr = riskOf(rec, EXP.concat(seedRows.slice(0, k).map((q, j) => ({ id: 'EXP-' + String(1000 + j), date: D(q[0], q[1]), br: q[2], by: q[3], cat: q[4], vendor: q[6], amount: q[7] }))));
+        rec.risk = rr.score; rec.riskWhy = rr.reasons;
+        return rec;
+      });
+      wr('ecompos.expenses', EXP); wr('ecompos.expSeeded', true);
+    }
+
+    // ---------- what this person may see ----------
+    const visible = EXP.filter(x => {
+      if (SU) return !VIEWBR || x.br === VIEWBR;
+      if (MGR) return x.br === MYBR;
+      if (SUP) return x.br === MYBR && (x.by === ME || myTeam.indexOf(x.by) >= 0);
+      return x.by === ME;
+    });
+    const mine = EXP.filter(x => x.by === ME);
+    const inbox = EXP.filter(x => myTurn(x));
+
+    // ---------- actions ----------
+    const decide = (x, action, why) => {
+      const list = EXP.slice();
+      const i = list.map(e => e.id).indexOf(x.id); if (i < 0) return;
+      const e = Object.assign({}, list[i]);
+      const st = stepsOf(e).map(s => Object.assign({}, s));
+      const w = waitingOn(e); if (!w) return;
+      st[w.i] = Object.assign({}, st[w.i], { action, by: ME, at: stamp(), why: why || '', onBehalf: (w.who && w.who !== ME) ? w.who : '' });
+      e.steps = st;
+      e.log = (e.log || []).concat([{ at: stamp(), by: ME, t: action === 'approved' ? 'Approved at the ' + w.role + ' step' : action === 'rejected' ? 'Rejected — ' + why : 'Returned for changes — ' + why }]);
+      if (action === 'rejected') e.status = 'rejected';
+      else if (action === 'returned') e.status = 'returned';
+      else e.status = st.every(s => s.action === 'approved') ? 'approved' : 'pending';
+      list[i] = e;
+      const names = { approved: 'Approved', rejected: 'Rejected', returned: 'Returned for changes' };
+      try { const O = rd('ecompos.outbox', []) || []; O.unshift({ to: e.by, subject: names[action] + ' · ' + e.id + ' · ' + money(e.amount), body: 'Hello ' + String(e.by).split(' ')[0] + ', your expense ' + e.id + ' (' + catOf(e.cat).name + ' · ' + money(e.amount) + ') was ' + (action === 'returned' ? 'returned for changes' : names[action].toLowerCase()) + ' by ' + ME + '.' + (why ? ' Reason: ' + why : '') + (e.status === 'approved' ? ' It is now fully approved.' : e.status === 'pending' ? ' It still needs the next approver.' : ''), at: stamp(), ts: Date.now(), kind: 'expense' }); wr('ecompos.outbox', O.slice(0, 400)); } catch (z) {}
+      saveExp(list, (action === 'approved' ? (e.status === 'approved' ? 'Fully approved. ' : 'Approved at your step. ') : names[action] + '. ') + e.id + ' · ' + money(e.amount) + (e.status === 'pending' ? ' Now with ' + (waitingOn(e) || {}).role + '.' : ''), action !== 'approved', ['expense', action, e.id]);
+      set({ open: '', why: {}, ask: '' });
+    };
+    const markPaid = x => { const list = EXP.map(e => e.id === x.id ? Object.assign({}, e, { status: 'paid', paidAt: stamp(), paidBy: ME, log: (e.log || []).concat([{ at: stamp(), by: ME, t: 'Marked paid' }]) }) : e); saveExp(list, x.id + ' marked as paid.', false, ['expense', 'paid', x.id]); };
+
+    // ---------- petty cash ----------
+    const PCD = {}; BR.forEach(b => { PCD[b.id] = { float: 3000, custodian: supOf(b.id) || mgrOf(b.id) || 'Branch supervisor', topups: [], counts: [] }; });
+    let PC = rd('ecompos.petty', null); if (!PC || typeof PC !== 'object') { PC = PCD; wr('ecompos.petty', PC); }
+    const pcSpent = br => EXP.filter(x => x.br === br && x.method === 'petty' && String(x.date).slice(0, 7) === mKey && ['approved', 'paid', 'pending'].indexOf(x.status) >= 0).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+    const pcTop = br => ((PC[br] || {}).topups || []).filter(t => !t.month || t.month === mKey).reduce((a, t) => a + (Number(t.amount) || 0), 0);
+    const pcBal = br => (Number((PC[br] || {}).float) || 0) + pcTop(br) - pcSpent(br);
+
+    // ---------- new expense ----------
+    const NF = S.nf || {};
+    const setNF = o => set({ nf: Object.assign({}, NF, o) });
+    const nfAmt = parseFloat(String(NF.amount || '').replace(/[^0-9.]/g, '')) || 0;
+    const nfMiles = parseFloat(String(NF.miles || '').replace(/[^0-9.]/g, '')) || 0;
+    const nfMode = NF.mode || 'manual';
+    const mileRate = 2.5;
+    const nfTotal = nfMode === 'mile' ? Math.round(nfMiles * mileRate * 100) / 100 : nfAmt;
+    const draft = { id: 'draft', date: NF.date || dayKey(now), br: NF.br || MYBR || BRIDS[0], by: ME, cat: NF.cat || '', sub: NF.sub || '', vendor: nfMode === 'mile' ? 'Mileage claim' : String(NF.vendor || '').trim(), amount: nfTotal, method: NF.method || 'petty', note: String(NF.note || '').trim(), receipt: NF.receipt || '', noRcpt: String(NF.noRcpt || '').trim() };
+    const sugg = (!NF.cat && (draft.vendor || draft.note)) ? suggestCat(draft.vendor, draft.note) : null;
+    const dup = draft.vendor && nfTotal ? dupOf(draft) : null;
+    const pol = nfTotal ? policyOf(draft) : [];
+    const rk = nfTotal ? riskOf(draft) : { score: 0, reasons: [], band: 'Low' };
+    const nfChain = nfTotal ? chainFor(draft) : { steps: [], tier: '' };
+    const nfErr = (() => {
+      if (!nfTotal) return 'Enter the amount.';
+      if (!draft.cat) return 'Pick a category.';
+      if (!draft.vendor) return 'Enter who you paid.';
+      if (nfTotal > RULES.receiptAbove && !draft.receipt && !draft.noRcpt) return 'Attach a receipt, or say why there is none.';
+      if (nfTotal > RULES.purposeAbove && !draft.note) return 'Say what the money was for.';
+      if (draft.method === 'petty' && nfTotal > pcBal(draft.br)) return 'The ' + (LN[draft.br] || draft.br) + ' petty cash box only holds ' + money(pcBal(draft.br)) + '. Top it up, or pick another way it was paid.';
+      return '';
+    })();
+    const submitExp = () => {
+      if (nfErr) { set({ msg: nfErr, msgBad: true }); return; }
+      const id = 'EXP-' + String(1000 + EXP.length + 1);
+      const ch = chainFor(draft);
+      const r = riskOf(draft);
+      const rec = Object.assign({}, draft, { id, tax: Math.round(nfTotal * 0.15 * 100) / 100, reclaim: NF.reclaim !== false,
+        status: ch.steps.length ? 'pending' : 'approved', steps: ch.steps.map(s => Object.assign({}, s, { action: '' })),
+        risk: r.score, riskWhy: r.reasons, at: stamp(), ts: Date.now(), miles: nfMode === 'mile' ? nfMiles : 0,
+        log: [{ at: stamp(), by: ME, t: ch.steps.length ? 'Submitted · ' + ch.tier : 'Submitted and auto-approved · ' + ch.tier }] });
+      const list = [rec].concat(EXP);
+      if (ch.steps.length) { try { const O = rd('ecompos.outbox', []) || []; O.unshift({ to: ch.steps[0].who, subject: 'Expense needs your approval · ' + money(nfTotal), body: ME + ' submitted ' + id + ' — ' + catOf(draft.cat).name + ' · ' + money(nfTotal) + ' at ' + (LN[draft.br] || draft.br) + '. ' + (r.band === 'High' ? 'Flagged high risk: ' + r.reasons[0] : 'Risk ' + r.band + '.'), at: stamp(), ts: Date.now(), kind: 'expense' }); wr('ecompos.outbox', O.slice(0, 400)); } catch (z) {} }
+      saveExp(list, ch.steps.length ? 'Sent to ' + ch.steps[0].who + ' (' + ch.steps[0].role + ') for approval. ' + ch.tier + '.' : 'Auto-approved. ' + ch.tier + '.', false, ['expense', 'submitted', id]);
+      set({ nf: {}, tab: 'mine' });
+    };
+
+    // ---------- budgets ----------
+    const BUDD = {}; BR.forEach(b => { CATS.forEach(c => { BUDD[b.id + '|' + c.key] = ({ util: 1500, trans: 1200, stock: 8000, repair: 2000, rent: 9000, staff: 1000, mkt: 1200, asset: 15000, loan: 2000, ent: 1500 })[c.key] || 1000; }); });
+    let BUD = rd('ecompos.expBudgets', null); if (!BUD || typeof BUD !== 'object') { BUD = BUDD; wr('ecompos.expBudgets', BUD); }
+    const budOf = (br, cat) => Number(BUD[br + '|' + cat] || 0);
+    const spentOf = (br, cat, mk) => EXP.filter(x => x.br === br && x.cat === cat && String(x.date).slice(0, 7) === (mk || mKey) && ['approved', 'paid', 'pending'].indexOf(x.status) >= 0).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+
+
+    // ---------- shared views ----------
+    const STC = { approved: ['Approved', '#1f7a2a'], paid: ['Paid', '#0b5c5c'], pending: ['Waiting', '#b26a00'], rejected: ['Rejected', '#c62828'], returned: ['Returned', '#b26a00'], draft: ['Draft', '#5f5c5a'] };
+    const rowOf = x => {
+      const st = STC[x.status] || STC.draft;
+      const r = x.risk !== undefined ? { score: x.risk, reasons: x.riskWhy || [], band: x.risk >= 60 ? 'High' : x.risk >= 25 ? 'Watch' : 'Low' } : riskOf(x);
+      const w = waitingOn(x);
+      return { id: x.id, date: dTxt(x.date), by: x.by, br: LN[x.br] || x.br, cat: catOf(x.cat).name, sub: x.sub || '', vendor: x.vendor,
+        amount: money(x.amount), method: pmName(x.method), status: st[0], sbg: st[1],
+        risk: r.band, rbg: r.band === 'High' ? '#c62828' : r.band === 'Watch' ? '#b26a00' : '#dfe4e6', rfg: r.band === 'Low' ? '#3d3a38' : '#ffffff',
+        waiting: w ? 'with ' + w.who + ' (' + w.role + ')' : (x.status === 'approved' ? 'fully approved' : x.status === 'paid' ? 'paid ' + (x.paidAt || '') : ''),
+        open: () => set({ open: S.open === x.id ? '' : x.id, why: {}, ask: '' }), isOpen: S.open === x.id };
+    };
+    const detailOf = x => {
+      if (!x) return null;
+      const r = x.risk !== undefined ? { score: x.risk, reasons: x.riskWhy || [], band: x.risk >= 60 ? 'High' : x.risk >= 25 ? 'Watch' : 'Low' } : riskOf(x);
+      const st = stepsOf(x);
+      const w = waitingOn(x);
+      const WY = S.why || {};
+      const canAct = myTurn(x);
+      const mayPay = SU && (x.status === 'approved') && x.method === 'own';
+      return {
+        id: x.id, when: dTxt(x.date), by: x.by, lvl: (PEOPLE.filter(p => p.name === x.by)[0] || {}).level || 'Sales staff',
+        br: LN[x.br] || x.br, cat: catOf(x.cat).name, sub: x.sub || '—', vendor: x.vendor, amount: money(x.amount),
+        tax: money(x.tax || 0), reclaim: x.reclaim ? 'Reclaimable' : 'Not reclaimable', method: pmName(x.method),
+        note: x.note || 'No business purpose given', hasRcpt: !!x.receipt, rcpt: x.receipt || '', noRcpt: x.noRcpt || '',
+        tier: chainFor(x).tier,
+        timeline: st.map((s, i) => ({ role: s.role, who: s.who, state: s.action ? (s.action === 'approved' ? 'Approved' : s.action === 'rejected' ? 'Rejected' : 'Returned') : (w && w.i === i ? 'Waiting' : 'Not yet'),
+          bg: s.action === 'approved' ? '#1f7a2a' : s.action ? '#c62828' : (w && w.i === i ? '#b26a00' : '#dfe4e6'), fg: (s.action || (w && w.i === i)) ? '#ffffff' : '#3d3a38',
+          note: s.action ? (s.at + ' · ' + s.by + (s.onBehalf ? ' on behalf of ' + s.onBehalf : '') + (s.why ? ' — ' + s.why : '')) : '' })),
+        noChain: st.length === 0,
+        riskBand: r.band, riskScore: String(r.score), riskBg: r.band === 'High' ? '#c62828' : r.band === 'Watch' ? '#b26a00' : '#1f7a2a',
+        flags: r.reasons.map(t => ({ t })), hasFlags: r.reasons.length > 0,
+        policy: policyOf(x).map(t => ({ t })), hasPolicy: policyOf(x).length > 0,
+        history: (x.log || []).slice().reverse().map(l => ({ t: l.at + ' · ' + l.by + ' — ' + l.t })), hasHistory: !!(x.log && x.log.length),
+        canAct, actWho: w ? w.role : '',
+        why: WY.t || '', whyIn: ev => set({ why: Object.assign({}, WY, { t: ev.target.value }) }),
+        approve: () => decide(x, 'approved', WY.t || ''),
+        reject: () => { if (!String(WY.t || '').trim()) { set({ msg: 'Give a reason before rejecting. ' + String(x.by).split(' ')[0] + ' will see it.', msgBad: true }); return; } decide(x, 'rejected', WY.t); },
+        ret: () => { if (!String(WY.t || '').trim()) { set({ msg: 'Say what needs changing. ' + String(x.by).split(' ')[0] + ' will see it.', msgBad: true }); return; } decide(x, 'returned', WY.t); },
+        quick: ['Approved — within budget and the receipt is clear.', 'The receipt does not match the amount. Please re-submit with the right one.', 'This should come from petty cash, not the company card.'].map(t => ({ t: t.length > 52 ? t.slice(0, 50) + '…' : t, pick: () => set({ why: Object.assign({}, WY, { t }) }) })),
+        mayPay, pay: () => markPaid(x)
+      };
+    };
+
+    // ---------- overview ----------
+    const inMonth = x => String(x.date).slice(0, 7) === mKey;
+    const lastKey = (() => { const d = new Date(now.getFullYear(), now.getMonth() - 1, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); })();
+    const okSt = x => ['approved', 'paid'].indexOf(x.status) >= 0;
+    const thisSpend = visible.filter(x => inMonth(x) && okSt(x)).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+    const lastSpend = visible.filter(x => String(x.date).slice(0, 7) === lastKey && okSt(x)).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+    const pendAmt = visible.filter(x => x.status === 'pending').reduce((a, x) => a + (Number(x.amount) || 0), 0);
+    const flagged = visible.filter(x => riskOf(x).band !== 'Low');
+    const dayN = now.getDate(); const daysIn = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const earlyMonth = dayN < 5;
+    const forecast = earlyMonth ? (lastSpend || thisSpend) : thisSpend / dayN * daysIn;
+    const chg = lastSpend ? Math.round((thisSpend - lastSpend) / lastSpend * 100) : 0;
+    const kpis = [
+      { label: 'Spend this month', value: short(thisSpend), note: lastSpend ? (chg >= 0 ? 'up ' : 'down ') + Math.abs(chg) + '% on ' + short(lastSpend) + ' last month' : 'First month of records', bg: '#ffffff', fg: '#000000', sub: '#5f5c5a' },
+      { label: 'Waiting for approval', value: String(visible.filter(x => x.status === 'pending').length), note: short(pendAmt) + ' held up' + (inbox.length ? ' · ' + inbox.length + ' with you' : ''), bg: inbox.length ? '#000000' : '#ffffff', fg: inbox.length ? '#ffffff' : '#000000', sub: inbox.length ? '#c9c6c4' : '#5f5c5a' },
+      { label: 'Flagged by the assistant', value: String(flagged.length), note: flagged.length ? 'Risk signals worth a look' : 'Nothing unusual', bg: flagged.length ? '#c62828' : '#ffffff', fg: flagged.length ? '#ffffff' : '#000000', sub: flagged.length ? '#f7d9d9' : '#5f5c5a' },
+      { label: 'Forecast month-end', value: short(forecast), note: earlyMonth ? 'Too early to project — this is what last month came to' : 'From ' + dayN + ' days of spend at this rate', bg: '#ffffff', fg: '#000000', sub: '#5f5c5a' }
+    ];
+    const byBranch = BR.filter(b => !VIEWBR || b.id === VIEWBR).map(b => {
+      const amt = EXP.filter(x => x.br === b.id && inMonth(x) && okSt(x)).reduce((a, x) => a + (Number(x.amount) || 0), 0);
+      const sales = (rd('ecompos.sales', []) || []).filter(s => String(s.branch || '').toLowerCase().indexOf(brShort(b).toLowerCase()) >= 0).reduce((a, s) => a + (Number(s.total) || 0), 0);
+      return { br: brShort(b), amt: money(amt), amtN: amt, sales: money(sales), profit: money(sales - amt), neg: sales - amt < 0, pct: 0 };
+    });
+    const maxBr = Math.max(1, ...byBranch.map(b => b.amtN));
+    byBranch.forEach(b => { b.pct = Math.round(b.amtN / maxBr * 100) + '%'; });
+    const byCat = CATS.map(c => { const amt = visible.filter(x => x.cat === c.key && inMonth(x) && okSt(x)).reduce((a, x) => a + (Number(x.amount) || 0), 0); return { name: c.name, amt: money(amt), amtN: amt }; }).filter(c => c.amtN > 0).sort((a, b) => b.amtN - a.amtN);
+    const maxCat = Math.max(1, ...byCat.map(c => c.amtN));
+    byCat.forEach(c => { c.pct = Math.round(c.amtN / maxCat * 100) + '%'; });
+    const gauges = [];
+    BR.filter(b => !VIEWBR || b.id === VIEWBR).forEach(b => CATS.forEach(c => {
+      const bu = budOf(b.id, c.key); const sp = spentOf(b.id, c.key); if (!bu || !sp) return;
+      const p = Math.round(sp / bu * 100);
+      if (p < 60) return;
+      gauges.push({ t: brShort(b) + ' · ' + c.name, v: p + '% of ' + short(bu), w: Math.min(100, p) + '%', bg: p >= 100 ? '#c62828' : p >= 90 ? '#b26a00' : '#1f7a2a', over: p >= 100 });
+    }));
+    gauges.sort((a, b) => parseInt(b.w) - parseInt(a.w));
+
+    // ---------- tabs and filters ----------
+    const TABS = [['overview', 'Overview', SU || MGR || SUP], ['mine', 'My expenses', true], ['new', 'New expense', true], ['inbox', 'Approvals', SU || MGR || SUP], ['all', 'All expenses', SU || MGR || SUP], ['petty', 'Petty cash', SU || MGR], ['budget', 'Budgets', SU || MGR], ['reimb', 'Reimbursements', true], ['set', 'Settings', SU]].filter(t => t[2]);
+    const TAB = TABS.some(t => t[0] === S.tab) ? S.tab : TABS[0][0];
+    const FL = S.flt || {};
+    const setFL = o => set({ flt: Object.assign({}, FL, o) });
+    const allRows = visible.filter(x => {
+      if (FL.status && x.status !== FL.status) return false;
+      if (FL.cat && x.cat !== FL.cat) return false;
+      if (FL.risk === 'flag' && riskOf(x).band === 'Low') return false;
+      const q = String(FL.q || '').trim().toLowerCase();
+      if (q && (x.id + ' ' + x.by + ' ' + x.vendor + ' ' + (x.note || '') + ' ' + catOf(x.cat).name).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    }).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const csv = (() => {
+      const head = 'Reference,Date,Employee,Branch,Category,Sub-category,Vendor,Amount GHS,Tax GHS,Method,Status,Risk,Purpose\n';
+      const body = allRows.map(x => [x.id, x.date, x.by, LN[x.br] || x.br, catOf(x.cat).name, x.sub || '', x.vendor, Number(x.amount || 0).toFixed(2), Number(x.tax || 0).toFixed(2), pmName(x.method), x.status, riskOf(x).band, String(x.note || '').replace(/,/g, ';')].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+      return 'data:text/csv;charset=utf-8,' + encodeURIComponent(head + body);
+    })();
+
+    // ---------- reimbursements ----------
+    const owedAll = EXP.filter(x => x.method === 'own' && x.status === 'approved');
+    const owed = SU ? owedAll : owedAll.filter(x => x.by === ME);
+    const owedBy = {}; owed.forEach(x => { owedBy[x.by] = (owedBy[x.by] || 0) + (Number(x.amount) || 0); });
+    const payAll = who => { const list = EXP.map(e => (e.method === 'own' && e.status === 'approved' && e.by === who) ? Object.assign({}, e, { status: 'paid', paidAt: stamp(), paidBy: ME, log: (e.log || []).concat([{ at: stamp(), by: ME, t: 'Reimbursed' }]) }) : e); try { const O = rd('ecompos.outbox', []) || []; O.unshift({ to: who, subject: 'Reimbursement paid', body: 'Hello ' + String(who).split(' ')[0] + ', ' + money(owedBy[who]) + ' has been reimbursed to you for expenses you paid with your own money.', at: stamp(), ts: Date.now(), kind: 'expense' }); wr('ecompos.outbox', O.slice(0, 400)); } catch (z) {} saveExp(list, money(owedBy[who]) + ' reimbursed to ' + who + '.', false, ['reimbursement', 'paid', who]); };
+    const viaPayroll = who => { try { const O = rd('ecompos.outbox', []) || []; O.unshift({ to: who, subject: 'Reimbursement added to your payslip', body: money(owedBy[who]) + ' will be added to your next payslip rather than paid separately.', at: stamp(), ts: Date.now(), kind: 'expense' }); wr('ecompos.outbox', O.slice(0, 400)); } catch (z) {} const H = Object.assign({}, HR); H[who] = Object.assign({}, H[who] || {}, { other: (Number((H[who] || {}).other) || 0) + owedBy[who] }); wr('ecompos.hr', H, 'ecompos:hr'); payAll(who); set({ msg: money(owedBy[who]) + ' added to ' + who + '’s next payslip as an allowance and cleared here.' }); };
+
+    // ---------- settings forms ----------
+    const CF = S.cf || {};
+    const setCF = o => set({ cf: Object.assign({}, CF, o) });
+    const rulesForm = [['t1', 'Auto-approve up to', RULES.t1], ['t2', 'Supervisor approves up to', RULES.t2], ['t3', 'Manager approves up to (above this the Admin must sign)', RULES.t3], ['receiptAbove', 'Receipt required above', RULES.receiptAbove], ['purposeAbove', 'Business purpose required above', RULES.purposeAbove]].map(r => ({
+      key: r[0], label: r[1], value: CF[r[0]] !== undefined ? CF[r[0]] : String(r[2]),
+      input: ev => setCF({ [r[0]]: ev.target.value })
+    }));
+    const saveRules = () => { const v = Object.assign({}, RULES); rulesForm.forEach(r => { const n = parseFloat(String(r.value).replace(/[^0-9.]/g, '')); if (!isNaN(n)) v[r.key] = n; }); if (!(v.t1 < v.t2 && v.t2 < v.t3)) { set({ msg: 'The tiers must rise: auto, then Supervisor, then Manager.', msgBad: true }); return; } wr('ecompos.expRules', v); logIt('settings', 'approval rules changed', short(v.t1) + ' / ' + short(v.t2) + ' / ' + short(v.t3)); set({ cf: {}, msg: 'Approval rules saved. New expenses follow them straight away.', msgBad: false, tick: Date.now() }); };
+    const catRows = CATS.map((c, k) => ({ name: c.name, subs: c.subs.join(' · '), su: c.su, suTxt: c.su ? 'Always the Admin' : 'Follows the amount tiers',
+      toggle: () => { const L = CATS.map((x, j) => j === k ? Object.assign({}, x, { su: !x.su }) : x); wr('ecompos.expCats', L); logIt('settings', 'category changed', c.name); set({ msg: c.name + (c.su ? ' now follows the amount tiers.' : ' now always needs the Admin.'), tick: Date.now() }); },
+      del: () => { const L = CATS.filter((x, j) => j !== k); wr('ecompos.expCats', L); logIt('settings', 'category removed', c.name); set({ msg: c.name + ' removed.', tick: Date.now() }); } }));
+    const addCat = { name: CF.newCat || '', input: ev => setCF({ newCat: ev.target.value }),
+      save: () => { const nm = String(CF.newCat || '').trim(); if (nm.length < 3) { set({ msg: 'Give the category a name.', msgBad: true }); return; } if (CATS.some(c => c.name.toLowerCase() === nm.toLowerCase())) { set({ msg: 'That category already exists.', msgBad: true }); return; } const L = CATS.concat([{ key: nm.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 10) || ('c' + CATS.length), name: nm, subs: [], su: false, active: true }]); wr('ecompos.expCats', L); logIt('settings', 'category added', nm); set({ cf: Object.assign({}, CF, { newCat: '' }), msg: nm + ' added. It is on the New expense form now.', msgBad: false, tick: Date.now() }); } };
+
+    // ---------- budgets screen ----------
+    const BF = S.bud || {};
+    const budRows = BR.filter(b => SU ? (!VIEWBR || b.id === VIEWBR) : b.id === MYBR).map(b => ({
+      br: brShort(b),
+      cats: CATS.map(c => { const bu = budOf(b.id, c.key); const sp = spentOf(b.id, c.key); const p = bu ? Math.round(sp / bu * 100) : 0;
+        return { name: c.name, budget: short(bu), spent: short(sp), pct: p + '%', w: Math.min(100, p) + '%',
+          bg: p >= 100 ? '#c62828' : p >= 90 ? '#b26a00' : p >= 75 ? '#b26a00' : '#1f7a2a', state: p >= 100 ? 'Over budget' : p >= 90 ? 'Nearly spent' : p >= 75 ? 'Watch' : 'On track',
+          value: BF[b.id + '|' + c.key] !== undefined ? BF[b.id + '|' + c.key] : String(bu),
+          input: ev => { if (!SU) return; set({ bud: Object.assign({}, BF, { [b.id + '|' + c.key]: ev.target.value }) }); } }; })
+    }));
+    const saveBud = () => { const v = Object.assign({}, BUD); Object.keys(BF).forEach(k => { const n = parseFloat(String(BF[k]).replace(/[^0-9.]/g, '')); if (!isNaN(n)) v[k] = n; }); wr('ecompos.expBudgets', v); logIt('settings', 'budgets changed', Object.keys(BF).length + ' lines'); set({ bud: {}, msg: 'Budgets saved.', msgBad: false, tick: Date.now() }); };
+
+    // ---------- petty cash screen ----------
+    const PCF = S.pc || {};
+    const pcRows = BR.filter(b => SU ? (!VIEWBR || b.id === VIEWBR) : b.id === MYBR).map(b => {
+      const bal = pcBal(b.id); const fl = Number((PC[b.id] || {}).float) || 0;
+      const counts = ((PC[b.id] || {}).counts || []).slice(0, 3).map(c => ({ t: c.at + ' · counted ' + money(c.counted) + ' · ' + (c.variance === 0 ? 'no variance' : (c.variance > 0 ? 'over by ' : 'short by ') + money(Math.abs(c.variance))), bad: c.variance !== 0 }));
+      return { br: brShort(b), id: b.id, custodian: (PC[b.id] || {}).custodian || '—', float: money(fl), bal: money(bal), low: bal < fl * 0.25,
+        spent: money(pcSpent(b.id)), topped: money(pcTop(b.id)),
+        topVal: PCF['t' + b.id] || '', topIn: ev => set({ pc: Object.assign({}, PCF, { ['t' + b.id]: ev.target.value }) }),
+        top: () => { const n = parseFloat(String(PCF['t' + b.id] || '').replace(/[^0-9.]/g, '')); if (!n) { set({ msg: 'Enter how much to add to the float.', msgBad: true }); return; } const P2 = Object.assign({}, PC); P2[b.id] = Object.assign({}, P2[b.id] || {}, { topups: ((P2[b.id] || {}).topups || []).concat([{ amount: n, at: stamp(), by: ME, month: mKey }]) }); wr('ecompos.petty', P2, 'ecompos:expenses'); logIt('petty cash', 'top-up', brShort(b) + ' ' + money(n)); set({ pc: Object.assign({}, PCF, { ['t' + b.id]: '' }), msg: money(n) + ' added to the ' + brShort(b) + ' float. Balance is now ' + money(bal + n) + '.', msgBad: false, tick: Date.now() }); },
+        cntVal: PCF['c' + b.id] || '', cntIn: ev => set({ pc: Object.assign({}, PCF, { ['c' + b.id]: ev.target.value }) }),
+        count: () => { const n = parseFloat(String(PCF['c' + b.id] || '').replace(/[^0-9.]/g, '')); if (isNaN(n)) { set({ msg: 'Enter the cash you counted in the box.', msgBad: true }); return; } const v = Math.round((n - bal) * 100) / 100; const P2 = Object.assign({}, PC); P2[b.id] = Object.assign({}, P2[b.id] || {}, { counts: [{ counted: n, variance: v, at: stamp(), by: ME }].concat(((P2[b.id] || {}).counts || [])).slice(0, 12) }); wr('ecompos.petty', P2, 'ecompos:expenses'); logIt('petty cash', 'count', brShort(b) + ' variance ' + money(v)); set({ pc: Object.assign({}, PCF, { ['c' + b.id]: '' }), msg: v === 0 ? brShort(b) + ' petty cash balances exactly.' : brShort(b) + ' is ' + (v > 0 ? 'over' : 'short') + ' by ' + money(Math.abs(v)) + '. Recorded as a variance.', msgBad: v !== 0, tick: Date.now() }); },
+        counts, hasCounts: counts.length > 0 };
+    });
+
+    // ---------- the return value ----------
+    const openRec = EXP.filter(x => x.id === S.open)[0] || null;
+    const inboxSorted = inbox.slice().sort((a, b) => { const ra = riskOf(a).score, rb = riskOf(b).score; if (rb !== ra) return rb - ra; return (a.ts || 0) - (b.ts || 0); });
+    const lowRisk = inboxSorted.filter(x => riskOf(x).score < 25);
+    return {
+      role: ROLE, me: ME, lvl: LVL, coName: biz.name || 'the company',
+      title: 'Expenses',
+      note: SU ? 'Every expense across all branches, with approvals, budgets and petty cash.' : MGR ? 'Expenses at ' + (LN[MYBR] || MYBR) + ', and the ones waiting for you.' : SUP ? 'Your own expenses and your team’s, and the ones waiting for you.' : 'Record what you spend for the shop and follow it to approval.',
+      tabs: TABS.map(t => Object.assign({ label: t[1], pick: () => set({ tab: t[0], open: '', msg: '' }) }, pill(TAB === t[0]))),
+      isOverview: TAB === 'overview', isMine: TAB === 'mine', isNew: TAB === 'new', isInbox: TAB === 'inbox',
+      isAll: TAB === 'all', isPetty: TAB === 'petty', isBudget: TAB === 'budget', isReimb: TAB === 'reimb', isSet: TAB === 'set',
+      hasMsg: !!S.msg, msg: S.msg || '', msgBg: S.msgBad ? '#fbeaea' : '#e7f4e8', msgBd: S.msgBad ? '#c62828' : '#1f7a2a',
+      clearMsg: () => set({ msg: '' }),
+      // branch switcher (Admin only)
+      isSu: SU, brFilters: SU ? [{ label: 'All branches', pick: () => set({ vbr: '' }), bg: !VIEWBR ? '#000000' : '#ffffff', fg: !VIEWBR ? '#ffffff' : '#000000', bd: !VIEWBR ? '#000000' : '#ebebeb', pressed: !VIEWBR ? 'true' : 'false' }].concat(BR.map(b => ({ label: brShort(b), pick: () => set({ vbr: b.id }), bg: VIEWBR === b.id ? '#000000' : '#ffffff', fg: VIEWBR === b.id ? '#ffffff' : '#000000', bd: VIEWBR === b.id ? '#000000' : '#ebebeb', pressed: VIEWBR === b.id ? 'true' : 'false' }))) : [],
+      scope: SU ? (VIEWBR ? LN[VIEWBR] + ' only' : 'All ' + BR.length + ' branches') : MGR ? (LN[MYBR] || MYBR) + ' branch' : SUP ? 'You and your team at ' + (LN[MYBR] || MYBR) : 'Your own expenses',
+      inboxCount: inbox.length, hasInbox: inbox.length > 0,
+      // overview
+      kpis, byBranch, hasBranch: byBranch.length > 0, byCat, hasCat: byCat.length > 0,
+      gauges: gauges.slice(0, 6), hasGauges: gauges.length > 0,
+      profitNote: 'Branch profit is till and online sales for this company, less approved expenses for the month.',
+      flaggedRows: flagged.slice(0, 6).map(rowOf), hasFlagged: flagged.length > 0,
+      // my expenses
+      mineRows: mine.sort((a, b) => (b.ts || 0) - (a.ts || 0)).map(rowOf), hasMine: mine.length > 0,
+      mineNote: mine.length ? mine.filter(x => x.status === 'pending').length + ' waiting, ' + mine.filter(x => okSt(x)).length + ' approved' : 'Nothing recorded yet.',
+      // new expense
+      nf: {
+        modes: [['manual', 'Type it in'], ['snap', 'Snap a receipt'], ['mile', 'Mileage']].map(m => Object.assign({ label: m[1], pick: () => setNF({ mode: m[0] }) }, pill(nfMode === m[0]))),
+        isManual: nfMode === 'manual', isSnap: nfMode === 'snap', isMile: nfMode === 'mile',
+        date: draft.date, dateIn: ev => setNF({ date: ev.target.value }),
+        amount: NF.amount || '', amountIn: ev => setNF({ amount: ev.target.value }),
+        miles: NF.miles || '', milesIn: ev => setNF({ miles: ev.target.value }),
+        mileNote: nfMiles ? nfMiles + ' km at ' + money(mileRate) + ' a km = ' + money(nfTotal) : 'Distance × ' + money(mileRate) + ' a km',
+        vendor: NF.vendor || '', vendorIn: ev => setNF({ vendor: ev.target.value }),
+        note: NF.note || '', noteIn: ev => setNF({ note: ev.target.value }),
+        noRcpt: NF.noRcpt || '', noRcptIn: ev => setNF({ noRcpt: ev.target.value }),
+        cats: CATS.map(c => Object.assign({ label: c.name, pick: () => setNF({ cat: c.key, sub: '' }) }, pill(draft.cat === c.key))),
+        subs: catOf(draft.cat).subs.map(sb => Object.assign({ label: sb, pick: () => setNF({ sub: sb }) }, pill(draft.sub === sb))),
+        hasSubs: catOf(draft.cat).subs.length > 0,
+        brs: BR.map(b => Object.assign({ label: brShort(b), pick: () => { if (SU || MGR) setNF({ br: b.id }); } }, pill(draft.br === b.id))),
+        canPickBr: SU || MGR,
+        methods: PMETH.map(m => Object.assign({ label: m[1], pick: () => setNF({ method: m[0] }) }, pill(draft.method === m[0]))),
+        pettyNote: draft.method === 'petty' ? (LN[draft.br] || draft.br) + ' petty cash holds ' + money(pcBal(draft.br)) + ' right now.' : '', isPetty: draft.method === 'petty',
+        reclaim: NF.reclaim !== false, reclaimTxt: NF.reclaim !== false ? 'VAT reclaimable' : 'Not reclaimable', reclaimToggle: () => setNF({ reclaim: NF.reclaim === false }),
+        hasRcpt: !!NF.receipt, rcptName: NF.receipt || '',
+        pickRcpt: ev => { try { const f = ev.target.files && ev.target.files[0]; if (f) setNF({ receipt: f.name }); } catch (z) { setNF({ receipt: 'receipt.jpg' }); } },
+        fakeSnap: () => { const v = ['Shell Osu', 'ECG Prepaid', 'Makola Wholesale', 'MTN Business'][Math.floor(Math.random() * 4)]; const a = [120, 250, 480, 760][Math.floor(Math.random() * 4)]; const sg = suggestCat(v, ''); setNF({ receipt: 'receipt-' + Date.now().toString().slice(-5) + '.jpg', vendor: v, amount: String(a), cat: sg ? sg.cat : '', sub: sg ? sg.sub : '', readOk: true }); },
+        readOk: !!NF.readOk, readTxt: NF.readOk ? 'Read from the photo: vendor, amount and date. Check them before you send — the amount is the field most often misread.' : '',
+        total: money(nfTotal), tier: nfChain.tier, chainTxt: nfChain.steps.length ? nfChain.steps.map(s => s.who + ' (' + s.role + ')').join(' → ') : 'No approval needed',
+        err: nfErr, hasErr: !!nfErr && nfTotal > 0,
+        sugg: sugg ? { t: 'File this under ' + catOf(sugg.cat).name + ' · ' + sugg.sub, why: sugg.why, take: () => setNF({ cat: sugg.cat, sub: sugg.sub }) } : null, hasSugg: !!sugg,
+        dup: dup ? { t: 'Possible duplicate of ' + dup.id + ' — ' + dup.vendor + ' · ' + money(dup.amount) + ' on ' + dTxt(dup.date) + ' by ' + dup.by } : null, hasDup: !!dup,
+        policy: pol.map(t => ({ t })), hasPolicy: pol.length > 0,
+        risk: rk.band, riskBg: rk.band === 'High' ? '#c62828' : rk.band === 'Watch' ? '#b26a00' : '#1f7a2a', riskWhy: rk.reasons.map(t => ({ t })), hasRisk: rk.reasons.length > 0,
+        submit: submitExp, submitTxt: nfChain.steps.length ? 'Send for approval' : 'Record this expense',
+        clear: () => set({ nf: {} })
+      },
+      // approvals
+      inboxRows: inboxSorted.map(rowOf), hasInboxRows: inboxSorted.length > 0,
+      inboxNote: inbox.length ? 'Sorted by risk, then by how long it has waited. ' + lowRisk.length + ' are low risk.' : 'Nothing is waiting for you.',
+      canBulk: lowRisk.length > 1, bulkTxt: 'Approve all ' + lowRisk.length + ' low-risk',
+      bulkApprove: () => { let list = EXP.slice(); lowRisk.forEach(x => { const i = list.map(e => e.id).indexOf(x.id); if (i < 0) return; const e = Object.assign({}, list[i]); const st = stepsOf(e).map(s => Object.assign({}, s)); const w = waitingOn(e); if (!w) return; st[w.i] = Object.assign({}, st[w.i], { action: 'approved', by: ME, at: stamp(), why: 'Approved in a low-risk batch' }); e.steps = st; e.status = st.every(s => s.action === 'approved') ? 'approved' : 'pending'; e.log = (e.log || []).concat([{ at: stamp(), by: ME, t: 'Approved in a low-risk batch' }]); list[i] = e; }); saveExp(list, lowRisk.length + ' low-risk expenses approved.', false, ['expense', 'bulk approved', lowRisk.length + ' items']); },
+      // all expenses
+      allRows: allRows.map(rowOf), hasAll: allRows.length > 0, allCount: allRows.length + (allRows.length === 1 ? ' expense' : ' expenses'),
+      q: FL.q || '', qIn: ev => setFL({ q: ev.target.value }),
+      stFilters: [['', 'All'], ['pending', 'Waiting'], ['approved', 'Approved'], ['paid', 'Paid'], ['rejected', 'Rejected'], ['returned', 'Returned']].map(f => Object.assign({ label: f[1], pick: () => setFL({ status: f[0] }) }, pill((FL.status || '') === f[0]))),
+      catFilters: [{ label: 'Every category', pick: () => setFL({ cat: '' }), bg: !FL.cat ? '#000000' : '#ffffff', fg: !FL.cat ? '#ffffff' : '#000000', bd: !FL.cat ? '#000000' : '#ebebeb', pressed: !FL.cat ? 'true' : 'false' }].concat(CATS.map(c => Object.assign({ label: c.name, pick: () => setFL({ cat: c.key }) }, pill(FL.cat === c.key)))),
+      riskFilter: Object.assign({ label: 'Flagged only', pick: () => setFL({ risk: FL.risk === 'flag' ? '' : 'flag' }) }, pill(FL.risk === 'flag')),
+      csvHref: csv, csvName: 'ecompos-expenses-' + dayKey(now) + '.csv',
+      // the open expense
+      detail: detailOf(openRec), hasDetail: !!openRec,
+      closeDetail: () => set({ open: '', why: {} }),
+      // petty cash, budgets, reimbursements, settings
+      pcRows, hasPc: pcRows.length > 0,
+      budRows, saveBud: () => { if (!SU) { set({ msg: 'Only the Admin sets budgets. You can see where your branch stands.', msgBad: true }); return; } saveBud(); }, canEditBud: SU, budReadOnly: !SU,
+      budNote: SU ? 'You set these. Approvers see the remaining budget as they sign off an expense.' : 'Set by the Admin. This is where ' + (LN[MYBR] || MYBR) + ' stands this month.',
+      reimbRows: Object.keys(owedBy).map(who => ({ who, total: money(owedBy[who]), n: owed.filter(x => x.by === who).length + ' expenses', canPay: SU, pay: () => payAll(who), payroll: () => viaPayroll(who), lines: owed.filter(x => x.by === who).map(x => ({ t: dTxt(x.date) + ' · ' + x.vendor + ' · ' + money(x.amount) })) })),
+      hasReimb: Object.keys(owedBy).length > 0,
+      reimbNote: SU ? 'Money staff paid out of their own pocket, already approved. Pay it, or add it to the next payslip.' : 'What the company owes you for expenses you paid yourself.',
+      rulesForm, saveRules, catRows, addCat,
+      audit: AUD.slice(0, 20).map(a => ({ t: a.at + ' · ' + a.by + ' (' + a.level + ') — ' + a.action + ' · ' + a.entity + (a.detail ? ' · ' + a.detail : '') })), hasAudit: AUD.length > 0,
+      tierNote: 'Auto up to ' + short(RULES.t1) + ' · Supervisor to ' + short(RULES.t2) + ' · Manager to ' + short(RULES.t3) + ' · above that the Admin signs.'
+    };
+  }
+}
+
+</script>
+</body>
+</html>

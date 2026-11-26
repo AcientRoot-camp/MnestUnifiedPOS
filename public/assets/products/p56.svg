@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eeeaff"/><stop offset="0.6" stop-color="#f6f1ff"/><stop offset="1" stop-color="#ffe9d6"/></linearGradient>
+<radialGradient id="glow" cx="0.5" cy="0.42" r="0.55"><stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+<linearGradient id="scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(346,70%,18%)"/><stop offset="0.5" stop-color="hsl(16,75%,45%)"/><stop offset="0.8" stop-color="hsl(146,90%,62%)"/><stop offset="1" stop-color="#ffd166"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b9bfc8"/><stop offset="0.45" stop-color="#f4f6f9"/><stop offset="1" stop-color="#a7adb7"/></linearGradient>
+<linearGradient id="white" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3e7ed"/><stop offset="0.5" stop-color="#ffffff"/><stop offset="1" stop-color="#d6dbe2"/></linearGradient>
+<linearGradient id="black" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34343b"/><stop offset="1" stop-color="#0e0e12"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c2533"/><stop offset="1" stop-color="#3d4b63"/></linearGradient>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1a1240" flood-opacity="0.28"/></filter>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/><rect width="800" height="800" fill="url(#glow)"/>
+<ellipse cx="400" cy="690" rx="230" ry="26" fill="#1a1240" opacity="0.10"/>
+<g filter="url(#sh)">
+<rect x="141" y="230" width="518" height="300" rx="10" fill="url(#black)"/>
+<rect x="147" y="236" width="506" height="282" rx="4" fill="url(#scr)"/>
+<circle cx="524.3199999999999" cy="338" r="42.00000000000001" fill="#ffd166" opacity="0.92"/>
+<path d="M147 446 C 270.5 404, 374.1 440, 462.16 410 S 607.2 398, 653 422 L653 518 L147 518 Z" fill="#1a1240" opacity="0.85"/>
+<text x="165" y="268" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="19.923076923076923" font-weight="700" fill="#ffffff" letter-spacing="1">4K UHD</text>
+<text x="400" y="528" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#c9ccd4" letter-spacing="3">SONY</text>
+<rect x="286.04" y="530" width="10" height="146" fill="#1b1b20" transform="rotate(14 286.04 530)"/>
+<rect x="503.96000000000004" y="530" width="10" height="146" fill="#1b1b20" transform="rotate(-14 513.96 530)"/>
+</g></svg>

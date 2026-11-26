@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eeeaff"/><stop offset="0.6" stop-color="#f6f1ff"/><stop offset="1" stop-color="#ffe9d6"/></linearGradient>
+<radialGradient id="glow" cx="0.5" cy="0.42" r="0.55"><stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+<linearGradient id="scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(279,70%,18%)"/><stop offset="0.5" stop-color="hsl(309,75%,45%)"/><stop offset="0.8" stop-color="hsl(79,90%,62%)"/><stop offset="1" stop-color="#ffd166"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b9bfc8"/><stop offset="0.45" stop-color="#f4f6f9"/><stop offset="1" stop-color="#a7adb7"/></linearGradient>
+<linearGradient id="white" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3e7ed"/><stop offset="0.5" stop-color="#ffffff"/><stop offset="1" stop-color="#d6dbe2"/></linearGradient>
+<linearGradient id="black" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34343b"/><stop offset="1" stop-color="#0e0e12"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c2533"/><stop offset="1" stop-color="#3d4b63"/></linearGradient>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1a1240" flood-opacity="0.28"/></filter>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/><rect width="800" height="800" fill="url(#glow)"/>
+<ellipse cx="400" cy="690" rx="230" ry="26" fill="#1a1240" opacity="0.10"/>
+<g filter="url(#sh)">
+<rect x="45" y="174" width="710" height="412" rx="10" fill="url(#black)"/>
+<rect x="51" y="180" width="698" height="394" rx="4" fill="url(#scr)"/>
+<circle cx="662.7" cy="322.32" r="57.68000000000001" fill="#ffd166" opacity="0.92"/>
+<path d="M51 470.64 C 222.5 412.96, 364.5 462.4, 485.2 421.2 S 684 404.72, 749 437.68 L749 574 L51 574 Z" fill="#1a1240" opacity="0.85"/>
+<text x="69" y="212" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="27.307692307692307" font-weight="700" fill="#ffffff" letter-spacing="1">MINI LED</text>
+<text x="400" y="584" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#c9ccd4" letter-spacing="3">TCL</text>
+<rect x="243.8" y="586" width="10" height="90" fill="#1b1b20" transform="rotate(14 243.8 586)"/>
+<rect x="546.2" y="586" width="10" height="90" fill="#1b1b20" transform="rotate(-14 556.2 586)"/>
+</g></svg>
