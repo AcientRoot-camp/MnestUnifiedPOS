@@ -107,3 +107,23 @@ body { margin: 0; background: #f2f4f5; color: #000; font-family: Inter, system-u
 .season-pop { animation: season-pop .45s cubic-bezier(.2,.9,.3,1.2); }
 @keyframes season-pop { 0% { opacity: 0; transform: scale(.92) translateY(12px); } 100% { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .season-snow span { animation: none; display: none; } .season-pop { animation: none; } }
+
+/* Online store, tablets (pages/store/Home.tsx Hero): the picture / video card and the panel with "Shop now" and
+   "Find a branch" fit on the screen together. --hero-top is where the card starts (measured by Hero); svh is the
+   screen height with the browser's toolbars showing. Short screens (phones held sideways) are left alone. */
+@media (min-width: 640px) and (max-width: 1279px) and (min-height: 600px) {
+  /* Stacked layout: cap the card to the space left; only the picture shrinks, the text and buttons keep their size. */
+  .hero-fit { max-height: calc(100vh - var(--hero-top, 160px)); max-height: calc(100svh - var(--hero-top, 160px)); }
+  .hero-fit .hero-media { flex: 0 1 auto; min-height: 0; }
+  .hero-fit .hero-copy { flex: none; }
+}
+@media (min-width: 640px) and (max-width: 1023px) and (min-height: 600px) {
+  /* A slightly tighter text panel leaves more room for the picture. */
+  .hero-fit .hero-copy { padding-top: 1.5rem; padding-bottom: 1.5rem; gap: 0.75rem; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) and (min-height: 600px) {
+  /* Tablets held sideways: the heading sits over the picture, so the card is exactly as tall as the space allows
+     (up to its usual 40rem) instead of always 40rem, which ran off the bottom of the screen. */
+  /* Two classes (section.hero-fit) so this outranks the card's own lg:min-h-[40rem] utility. */
+  section.hero-fit { min-height: min(40rem, calc(100vh - var(--hero-top, 160px))); min-height: min(40rem, calc(100svh - var(--hero-top, 160px))); }
+}

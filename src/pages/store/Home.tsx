@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { cx } from '../../lib/format';
 import { useShop } from './ctx';
 import { MiniCard, ProductCard } from './Product';
@@ -25,6 +25,18 @@ function Hero() {
   // Tagline pill above the heading: shown only when the Admin sets one in Post to webstore (the old demo tagline is
   // cleared by the content upgrade in data/web.ts mergeWeb).
   const tag = (W.site.tagline || '').trim();
+  // Tablets: the whole card (picture + heading and buttons) must fit on the screen under the store header. The
+  // header's height varies (the promo bar wraps or can be closed), so where the card starts is measured and handed
+  // to the stylesheet as --hero-top (index.css .hero-fit). Re-measured when the window or page size changes.
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const measure = () => el.style.setProperty('--hero-top', `${Math.round(el.getBoundingClientRect().top + window.scrollY)}px`);
+    measure();
+    const watch = new ResizeObserver(measure); watch.observe(document.body);
+    window.addEventListener('resize', measure);
+    return () => { watch.disconnect(); window.removeEventListener('resize', measure); };
+  }, []);
   useEffect(() => { if (i >= slides.length) setI(0); }, [slides.length, i]);
   useEffect(() => { if (slides.length < 2) return; const t = window.setInterval(() => setI((x) => (x + 1) % slides.length), ms); return () => window.clearInterval(t); }, [slides.length, ms]);
   return (
@@ -36,10 +48,10 @@ function Hero() {
     // them is cut off. On computers they stay centred: aligned right, the products would slide under the heading. The heading and buttons sit underneath on the navy background.
     // On phones and tablets (portrait and landscape, below 1280 px) the card also runs edge to edge (touching the left
     // and right of the screen, no side gutter, square corners, flush under the header); larger screens keep the gutter.
-    <section aria-labelledby="hero-h" className="relative mx-[var(--gut)] max-xl:mx-0 max-xl:rounded-none mt-[0.25rem] max-xl:mt-0 overflow-hidden flex flex-col lg:flex-row lg:items-center lg:min-h-[40rem]" style={{ background: NAVY }}>
+    <section ref={ref} aria-labelledby="hero-h" className="hero-fit relative mx-[var(--gut)] max-xl:mx-0 max-xl:rounded-none mt-[0.25rem] max-xl:mt-0 overflow-hidden flex flex-col lg:flex-row lg:items-center lg:min-h-[40rem]" style={{ background: NAVY }}>
       {/* Media: 4:3 on phones, 3:2 on tablets, the whole card from lg. The slide controls sit on the picture.
           No frame at all when the Admin chose "None" for the top picture (just the navy card and heading). */}
-      {(W.site.heroVideo || slides.length > 0) && <div className="relative w-full overflow-hidden aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:absolute lg:inset-0">
+      {(W.site.heroVideo || slides.length > 0) && <div className="hero-media relative w-full overflow-hidden aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:absolute lg:inset-0">
         {W.site.heroVideo ? <video src={W.site.heroVideo} autoPlay muted loop playsInline aria-label="Video of products from our store" className="absolute inset-0 w-full h-full object-cover object-center" />
           : slides.map((u, k) => <img key={u + k} src={u} alt={k === i ? (HERO_ART.find((a) => a.src === u)?.name || 'Products from our store') : ''} className={cx('absolute inset-0 w-full h-full object-cover transition-opacity duration-700', isHeroArt(u) ? 'object-center max-lg:object-right' : 'object-center', k === i ? 'opacity-100' : 'opacity-0')} />)}
         {/* Dark gradient behind the heading: only where the heading sits over the picture (lg+). */}
@@ -52,7 +64,7 @@ function Hero() {
           </div>
         )}
       </div>}
-      <div className="relative z-10 p-[1.5rem] sm:p-[2.5rem] lg:p-[3rem] max-w-[42rem] flex flex-col gap-4 text-white">
+      <div className="hero-copy relative z-10 p-[1.5rem] sm:p-[2.5rem] lg:p-[3rem] max-w-[42rem] flex flex-col gap-4 text-white">
         {tag && <span className="w-fit text-xs font-semibold px-3 py-1 rounded-full bg-white/15 backdrop-blur">{tag}</span>}
         <h1 id="hero-h" className="m-0 text-[30px] sm:text-[44px] lg:text-[52px] leading-[1.05] font-semibold tracking-tight">{W.site.heroTitle}</h1>
         <p className="m-0 text-base sm:text-lg text-white/85">{W.site.heroText}</p>
