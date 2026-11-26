@@ -128,10 +128,11 @@ export function ChatAssistant() {
         {open ? <span className="text-2xl leading-none" aria-hidden>×</span> : <Avatar size={52} />}
       </button>
       {open && (
-        // A compact floating chat card above the chat button, like the chat widgets on other websites, on every screen:
-        // phones about 340 × 340 px (40% of the screen height, between 300 and 380 px, never full width), tablets and
-        // computers 360 × 520 px. The store stays fully visible and usable around it (no backdrop); × or Esc closes it.
-        <div id="shop-chat" role="dialog" aria-label="Shop assistant chat" className="fixed z-[60] right-3 bottom-[84px] w-[min(340px,calc(100vw-24px))] h-[clamp(300px,40dvh,380px)] sm:right-4 sm:bottom-[88px] sm:w-[360px] sm:h-[min(520px,calc(100dvh-120px))] flex flex-col bg-[#faf8f5] rounded-[24px] sm:rounded-[28px] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:border sm:border-black/5">
+        // A floating chat card above the chat button, like the chat widgets on other websites (no backdrop; × or Esc
+        // closes it). Phones: tall enough to read the answers comfortably, about 80% of the screen height (between 440
+        // and 700 px, and never taller than the space above the chat button), up to 380 px wide with an 8 px margin. Tablets and computers:
+        // 360 × 520 px.
+        <div id="shop-chat" role="dialog" aria-label="Shop assistant chat" className="fixed z-[60] right-2 bottom-[84px] w-[min(380px,calc(100vw-16px))] h-[min(clamp(440px,80dvh,700px),calc(100dvh-96px))] sm:right-4 sm:bottom-[88px] sm:w-[360px] sm:h-[min(520px,calc(100dvh-120px))] flex flex-col bg-[#faf8f5] rounded-[24px] sm:rounded-[28px] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:border sm:border-black/5">
           {/* Header: navy, gold hairline, assistant identity and online dot. */}
           <div className="relative px-3.5 py-2.5 sm:px-4 sm:pt-4 sm:pb-3.5 text-white flex items-center gap-2.5 sm:gap-3" style={{ background: 'linear-gradient(135deg,#2a1d63 0%,#1a1240 70%)' }}>
             <span className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center flex-none" style={{ background: 'rgba(255,255,255,0.08)', boxShadow: `0 0 0 1.5px ${GOLD}` }}><Avatar size={36} /><span className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-[#2ecc71] ring-2 ring-[#1a1240]" /></span>
