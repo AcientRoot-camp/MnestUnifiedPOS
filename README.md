@@ -2,13 +2,6 @@
 
 One system for a retail business: an **online store** for customers and a **point-of-sale and back-office portal** for staff, sharing the same products, stock, orders and customers. Built for **Ebenezer Unique Ventures** (electronics and home appliances, Accra and Kumasi), and usable by any shop.
 
-| Part | Address | Who uses it |
-|---|---|---|
-| Online store | `/` (domain root) | Customers |
-| UnifiedPOS portal | `/pos` | Staff: Admin, managers, supervisors, sales staff, riders |
-
----
-
 ## What it does
 
 ### Online store
@@ -68,18 +61,8 @@ cp .env.example .env      # then fill in the values you need
 npm run dev
 ```
 
-Open:
-- **Online store:** http://localhost:5173/
-- **POS portal:** http://localhost:5173/pos
 
 The serverless functions in `/api` (email, AI chat, shared database, cron) do not run under `npm run dev`. The app notices and falls back gracefully. To run them locally, use the Vercel CLI: `npm i -g vercel` and then `vercel dev`.
-
-### Demo sign-in (POS)
-
-| Role | Username | Password | Passcode |
-|---|---|---|---|
-| Admin | `admin` | `Adom2026!` | `100026` |
-| Sales staff | `akua` | `Adom2026!` | `333326` |
 
 Demo accounts and data are for trying the system only. **Change every password and passcode before going live.** The system reminds you with a Zero Trust banner.
 
@@ -98,28 +81,6 @@ Redraw the product illustrations after changing the demo catalogue:
 ```bash
 npx esbuild scripts/productArt.ts --bundle --platform=node --outfile=/tmp/art.cjs && node /tmp/art.cjs
 ```
-
----
-
-## Environment settings
-
-All settings live in `.env` locally and in your host's environment variables when deployed. Copy [`.env.example`](.env.example) to start.
-
-Every setting is optional; each feature falls back when its setting is missing. **Never put a secret in a `VITE_` variable**, because those are built into the browser app.
-
-| Variable | Used by | Purpose |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | `api/chat.js` | AI answers in the shop assistant (only for questions the store's data cannot answer) |
-| `RESEND_API_KEY`, `EMAIL_FROM` | `api/send-email.js` | Emails the Order Confirmation PDF to customers |
-| `REMOVE_BG_API_KEY` | `api/remove-bg.js` | Removes the background from uploaded logos |
-| `KV_REST_API_URL`, `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`) | `api/_kv.js` | Shared database: company-wide barcode register, shop-code sequence, time-clock sign-ins |
-| `COMPANY_ID` | `api/_kv.js` | Keeps one company's data apart on a shared database |
-| `CRON_SECRET` | `api/cron/no-sign-in.js` | Protects the 09:00 "nobody signed in" check (scheduled in `vercel.json`) |
-| `BRANCH_MANAGERS` | `api/cron/no-sign-in.js` | JSON list of each branch's manager name and email |
-| `ADMIN_EMAIL` | `api/cron/no-sign-in.js` | The Admin's email, copied on alerts |
-| `VITE_EMAIL_API`, `VITE_BG_API` | browser app | Optional: point to email / background-removal endpoints on another domain |
-
----
 
 ## Deploying (Vercel)
 
