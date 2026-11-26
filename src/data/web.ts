@@ -114,7 +114,7 @@ export const WEB0: Web = {
   freeOver: 500, freeOn: true, collect: 0, collectNote: '',
   site: {
     name: '', social: { tiktok: 'https://www.tiktok.com/@ebenezerunique', instagram: 'https://www.instagram.com/ebenezerunique', facebook: 'https://www.facebook.com/ebenezerunique', whatsapp: 'https://wa.me/233244000111', youtube: '', x: '' }, hero: 'slides',
-    logo: '', heroPics: [], heroVideo: '', heroInterval: 5, tagline: 'Accra · Kumasi · family-run', heroTitle: 'TVs, fridges and air conditioners, delivered the same day', heroText: 'TCL, Nasco, Samsung, LG and Hisense at fair prices, with warranty, installation and hire purchase. Order online, collect at a branch, or get it delivered today.',
+    logo: '', heroPics: [], heroVideo: '', heroInterval: 5, tagline: '', heroTitle: 'TVs, fridges and air conditioners, delivered the same day', heroText: 'TCL, Nasco, Samsung, LG and Hisense at fair prices, with warranty, installation and hire purchase. Order online, collect at a branch, or get it delivered today.',
     announceOn: false, announce: 'Free delivery in Accra on orders over GHS 500 this week.', phone: '+233 30 000 1111', whatsapp: '+233 24 400 0111', email: 'info@ebenezerunique.com.gh', hours: 'Mon–Sat 8:00–20:00 · Sun 12:00–18:00',
     contactIntro: CONTACT_INTRO_V2, footerLine: 'Accra · Kumasi', trustpilot: '', newsOn: true, log: [],
   },

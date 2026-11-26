@@ -122,8 +122,13 @@ export function ChatAssistant() {
         style={{ background: 'linear-gradient(145deg,#2a1d63,#1a1240)', boxShadow: `0 0 0 2px ${GOLD}, 0 10px 30px rgba(26,18,64,0.35)` }}>
         {open ? <span className="text-2xl leading-none" aria-hidden>×</span> : <Bubble />}
       </button>
+      {/* Phones: a light backdrop over the store; tapping it closes the chat (tablets and up have no backdrop). */}
+      {open && <div aria-hidden="true" onClick={() => setOpen(false)} className="sm:hidden fixed inset-0 z-[59] bg-black/30" />}
       {open && (
-        <div id="shop-chat" role="dialog" aria-label="Shop assistant chat" className="fixed z-[60] inset-0 sm:inset-auto sm:right-4 sm:bottom-[88px] sm:w-[390px] sm:h-[min(640px,calc(100dvh-120px))] flex flex-col bg-[#faf8f5] sm:rounded-[28px] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:border sm:border-black/5">
+        // Phones: a bottom sheet about half the screen tall (55% of the visible height, at least 360px so the messages,
+        // suggestions and the typing box all fit), with rounded top corners; the store stays visible above it.
+        // Tablets and up: the floating panel above the chat button.
+        <div id="shop-chat" role="dialog" aria-label="Shop assistant chat" className="fixed z-[60] inset-x-0 bottom-0 h-[max(55dvh,360px)] max-h-[92dvh] rounded-t-[28px] sm:inset-auto sm:right-4 sm:bottom-[88px] sm:w-[390px] sm:h-[min(640px,calc(100dvh-120px))] sm:max-h-none flex flex-col bg-[#faf8f5] sm:rounded-[28px] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:border sm:border-black/5">
           {/* Header: navy, gold hairline, assistant identity and online dot. */}
           <div className="relative px-4 pt-4 pb-3.5 text-white flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#2a1d63 0%,#1a1240 70%)' }}>
             <span className="relative w-11 h-11 rounded-full flex items-center justify-center flex-none" style={{ background: 'rgba(255,255,255,0.08)', boxShadow: `inset 0 0 0 1.5px ${GOLD}` }}><Bubble size={22} /><span className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-[#2ecc71] ring-2 ring-[#1a1240]" /></span>

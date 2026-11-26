@@ -16,25 +16,45 @@ function Hero() {
   const slides = W.site.hero === 'none' ? [] : pics.length ? (W.site.hero === 'single' ? pics.slice(0, 1) : pics) : ['/assets/hero-electronics.svg'];
   const [i, setI] = useState(0);
   const ms = (W.site.heroInterval || 5) * 1000;
+  // Phones and tablets: the media frame takes the shape (width ÷ height) of the picture or video actually showing,
+  // read when it loads, so it is seen whole with no empty bands; 16:9 until it has loaded. Clamped between 3:4
+  // (a tall photo cannot fill the whole phone) and 3:1 (a very wide banner stays readable).
+  const [ratios, setRatios] = useState<Record<string, number>>({});
+  const noteRatio = (key: string, w: number, h: number) => { if (w > 0 && h > 0 && !ratios[key]) setRatios((r) => ({ ...r, [key]: Math.min(3, Math.max(0.75, w / h)) })); };
+  const curKey = W.site.heroVideo ? 'video' : slides[i] || '';
+  const ar = ratios[curKey] || 16 / 9;
+  // Tagline pill above the heading: shown only when the Admin sets one in Post to webstore. The old demo default
+  // "Accra · Kumasi · family-run" was removed; browsers that saved it before are treated as having no tagline.
+  const tag = (W.site.tagline || '').trim() === 'Accra · Kumasi · family-run' ? '' : (W.site.tagline || '').trim();
   useEffect(() => { if (slides.length < 2) return; const t = window.setInterval(() => setI((x) => (x + 1) % slides.length), ms); return () => window.clearInterval(t); }, [slides.length, ms]);
   return (
-    <section aria-labelledby="hero-h" className="relative mx-[var(--gut)] mt-[0.25rem] overflow-hidden min-h-[30rem] sm:min-h-[36rem] lg:min-h-[40rem] flex items-center max-sm:items-end" style={{ background: NAVY }}>
-      {W.site.heroVideo ? <video src={W.site.heroVideo} autoPlay muted loop playsInline aria-label="Video of products from our store" className="absolute inset-0 w-full h-full object-cover" />
-        : slides.map((u, k) => <img key={u + k} src={u} alt={k === i ? 'A smart TV with soundbar and DStv decoder, a double-door fridge, a split air conditioner and a standing fan from our showroom' : ''} className={cx('absolute inset-0 w-full h-full object-cover transition-opacity duration-700', k === i ? 'opacity-100' : 'opacity-0')} />)}
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[rgba(10,6,30,.85)] via-[rgba(10,6,30,.55)] to-transparent max-sm:bg-gradient-to-b max-sm:from-[rgba(10,6,30,.35)] max-sm:to-[rgba(10,6,30,.9)]" />
-      <div className="relative z-10 p-[1.5rem] sm:p-[3rem] max-w-[42rem] flex flex-col gap-4 text-white">
-        <span className="w-fit text-xs font-semibold px-3 py-1 rounded-full bg-white/15 backdrop-blur">{W.site.tagline}</span>
-        <h1 id="hero-h" className="m-0 text-[34px] sm:text-[52px] leading-[1.05] font-semibold tracking-tight">{W.site.heroTitle}</h1>
+    // The big picture / video card at the top of the store.
+    // Laptops and desktops (lg+): the picture fills the card and the heading sits over it on a dark gradient.
+    // Phones and tablets: the card is stacked, so the picture or video is shown whole and centred (object-contain in a
+    // frame the shape of the picture, nothing cropped), with the heading and buttons underneath on the navy background.
+    // On phones the card also runs edge to edge (no side gutter, square corners, flush under the header).
+    <section aria-labelledby="hero-h" className="relative mx-[var(--gut)] max-sm:mx-0 max-sm:rounded-none mt-[0.25rem] max-sm:mt-0 overflow-hidden flex flex-col lg:flex-row lg:items-center lg:min-h-[40rem]" style={{ background: NAVY }}>
+      {/* Media: a frame the shape of the picture on phones and tablets (see ar), the whole card from lg. The slide controls sit on the picture.
+          No frame at all when the Admin chose "None" for the top picture (just the navy card with the heading). */}
+      {(W.site.heroVideo || slides.length > 0) && <div className="relative w-full aspect-[var(--ar)] lg:aspect-auto lg:absolute lg:inset-0" style={{ ['--ar' as string]: String(ar) } as React.CSSProperties}>
+        {W.site.heroVideo ? <video src={W.site.heroVideo} autoPlay muted loop playsInline onLoadedMetadata={(e) => noteRatio('video', e.currentTarget.videoWidth, e.currentTarget.videoHeight)} aria-label="Video of products from our store" className="absolute inset-0 w-full h-full object-contain lg:object-cover object-center" />
+          : slides.map((u, k) => <img key={u + k} src={u} alt={k === i ? 'A smart TV with soundbar and DStv decoder, a double-door fridge, a split air conditioner and a standing fan from our showroom' : ''} onLoad={(e) => noteRatio(u, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)} className={cx('absolute inset-0 w-full h-full object-contain lg:object-cover object-center transition-opacity duration-700', k === i ? 'opacity-100' : 'opacity-0')} />)}
+        {/* Dark gradient behind the heading: only where the heading sits over the picture (lg+). */}
+        <div aria-hidden="true" className="hidden lg:block absolute inset-0 bg-gradient-to-r from-[rgba(10,6,30,.85)] via-[rgba(10,6,30,.55)] to-transparent" />
+        {slides.length > 1 && !W.site.heroVideo && (
+          <div className="absolute z-10 right-3 bottom-3 lg:right-4 lg:bottom-4 flex items-center gap-2 bg-black/40 rounded-full px-2 py-1">
+            <button onClick={() => setI((i - 1 + slides.length) % slides.length)} aria-label="Previous picture" className="w-8 h-8 text-white text-xl">‹</button>
+            {slides.map((_, k) => <button key={k} onClick={() => setI(k)} aria-label={`Show picture ${k + 1}`} aria-current={k === i} className={cx('w-2.5 h-2.5 rounded-full', k === i ? 'bg-white' : 'bg-white/40')} />)}
+            <button onClick={() => setI((i + 1) % slides.length)} aria-label="Next picture" className="w-8 h-8 text-white text-xl">›</button>
+          </div>
+        )}
+      </div>}
+      <div className="relative z-10 p-[1.5rem] sm:p-[2.5rem] lg:p-[3rem] max-w-[42rem] flex flex-col gap-4 text-white">
+        {tag && <span className="w-fit text-xs font-semibold px-3 py-1 rounded-full bg-white/15 backdrop-blur">{tag}</span>}
+        <h1 id="hero-h" className="m-0 text-[30px] sm:text-[44px] lg:text-[52px] leading-[1.05] font-semibold tracking-tight">{W.site.heroTitle}</h1>
         <p className="m-0 text-base sm:text-lg text-white/85">{W.site.heroText}</p>
         <div className="flex gap-2 flex-wrap"><a href="#featured" className="h-12 px-6 rounded-full bg-white text-black font-semibold flex items-center hover:text-black">Shop now</a>{pageOn(W, 'branches') && <button onClick={() => go('branches')} className="h-12 px-6 rounded-full border border-white/60 text-white font-semibold">Find a branch</button>}</div>
       </div>
-      {slides.length > 1 && (
-        <div className="absolute z-10 right-4 bottom-4 flex items-center gap-2 bg-black/40 rounded-full px-2 py-1">
-          <button onClick={() => setI((i - 1 + slides.length) % slides.length)} aria-label="Previous picture" className="w-8 h-8 text-white text-xl">‹</button>
-          {slides.map((_, k) => <button key={k} onClick={() => setI(k)} aria-label={`Show picture ${k + 1}`} aria-current={k === i} className={cx('w-2.5 h-2.5 rounded-full', k === i ? 'bg-white' : 'bg-white/40')} />)}
-          <button onClick={() => setI((i + 1) % slides.length)} aria-label="Next picture" className="w-8 h-8 text-white text-xl">›</button>
-        </div>
-      )}
     </section>
   );
 }
@@ -89,14 +109,20 @@ function Grid() {
     <section id="featured" aria-labelledby="feat-h" className="px-[var(--gut)] pt-12 flex flex-col gap-4 scroll-mt-40">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <h2 id="feat-h" className="m-0 text-[28px] font-semibold tracking-tight">Shop all products</h2>
-        <div className="flex items-center gap-3 flex-wrap"><span role="status" className="text-sm text-muted">{list.length} of {products.length} products</span><label htmlFor="sh-sort" className="text-sm font-semibold">Sort by</label><select id="sh-sort" value={sort} onChange={(e) => setSort(e.target.value)} className="h-10 px-4 rounded-full border border-line bg-white text-sm">{SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
+        {/* Laptops and up: product count and Sort by in the heading row. Phones and tablets: Sort by moves into the row
+            with "Show filters" below, so the two controls sit side by side on one line. */}
+        <div className="flex items-center gap-3 flex-wrap"><span role="status" className="text-sm text-muted">{list.length} of {products.length} products</span><label htmlFor="sh-sort" className="hidden lg:inline text-sm font-semibold">Sort by</label><select id="sh-sort" value={sort} onChange={(e) => setSort(e.target.value)} className="hidden lg:block h-10 px-4 rounded-full border border-line bg-white text-sm">{SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
       </div>
       {qq && <span role="status" className="text-sm">Showing results for “<strong>{q}</strong>” · {list.length} found</span>}
       {chips.length > 0 && <div className="flex gap-2 flex-wrap">{chips.map(([l, f]) => <button key={l} onClick={f} aria-label={`Remove filter ${l}`} className="text-sm pl-3.5 pr-2 py-1.5 rounded-full bg-black text-white flex items-center gap-1.5">{l}<span aria-hidden="true">×</span></button>)}<button onClick={clear} className="text-sm underline px-2">Clear all</button></div>}
       {/* Phones and tablets: filters fold behind a button so the product cards get the full width; laptops and up: sidebar. */}
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
-        <button onClick={() => setFOpen(!fOpen)} aria-expanded={fOpen} className="lg:hidden h-11 px-5 rounded-full border border-line text-sm font-semibold flex items-center gap-2"><Svg d="filter" size={16} />{fOpen ? 'Hide filters' : 'Show filters'}</button>
-        <aside aria-label="Filter products" className={cx('w-full lg:w-60 flex-none flex-col gap-5 lg:sticky lg:top-40', fOpen ? 'flex' : 'hidden lg:flex')}>
+        {/* Phones and tablets: "Show filters" on the left and Sort by on the right, on the same line. */}
+        <div className="lg:hidden w-full flex items-center justify-between gap-2">
+          <button onClick={() => setFOpen(!fOpen)} aria-expanded={fOpen} aria-controls="shop-filters" className="h-11 px-3.5 sm:px-5 rounded-full border border-line text-[13px] sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 flex-none whitespace-nowrap"><Svg d="filter" size={16} />{fOpen ? 'Hide filters' : 'Show filters'}</button>
+          <span className="flex items-center gap-2 min-w-0"><label htmlFor="sh-sort-m" className="text-[13px] sm:text-sm font-semibold whitespace-nowrap">Sort by</label><select id="sh-sort-m" value={sort} onChange={(e) => setSort(e.target.value)} className="h-11 pl-2.5 pr-1 rounded-full border border-line bg-white text-[13px] sm:text-sm min-w-0 max-w-[12.5rem]">{SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></span>
+        </div>
+        <aside id="shop-filters" aria-label="Filter products" className={cx('w-full lg:w-60 flex-none flex-col gap-5 lg:sticky lg:top-40', fOpen ? 'flex' : 'hidden lg:flex')}>
           <div className="flex justify-between items-center"><strong>Filters</strong>{chips.length > 0 && <button onClick={clear} className="text-xs underline">Clear all</button>}</div>
           <div role="group" aria-labelledby="fl-cat" className="flex flex-col gap-1"><h3 id="fl-cat" className="m-0 text-sm font-semibold mb-1">Category</h3>{cats.map((c) => <button key={c} onClick={() => setCat(c)} aria-pressed={cat === c} className={cx('flex justify-between text-sm px-3 py-2 rounded-xl text-left', cat === c ? 'bg-black text-white font-semibold' : 'hover:bg-canvas')}><span>{c}</span><span className={cat === c ? 'text-white/70' : 'text-muted'}>{c === 'All' ? products.length : products.filter((p) => p.cat === c).length}</span></button>)}</div>
           <div role="group" aria-labelledby="fl-pr" className="flex flex-col gap-2"><h3 id="fl-pr" className="m-0 text-sm font-semibold">Price (GHS)</h3>
