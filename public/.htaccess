@@ -1,0 +1,36 @@
+# MNest UnifiedPOS on Apache / LiteSpeed hosting (Hostinger hPanel and similar).
+# Vite copies this file from public/ into dist/ on every build, so it is deployed with the app.
+# (On Vercel the same job is done by the "rewrites" rule in vercel.json; Vercel ignores this file.)
+
+# 1. Single-page app routing.
+#    The store and the POS are one React app: pages such as /pos, /pos/sell or /product/... are drawn in the
+#    browser by React Router and do not exist as files on the server. Without this rule the server answers them
+#    with "404 Not Found" and only the home page (/) loads. Real files (assets, icons, manifests, sw.js) are
+#    served as they are; every other address gets index.html, and the app shows the right page.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Real files and folders: serve them directly.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # /api/... are server functions (Vercel only), not app pages: leave them alone so they 404 cleanly
+  # and the app falls back, instead of receiving the HTML page.
+  RewriteRule ^api/ - [L]
+
+  # Everything else: the app.
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# 2. Always fetch the newest app shell.
+#    index.html, the service worker and the install manifests are checked on every visit, so a new deploy
+#    reaches staff and customers straight away. (The files in /assets have a content hash in their names, so the
+#    host's normal caching is fine for them. No long-cache rule is set here on purpose: a pattern like "*.js"
+#    would also catch sw.js, and a cached service worker keeps serving the old app.)
+<IfModule mod_headers.c>
+  <FilesMatch "^(index\.html|sw\.js|.*\.webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
