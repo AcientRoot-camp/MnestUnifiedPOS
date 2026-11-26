@@ -89,6 +89,8 @@ npx esbuild scripts/productArt.ts --bundle --platform=node --outfile=/tmp/art.cj
 3. Connect an Upstash Redis database from the Vercel Marketplace if you want the shared barcode register and the server-side 09:00 check.
 4. Deploy. The functions in `/api` and the cron job in `vercel.json` are picked up automatically.
 
+`vercel.json` also rewrites every address except `/api/…` to `index.html`. The app's pages (`/pos`, `/pos/sell`, `/product/…`) are drawn in the browser by React Router, so without this rule Vercel answers them with **404 NOT_FOUND** (only `/` would load). Real files such as `/assets/…` and `/manifest.webmanifest` are still served first.
+
 Camera scanning, WebUSB label printing and "install as an app" need **HTTPS**, which Vercel provides.
 
 ---
