@@ -497,7 +497,7 @@ function Site({ W, up, done }: { W: Web; up: (p: Partial<Web>) => void; done: (m
             <div className="rounded-2xl bg-canvas p-3 text-xs leading-relaxed flex flex-col gap-0.5">
               <b className="text-[13px]">Recommended picture size</b>
               <span><b>1920 × 1080 px</b> (16:9, landscape) · at least 1600 × 900 px · JPG (or PNG / WebP), ideally under 500 KB so it loads fast (5 MB at most).</span>
-              <span>Keep the main subject in the <b>middle</b>: phones show the centre of the picture (about the middle three-quarters of its width), and computers trim a little from the top and bottom. Avoid text in the picture; the heading is added by the store.</span>
+              <span>Keep the main subject in the <b>middle</b>: phones and upright tablets show a tall frame, so they may show only the centre half of the picture’s width, and computers trim a little from the top and bottom. Avoid text in the picture; the heading is added by the store.</span>
             </div>
             {/* Built-in illustrations (data/web.ts HERO_ART): shown when no photos are uploaded, or mixed in with them. */}
             <div className="flex flex-col gap-2">
@@ -514,7 +514,7 @@ function Site({ W, up, done }: { W: Web; up: (p: Partial<Web>) => void; done: (m
           {s.hero === 'video' && <div className="rounded-2xl bg-canvas p-3 text-xs leading-relaxed flex flex-col gap-0.5">
             <b className="text-[13px]">Recommended video size</b>
             <span><b>1920 × 1080 px (1080p)</b> or 1280 × 720 px (720p), 16:9 landscape · MP4 (H.264) or WebM.</span>
-            <span><b>10–30 seconds</b>, under <b>20 MB</b> (60 MB at most) so it starts quickly on mobile data. It plays muted on a loop, so no sound is needed. Keep the action in the middle: phones show the centre of the video.</span>
+            <span><b>10–30 seconds</b>, under <b>20 MB</b> (60 MB at most) so it starts quickly on mobile data. It plays muted on a loop, so no sound is needed. Keep the action in the middle: phones and upright tablets may show only the centre half of the video’s width.</span>
           </div>}
           {T('tagline', 'Tagline (small label above the heading)')}
           {T('heroTitle', 'Heading')}

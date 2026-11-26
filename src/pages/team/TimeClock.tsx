@@ -208,7 +208,7 @@ export function ClockAdmin({ E, codes, gate, L, me, biz, logo, who, setWho, onPu
         <QrBox text={qrText} label={isGate ? `Gate QR code ${tCode}` : `Badge QR code for ${target!.name}, ${tCode}`} />
         <b className="text-[17px] tracking-[.08em]">{tCode}</b>
         {isGate && gate && <span className="text-xs text-muted">Issued {gate.at} by {gate.by || 'HR'}</span>}
-        <p className="m-0 text-sm text-sub leading-relaxed max-w-xs">{isGate ? 'Staff open People & HR on their phone and scan this with the camera. The first scan of the day signs them in, the next signs them out. If the camera will not read it, they type the code above.' : 'Scan this badge at the start and the end of the shift. The first scan signs in, the next signs out.'}</p>
+        <p className="m-0 text-sm text-sub leading-relaxed max-w-xs">{isGate ? 'Staff open your profile on the right top of the home welcome screen and select My sign-in, ID card, payslips & leave, and scan the QR code with your camera. The first scan of the day signs them in, the next signs them out. If the camera will not read it, they type the code above.' : 'Scan this badge at the start and the end of the shift. The first scan signs in, the next signs out.'}</p>
         <div className="no-print flex gap-1.5 flex-wrap justify-center" role="group" aria-label="Show the QR for">
           {[{ k: '', l: 'Gate pass' }, ...active.slice(0, 7).map((e) => ({ k: e.name, l: e.name.split(' ')[0] }))].map((w) => <button key={w.k || 'gate'} onClick={() => setWho(w.k)} aria-pressed={who === w.k} className={cx('h-9 px-3.5 rounded-full text-sm border', who === w.k ? 'text-white border-transparent font-semibold' : 'bg-white border-line hover:border-black')} style={who === w.k ? { background: TEAL } : undefined}>{w.l}</button>)}
           {who && !active.slice(0, 7).some((e) => e.name === who) && <span className="h-9 px-3.5 rounded-full text-sm text-white font-semibold inline-flex items-center" style={{ background: TEAL }}>{who.split(' ')[0]}</span>}
@@ -294,7 +294,7 @@ function GatePoster({ code, biz, logo, issued }: { code: string; biz: string; lo
         {logo && <img src={logo} alt="" style={{ height: '18mm', width: 'auto' }} />}
         <span style={{ fontSize: '14pt', fontWeight: 600 }}>{biz}</span>
         <h1 style={{ margin: '4mm 0 0', fontSize: '40pt', lineHeight: 1.05, fontWeight: 800, letterSpacing: '-0.02em' }}>Scan to sign in / out</h1>
-        <span style={{ fontSize: '13pt', maxWidth: '160mm', lineHeight: 1.4 }}>Staff: open People &amp; HR on your phone and scan this code when you arrive and when you leave. The first scan signs you in, the next signs you out.</span>
+        <span style={{ fontSize: '13pt', maxWidth: '160mm', lineHeight: 1.4 }}>Staff: open your profile on the right top of the home welcome screen, select My sign-in, ID card, payslips &amp; leave, and scan this code with your camera when you arrive and when you leave. The first scan signs you in, the next signs you out.</span>
       </div>
       <QrBox text={gatePayload(code, biz)} size="120mm" label={`Gate QR code ${code}`} />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2mm' }}>

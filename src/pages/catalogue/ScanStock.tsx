@@ -2,7 +2,7 @@
 // a blind stock take (cycle count) counted with a phone camera or a handheld scanner, and a small "scan to pick a
 // product" box for Damages and goods-in forms. A single's barcode counts 1, a carton code counts that product's carton
 // size (e.g. 40), an extra unit's code its size; GS1-128 carton codes also fill the batch and expiry.
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BarcodeCamera from '../../components/BarcodeCamera';
 import ScanWaySwitch from '../../components/ScanWaySwitch';
@@ -32,15 +32,17 @@ export function ScanBox({ onCode, label, compact = false, multi = false }: { onC
   const [v, setV] = useState('');
   const [cam, setCam] = useState(way === 'camera' && multi);
   const id = 'ss-' + label.replace(/\W+/g, '-').toLowerCase();
+  const box = useRef<HTMLInputElement>(null); // the scan box: a barcode scanner types into it
   return (
     <div className="flex flex-col gap-2">
       <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (v.trim()) { onCode(v); setV(''); } }}>
         <label className="sr-only" htmlFor={id}>{label}</label>
-        <input id={id} autoFocus={!compact && way === 'scanner'} value={v} onChange={(e) => setV(e.target.value)} placeholder={way === 'scanner' ? (compact ? 'Scan with the barcode scanner or type' : 'Scan now with the barcode scanner') : 'Or type a barcode'} autoComplete="off" className={cx('flex-1 min-w-0 px-4 rounded-2xl border-2 border-black tracking-[0.08em] outline-none', compact ? 'h-10 text-[15px]' : 'h-12 text-[17px]')} />
+        <input ref={box} id={id} autoFocus={!compact && way === 'scanner'} value={v} onChange={(e) => setV(e.target.value)} placeholder={way === 'scanner' ? (compact ? 'Scan with the barcode scanner or type' : 'Scan now with the barcode scanner') : 'Or type a barcode'} autoComplete="off" className={cx('flex-1 min-w-0 px-4 rounded-2xl border-2 border-black tracking-[0.08em] outline-none', compact ? 'h-10 text-[15px]' : 'h-12 text-[17px]')} />
         <button type="button" onClick={() => setCam(!cam)} aria-expanded={cam} className={cx('px-4 rounded-full text-white text-sm font-semibold whitespace-nowrap', compact ? 'h-10' : 'h-12')} style={{ background: '#0b5c5c' }}>{cam ? 'Close camera' : way === 'camera' ? '📷 Scan with camera' : 'Camera'}</button>
       </form>
       {cam && <BarcodeCamera continuous={multi} onRead={(raw) => { if (!multi) setCam(false); onCode(raw); }} height={compact ? 170 : 220} caption={multi ? 'Scan item after item · the camera stays on' : 'Hold the barcode inside the frame'} />}
-      {!compact && <ScanWaySwitch onChange={(w) => setCam(w === 'camera' && multi)} />}
+      {/* Camera: opens the camera (counting) after access is allowed. Barcode scanner: camera off, cursor in the scan box. */}
+      {!compact && <ScanWaySwitch onChange={(w) => { setCam(w === 'camera' && multi); if (w === 'scanner') window.setTimeout(() => box.current?.focus(), 0); }} />}
     </div>
   );
 }

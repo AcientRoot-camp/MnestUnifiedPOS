@@ -6,6 +6,7 @@ import { ACCOUNTS, BRANCHES, type Account } from '../data/nav';
 import { useSession } from '../lib/session';
 import { readKey } from '../lib/persist';
 import { cx } from '../lib/format';
+import { LoginInstall } from '../components/InstallPrompt';
 
 import { companyHeld, credSet, creds, inspect, lockedMins, mfaMark, pwProblem, rateClear, rateFail, secLog, signinAdd } from '../lib/sec';
 
@@ -103,6 +104,8 @@ export default function Login() {
       </div>
       </div>
       <main className="relative w-full max-w-[460px] px-4 pt-10 pb-[180px] flex flex-col gap-[18px]">
+        {/* "Install MNest UnifiedPOS" card: top right on wide screens, top of the page otherwise, until closed. */}
+        <LoginInstall />
         <div className="flex flex-col items-center gap-2 text-center">
           {/* The logo file has the old "eCom" wordmark baked in, so the artwork is cropped above it and the name is
               set below it: the MNEST logo image in place of the word "MNest", then teal "UnifiedPOS". */}

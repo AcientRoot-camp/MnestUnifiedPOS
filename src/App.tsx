@@ -12,6 +12,7 @@ import Rider from './pages/Rider';
 import SystemOverlays from './components/SystemOverlays';
 import { PosInstall } from './components/InstallPrompt';
 import { SeasonCelebration } from './components/Seasonal';
+import UpdateNotice from './components/UpdateNotice';
 import { bizInfo } from './pages/pos/Docs';
 import { NoSignInWatch } from './pages/team/TimeClock';
 import ModulePage from './pages/ModulePage';
@@ -121,7 +122,7 @@ export default function App() {
   if (session.role === 'rider')
     return (
       <Routes>
-        <Route path="/rider" element={<><SystemOverlays /><Rider /></>} />
+        <Route path="/rider" element={<><UpdateNotice /><SystemOverlays /><Rider /></>} />
         <Route path="*" element={<Navigate to="/rider" replace />} />
       </Routes>
     );
@@ -129,6 +130,8 @@ export default function App() {
     <>
     {/* "Install the POS" pop-up for signed-in branch staff; asks for their 6-digit passcode first (components/InstallPrompt.tsx). */}
     <PosInstall />
+    {/* "A new update is ready" and "What's new" pop-ups (components/UpdateNotice.tsx; notes in data/releases.ts). */}
+    <UpdateNotice />
     {/* 25 December: Merry Christmas · 26 December: Happy Boxing Day, for staff on every POS page incl. the till. */}
     <SeasonCelebration where="pos" biz={bizInfo().name} />
     {/* "Nobody signed in by 09:00" alert to the Admin and managers (HR time clock). */}

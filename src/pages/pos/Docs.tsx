@@ -49,7 +49,8 @@ const Row = ({ l, v, b }: { l: string; v: string; b?: boolean }) => <div classNa
 
 export function TillReceipt({ s }: { s: TillSale }) {
   const B = bizInfo(); const logo = useCompanyLogo(); const x = sums(s); const credit = s.kind === 'credit';
-  const first = (s.cust?.name || 'customer').split(' ')[0];
+  // Thanked by name: the customer's full name, else the business buyer's name; a walk-in with no name gets a general thank-you.
+  const thanksTo = (s.cust?.name || s.biz?.name || '').trim();
   return (
     <div className="rounded-2xl p-4 flex justify-center" style={{ background: '#e9ebed' }}>
       <article className="print-doc bg-white flex flex-col gap-1.5 p-4 text-black" style={{ ...mono, width: 302, maxWidth: '100%', fontSize: 11.5, lineHeight: 1.35, boxShadow: 'rgba(0,0,0,0.12) 0 2px 10px' }}>
@@ -73,7 +74,8 @@ export function TillReceipt({ s }: { s: TillSale }) {
           <thead><tr className="bg-black text-white font-bold whitespace-nowrap leading-tight"><th className="text-left px-1 py-0.5">Item</th><th className="text-right px-1 py-0.5">Qty</th><th className="text-right px-1 py-0.5">Price</th><th className="text-right px-1 py-0.5">Amount</th></tr></thead>
           <tbody>{s.lines.map((l, i) => <tr key={l.pid + (l.unit || '')} className="align-top" style={i < s.lines.length - 1 ? { borderBottom: '1.5px dashed #000' } : undefined}><td className="px-1 py-1 font-bold" style={{ letterSpacing: '-0.03em' }}>{(() => { const [a, b] = nameLines(l.name); const unit = l.unit && l.unit !== 'single' ? `(${l.unit})` : ''; return <><span className="block whitespace-nowrap overflow-hidden">{a}</span>{(b || unit) && <span className="block" style={{ overflowWrap: 'anywhere' }}>{b}{b && unit ? ' ' : ''}{unit && <span className="font-normal">{unit}</span>}</span>}{l.serials?.length ? <span className="block font-normal" style={{ overflowWrap: 'anywhere' }}>SN {l.serials.join(', ')}</span> : null}</>; })()}</td><td className="text-right px-1 py-1 whitespace-nowrap">{l.qty}</td><td className="text-right px-1 py-1 whitespace-nowrap">{l.price.toFixed(2)}</td><td className="text-right px-1 py-1 whitespace-nowrap">{(l.qty * l.price).toFixed(2)}</td></tr>)}</tbody>
         </table>
-        <div className="pt-1 flex flex-col">
+        {/* A dashed line separates the items from the totals (sales and credit receipts). */}
+        <div className="pt-1 flex flex-col" style={{ borderTop: '1.5px dashed #000' }}>
           <Row l="Subtotal" v={ghs(s.sub)} b />
           <Row l="Discount" v={`− ${ghs(s.disc)}`} />
           {s.credit > 0 && <Row l="Exchange credit" v={`− ${ghs(s.credit)}`} />}
@@ -87,17 +89,16 @@ export function TillReceipt({ s }: { s: TillSale }) {
           {s.parts.length > 1 && s.parts.map((p) => <Row key={p.m} l={`Paid by ${p.m}`} v={ghs(p.amt)} />)}
           {s.method.startsWith('Mobile Money') && <><Row l="Paid by" v={`Mobile Money · ${s.momoNet || 'MTN'}`} /><Row l="Reference" v={s.payRef || '—'} /></>}
           {s.method.startsWith('GhPay') && <><Row l="Paid by" v="GhPay" /><Row l="Reference" v={s.payRef || '—'} /></>}
-          {credit && <><Row l="Paid now" v={ghs(s.paidNow || 0)} /><Row l="Balance owed" v={ghs(s.balance || 0)} b /><Row l="Balance due" v={s.due || '—'} /></>}
+          {credit && <><Row l="Paid now" v={ghs(s.paidNow || 0)} />{s.paidBy && <Row l="Paid now by" v={s.paidBy} />}<Row l="Balance owed" v={ghs(s.balance || 0)} b /><Row l="Balance due" v={s.due || '—'} /></>}
         </div>
         <div className="bg-black text-white px-1.5 py-1 flex justify-between font-bold" style={{ fontSize: 12 }}><span>{s.biz ? 'TOTAL AFTER TAX' : 'TOTAL TO PAY'}</span><span>{ghs(s.total)}</span></div>
-        <div className="flex flex-col items-center gap-0.5 pt-1 text-center">
-          <QR seed={s.code || s.no} size={120} />
-          {s.offline ? <span>E-VAT validation queued (offline). Certified receipt follows when the till reconnects.</span> : <><strong>GRA E-VAT VALIDATED</strong><span>SDC 0042-1187-3365 · {new Date(s.ts).toTimeString().slice(0, 8)}</span></>}
-        </div>
-        <div className="text-center flex flex-col gap-0.5 pt-1">
-          {/* Real QR of the receipt number: scan it at Return / exchange to find this sale. */}
-          <div className="flex items-center justify-center gap-2 py-1"><QrBox text={s.code || s.no} px={64} label={`Receipt number ${s.code || s.no}`} className="!rounded-none !border-0" /><span className="text-left" style={{ fontSize: 10 }}>Scan at returns<br />to find this sale</span></div>
-          <strong>THANK YOU, {first.toUpperCase()}</strong>
+        <div className="text-center flex flex-col items-center gap-1 pt-2">
+          {/* A real QR of the receipt number, large and in black on white so a phone or till camera reads it easily.
+              Return / exchange › scan the receipt QR finds this sale (pos/Panels.tsx ReturnPanel). */}
+          <QrBox text={s.code || s.no} px={150} label={`Receipt number ${s.code || s.no}. Scan it at returns to find this sale.`} className="!rounded-none !border-0" />
+          <strong style={{ fontSize: 13 }}>Scan at returns to find this sale</strong>
+          <span>Receipt No. {s.code || s.no}</span>
+          <strong>{thanksTo ? `THANK YOU, ${thanksTo.toUpperCase()}` : 'THANK YOU FOR SHOPPING WITH US'}</strong>
           <span>Akwaaba! Money paid is not refundable, but items purchased can be returned and exchanged with this receipt no.: {s.code || s.no}</span>
           <span>{B.web.replace(/^www\./, '')}</span>
           <span aria-hidden>- - - - - - - - - -</span>

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="680 56 916 580">
+<!-- Tall version made by scripts/heroTall.py (do not edit by hand). Online store hero (built-in illustration 3 of 5): cooling. A large split air conditioner blowing cool air, a
+     chest freezer, a standing fan and a wall fan, on a navy-to-ice-blue light. Products sit between x 720 and 1570
+     so the heading on computers (left) and the right-aligned crop on phones never cover them. -->
+<defs>
+<linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1600" y2="720"><stop offset="0" stop-color="#1a1240"/><stop offset="0.55" stop-color="#1f4fa0"/><stop offset="1" stop-color="#8fe0ff"/></linearGradient>
+<radialGradient id="glow" gradientUnits="userSpaceOnUse" cx="1056" cy="216" r="620"><stop offset="0" stop-color="#e8f8ff" stop-opacity="0.6"/><stop offset="1" stop-color="#e8f8ff" stop-opacity="0"/></radialGradient>
+<linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a2f63"/><stop offset="1" stop-color="#0c1430"/></linearGradient>
+<linearGradient id="white" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3e7ec"/><stop offset="0.5" stop-color="#ffffff"/><stop offset="1" stop-color="#d3d8df"/></linearGradient>
+<linearGradient id="pole" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c3c8cf"/><stop offset="0.5" stop-color="#f4f6f9"/><stop offset="1" stop-color="#b3b9c2"/></linearGradient>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity="0.35"/></filter>
+</defs>
+<rect x="-1000" y="-1500" width="3600" height="3700" fill="url(#bg)"/><rect x="-1000" y="-1500" width="3600" height="3700" fill="url(#glow)"/>
+<path d="M560 600 L1600 570 L2600 541 L2600 2200 L60 2200 Z" fill="url(#floor)" opacity="0.85"/>
+
+<!-- Large split air conditioner -->
+<g filter="url(#sh)">
+<rect x="760" y="80" width="520" height="130" rx="28" fill="url(#white)"/>
+<rect x="786" y="170" width="468" height="20" rx="10" fill="#c9ced6"/>
+<rect x="790" y="178" width="460" height="5" rx="2.5" fill="#9aa1ab"/>
+<text x="796" y="128" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#5b6270" letter-spacing="2">INVERTER 1.5HP</text>
+<rect x="1150" y="104" width="96" height="34" rx="6" fill="#1f2a3a"/>
+<text x="1162" y="128" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#5fd4ff">18°C</text>
+<circle cx="1258" cy="121" r="5" fill="#2ecc71"/>
+</g>
+<!-- Cool air -->
+<g opacity="0.6" stroke="#e6f7ff" stroke-width="5" stroke-linecap="round" fill="none">
+<path d="M830 222 q14 30 0 60 q-14 30 0 60"/><path d="M930 226 q14 34 0 68 q-14 34 0 68"/><path d="M1030 226 q14 34 0 68 q-14 34 0 68"/><path d="M1130 226 q14 34 0 68 q-14 34 0 68"/><path d="M1220 222 q14 30 0 60 q-14 30 0 60"/>
+</g>
+<g fill="#ffffff" opacity="0.7"><circle cx="880" cy="300" r="4"/><circle cx="985" cy="330" r="5"/><circle cx="1080" cy="290" r="4"/><circle cx="1180" cy="340" r="5"/></g>
+
+<!-- Chest freezer -->
+<g filter="url(#sh)">
+<rect x="740" y="430" width="380" height="180" rx="14" fill="url(#white)"/>
+<rect x="732" y="418" width="396" height="34" rx="10" fill="#f4f6f9"/>
+<rect x="890" y="452" width="80" height="10" rx="5" fill="#9aa1ab"/>
+<rect x="760" y="476" width="70" height="28" rx="5" fill="#1f2a3a"/>
+<text x="766" y="496" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#5fd4ff">-18°C</text>
+<rect x="756" y="606" width="22" height="10" rx="3" fill="#555"/><rect x="1082" y="606" width="22" height="10" rx="3" fill="#555"/>
+</g>
+
+<!-- Standing fan -->
+<g filter="url(#sh)">
+<rect x="1243" y="380" width="14" height="220" rx="7" fill="url(#pole)"/>
+<ellipse cx="1250" cy="612" rx="62" ry="14" fill="#c7ccd4"/>
+<circle cx="1250" cy="330" r="86" fill="none" stroke="#eef1f5" stroke-width="6"/>
+<g fill="#9fd8ff" opacity="0.92"><ellipse cx="1250" cy="284" rx="19" ry="42"/><ellipse cx="1290" cy="352" rx="19" ry="42" transform="rotate(120 1290 352)"/><ellipse cx="1210" cy="352" rx="19" ry="42" transform="rotate(-120 1210 352)"/></g>
+<circle cx="1250" cy="330" r="16" fill="#eef1f5"/>
+</g>
+
+<!-- Wall fan -->
+<g filter="url(#sh)">
+<rect x="1462" y="300" width="36" height="60" rx="8" fill="#d9dde3"/>
+<circle cx="1480" cy="262" r="72" fill="none" stroke="#eef1f5" stroke-width="5"/>
+<g fill="#b9e6ff" opacity="0.92"><ellipse cx="1480" cy="224" rx="16" ry="34"/><ellipse cx="1513" cy="281" rx="16" ry="34" transform="rotate(120 1513 281)"/><ellipse cx="1447" cy="281" rx="16" ry="34" transform="rotate(-120 1447 281)"/></g>
+<circle cx="1480" cy="262" r="13" fill="#eef1f5"/>
+</g>
+</svg>

@@ -1,4 +1,7 @@
 // Sell Now · Take payment (sell.md §2.6).
+// Rule: the receipt and invoice appear only after payment is made. No method is chosen in advance, choosing one never
+// completes the sale, and money the till cannot count itself (GhPay, both halves of a split, a credit deposit) must be
+// ticked as received first. "On account" takes no money, so it asks for a second, clearly worded confirmation.
 import { useEffect, useState } from 'react';
 import { ACCOUNTS } from '../../data/nav';
 import { usePersist } from '../../lib/persist';
@@ -11,7 +14,7 @@ import { PORTAL_BASE } from '../../lib/site';
 export type PayM = 'cash' | 'momo' | 'ghpay' | 'split' | 'credit';
 export const PAY_NAME: Record<PayM | 'hp' | 'account', string> = { cash: 'Cash', momo: 'Mobile Money', ghpay: 'GhPay', split: 'Split', credit: 'Credit sale', hp: 'Hire purchase', account: 'On account' };
 const PERM_KEY: Record<PayM, string> = { cash: 'cash', momo: 'momo', ghpay: 'ghpay', split: 'split', credit: 'credit' };
-export type PayDone = { method: string; parts: { m: string; amt: number }[]; change: number; cashRecv?: number; momoNet?: string; payRef?: string; kind: 'sale' | 'credit'; paidNow?: number; balance?: number; due?: string; allowedBy?: string; offline?: boolean };
+export type PayDone = { method: string; parts: { m: string; amt: number }[]; change: number; cashRecv?: number; momoNet?: string; payRef?: string; kind: 'sale' | 'credit'; paidBy?: string; paidNow?: number; balance?: number; due?: string; allowedBy?: string; offline?: boolean };
 export type CredReq = { id: string; cust: string; br: string; amount: number; paidNow: number; due: string; by: string; at: string; status: 'pending' | 'approved' | 'rejected'; note?: string };
 
 const TEAL = '#0b5c5c';
@@ -29,7 +32,12 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
   total: number; cust: Cust | null; online: boolean; me: { name: string; level: string }; role: string; username: string; SU: boolean; br: string; till: string; owes: number;
   payAllow: Record<string, boolean> | undefined; creditFirst: boolean; onBack: () => void; onDone: (d: PayDone) => void; onHP: () => void; onIntro: () => void;
 }) {
-  const [m, setM] = useState<PayM>(creditFirst ? 'credit' : 'cash');
+  // '' = nothing chosen yet. The Credit sale screen starts on Credit sale, because the cashier already chose it.
+  const [m, setM] = useState<PayM | ''>(creditFirst ? 'credit' : '');
+  // "Payment received" ticks. Each is keyed by the method and the amounts, so changing either clears the tick.
+  const [got, setGot] = useState<Record<string, boolean>>({});
+  const [nowBy, setNowBy] = useState<'' | 'Cash' | 'Mobile Money' | 'GhPay'>('');
+  const [askAcct, setAskAcct] = useState(false);
   const [once, setOnce] = useState<Record<string, string>>({});
   const [ask, setAsk] = useState<PayM | null>(null);
   const [askPin, setAskPin] = useState(''); const [askErr, setAskErr] = useState('');
@@ -53,7 +61,13 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
   const req = reqs.find((r) => r.id === reqId);
   const approved = SU || req?.status === 'approved';
   const spCash = parseFloat(sp.cash) || 0; const spOther = parseFloat(sp.other) || 0; const spLeft = Math.round((total - spCash - spOther) * 100) / 100;
-  const base = { allowedBy: once[m], offline: !online };
+  const base = { allowedBy: m ? once[m] : undefined, offline: !online };
+  // Keys for the "received" ticks.
+  const ghKey = `gh:${total}`; const spCashKey = `spc:${sp.cash}`; const spOtherKey = `spo:${sp.kind}:${sp.other}`; const nowKey = `now:${nowBy}:${paidNow}`;
+  // A credit sale may take nothing today; if a deposit is entered, say how it was paid and tick that it is in hand.
+  const depositOk = paidNow === 0 || (!!nowBy && !!got[nowKey]);
+  /** One "I have received this money" tick box. Inputs: its key and the sentence the cashier agrees to. */
+  const received = (k: string, text: string) => <label className="flex items-start gap-2.5 rounded-2xl border border-black p-3 text-sm font-medium cursor-pointer"><input type="checkbox" checked={!!got[k]} onChange={(e) => { setGot({ ...got, [k]: e.target.checked }); setErr(''); }} className="mt-0.5 w-5 h-5 flex-none accent-black" /><span>{text}</span></label>;
 
   const managerPin = (p: string) => ACCOUNTS.find((a) => (a.role === 'manager' || a.role === 'superuser') && (creds()[a.username]?.passcode || a.passcode) === p);
   const allow = () => { const who = managerPin(askPin); if (!who || !ask) return setAskErr('401 Unauthorized · That is not a Manager or Admin PIN.'); setOnce({ ...once, [ask]: who.name }); setM(ask); secLog('Payment method allowed once', `${who.name} allowed ${PAY_NAME[ask]} for one sale by ${me.name}`, 'low', who.username); setAsk(null); setAskPin(''); setAskErr(''); };
@@ -65,7 +79,9 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
     setReqs([{ id, cust: `${cust.name} · ${cust.phone}`, br, amount: bal, paidNow, due: dueTxt, by: me.name, at: nowTxt(), status: 'pending' }, ...reqs]); setReqId(id); setErr('');
   };
   const approveHere = () => { const a = ACCOUNTS.find((x) => x.role === 'superuser' && (creds()[x.username]?.passcode || x.passcode) === apPin); if (!a) return setApErr('401 Unauthorized · That is not the Admin PIN.'); setReqs(reqs.map((r) => (r.id === reqId ? { ...r, status: 'approved', note: `Approved at ${till} by ${a.name} with PIN` } : r))); secLog('Approval signed', `${a.name} approved credit sale ${reqId} (${ghs(bal)}) at ${till} · PIN`, 'low', a.username); setApPin(''); setApErr(''); };
-  const finishCredit = (account = false) => onDone({ ...base, method: account ? 'On account' : 'Credit sale', parts: paidNow ? [{ m: 'Paid now', amt: paidNow }] : [], change: 0, kind: 'credit', paidNow, balance: bal, due: dueTxt });
+  // A cash deposit is recorded as "Paid now" (the cash drawer count includes it); a Mobile Money or GhPay deposit is
+  // recorded under its own method, so it is totalled there and never expected in the drawer.
+  const finishCredit = (account = false) => { if (!depositOk) return; onDone({ ...base, method: account ? 'On account' : 'Credit sale', parts: paidNow ? [{ m: nowBy === 'Cash' ? 'Paid now' : nowBy, amt: paidNow }] : [], paidBy: paidNow ? nowBy : undefined, change: 0, kind: 'credit', paidNow, balance: bal, due: dueTxt }); };
 
   const tiles: [PayM, string][] = [['cash', 'Cash'], ['momo', 'Mobile Money'], ['ghpay', 'GhPay'], ['split', 'Split'], ['credit', 'Credit sale']];
   const cta = (label: string, ready: boolean, fn: () => void, color = TEAL) => <button onClick={fn} disabled={!ready} className="h-[52px] rounded-full text-white text-base font-medium disabled:cursor-not-allowed" style={{ background: ready ? color : '#cfcfcf', boxShadow: ready ? SHADOW : 'none' }}>{label}</button>;
@@ -84,6 +100,8 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
         {askErr && <span role="alert" className="text-xs text-[#c62828]">{askErr}</span>}
         <div className="flex gap-2 flex-wrap"><button onClick={() => { setAsk(null); setAskErr(''); }} className="h-10 px-4 rounded-full border border-[#d9d9d9] text-sm">Cancel</button><button onClick={allow} className="h-10 px-4 rounded-full bg-black text-white text-sm font-semibold">Manager PIN · allow for this sale</button><a href={`${PORTAL_BASE}/users`} className="h-10 px-4 rounded-full border border-black text-sm inline-flex items-center">Open Users & permissions</a></div>
       </div>}
+
+      {!m && !ask && <div role="status" className="rounded-2xl px-4 py-3 text-sm font-medium" style={{ background: '#fff4e5', color: '#8a4b00' }}>Choose how the customer is paying. The receipt and invoice appear only after the payment is made.</div>}
 
       {m === 'cash' && <div className="flex flex-col gap-3">
         <span className="text-[13px] font-semibold text-[#3d3a38]">Cash tendered</span>
@@ -121,7 +139,8 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
         <div className="flex gap-2 items-start"><div className="flex-1"><Phone v={ghPhone} set={setGhPhone} id="pay-gh" label="Customer phone" /></div><button onClick={() => { if (phClean(ghPhone).length !== 9) return setErr('Enter 9 digits after +233.'); setErr(''); setGhSent(true); }} className="h-12 px-5 rounded-full bg-black text-white text-sm font-semibold mt-[22px]">Send</button></div>
         {ghSent && <span role="status" className="text-sm" style={{ color: '#0b4f8a' }}>Request sent to +233 {phClean(ghPhone)} · waiting for the customer to approve</span>}
         {!online && <span className="text-sm text-[#c62828]">GhPay needs the internet. Use cash or MoMo to merchant while offline.</span>}
-        {cta('Payment received · complete sale', online, () => onDone({ ...base, method: 'GhPay', parts: [{ m: 'GhPay', amt: total }], change: 0, payRef: ghRef, kind: 'sale' }))}
+        {received(ghKey, `I have checked that the GhPay payment of ${ghs(total)} has arrived (bank or GhanaPay alert).`)}
+        {cta('Payment received · complete sale', online && !!got[ghKey], () => onDone({ ...base, method: 'GhPay', parts: [{ m: 'GhPay', amt: total }], change: 0, payRef: ghRef, kind: 'sale' }))}
       </div>}
 
       {m === 'split' && <div className="flex flex-col gap-3">
@@ -131,7 +150,11 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
           <label className="flex flex-col gap-1 text-[13px] font-semibold text-[#3d3a38]">{sp.kind === 'momo' ? 'MoMo' : 'GhPay'} amount<span className="flex items-center h-12 rounded-full border border-[#d9d9d9] px-4 gap-2"><b className="text-black">GHS</b><input inputMode="decimal" value={sp.other} onChange={(e) => setSp({ ...sp, other: e.target.value.replace(/[^\d.]/g, '') })} className="flex-1 min-w-0 outline-none font-normal text-black" /></span></label>
         </div>
         <div role="status" className="rounded-2xl px-4 py-3 text-sm font-semibold" style={{ background: Math.abs(spLeft) < 0.01 ? '#e7f4e8' : '#fff4e5', color: Math.abs(spLeft) < 0.01 ? '#1f7a2a' : '#8a4b00' }}>{Math.abs(spLeft) < 0.01 ? '✓ Both parts add up to the total' : spLeft > 0 ? `${ghs(spLeft)} left to cover` : `${ghs(-spLeft)} more than the total`}</div>
-        {cta('Take both payments', Math.abs(spLeft) < 0.01 && spCash > 0 && spOther > 0, () => onDone({ ...base, method: `Split · Cash + ${sp.kind === 'momo' ? 'MoMo' : 'GhPay'}`, parts: [{ m: 'Cash', amt: spCash }, { m: sp.kind === 'momo' ? 'Mobile Money' : 'GhPay', amt: spOther }], change: 0, payRef: sp.kind === 'ghpay' ? ghRef : 'HUB-' + Date.now().toString().slice(-8), kind: 'sale' }))}
+        {Math.abs(spLeft) < 0.01 && spCash > 0 && spOther > 0 && <>
+          {received(spCashKey, `I have received the cash part, ${ghs(spCash)}.`)}
+          {received(spOtherKey, `I have checked that the ${sp.kind === 'momo' ? 'Mobile Money' : 'GhPay'} part, ${ghs(spOther)}, has arrived.`)}
+        </>}
+        {cta('Both payments received · complete sale', Math.abs(spLeft) < 0.01 && spCash > 0 && spOther > 0 && !!got[spCashKey] && !!got[spOtherKey], () => onDone({ ...base, method: `Split · Cash + ${sp.kind === 'momo' ? 'MoMo' : 'GhPay'}`, parts: [{ m: 'Cash', amt: spCash }, { m: sp.kind === 'momo' ? 'Mobile Money' : 'GhPay', amt: spOther }], change: 0, payRef: sp.kind === 'ghpay' ? ghRef : 'HUB-' + Date.now().toString().slice(-8), kind: 'sale' }))}
       </div>}
 
       {m === 'credit' && <div className="flex flex-col gap-3">
@@ -141,6 +164,11 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
         <span className="text-[13px] font-semibold text-[#3d3a38]">Paying something now?</span>
         <div className="flex gap-2 flex-wrap">{([['Nothing now', 0], ['Half', Math.round(total / 2 * 100) / 100], ['Round it', Math.floor(total / 100) * 100 || Math.floor(total / 10) * 10]] as [string, number][]).map(([l, v]) => <button key={l} aria-pressed={paidNow === v && (now !== '' || v === 0)} onClick={() => setNow(String(v))} className={cx(pill(paidNow === v && (now !== '' || v === 0)), 'h-10')}>{l}</button>)}</div>
         <label className="flex flex-col gap-1 text-[13px] font-semibold text-[#3d3a38]">Amount paid now (GHS)<input inputMode="decimal" value={now} onChange={(e) => setNow(e.target.value.replace(/[^\d.]/g, ''))} placeholder="0.00" className="h-12 rounded-full border border-[#d9d9d9] px-4 font-normal text-black" /></label>
+        {paidNow > 0 && <>
+          <span className="text-[13px] font-semibold text-[#3d3a38]">How is the {ghs(paidNow)} being paid?</span>
+          <div className="flex gap-2 flex-wrap">{(['Cash', 'Mobile Money', 'GhPay'] as const).map((k) => <button key={k} aria-pressed={nowBy === k} onClick={() => { setNowBy(k); setErr(''); }} className={cx(pill(nowBy === k), 'h-10')}>{k}</button>)}</div>
+          {nowBy && received(nowKey, `I have received ${ghs(paidNow)} by ${nowBy}.`)}
+        </>}
         <span className="text-[13px] font-semibold text-[#3d3a38]">When is the balance due?</span>
         <div className="flex gap-2 flex-wrap">{([['1 week', 7], ['2 weeks', 14], ['30 days', 30], ['60 days', 60]] as [string, number][]).map(([l, d]) => <button key={l} aria-pressed={!pickDate && days === d} onClick={() => { setDays(d); setPickDate(''); }} className={cx(pill(!pickDate && days === d), 'h-10')}>{l}</button>)}</div>
         <label className="flex flex-col gap-1 text-[13px] font-semibold text-[#3d3a38]">Or pick the date<input type="date" value={pickDate} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setPickDate(e.target.value)} className="h-12 rounded-full border border-[#d9d9d9] px-4 font-normal text-black" /></label>
@@ -150,15 +178,20 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
           <span>{req?.status === 'approved' ? req.note || 'Approved by the Admin.' : req?.status === 'rejected' ? req.note || 'Take payment another way.' : `${reqId} · ${ghs(bal)} owed by ${cust?.name} · due ${dueTxt}. The Admin reviews it on their account.`}</span>
           {req?.status === 'pending' && <div className="flex flex-col gap-1.5 pt-1"><span className="text-xs" style={{ color: '#f2b705' }}>Admin here? Approve with PIN</span><div className="flex gap-2"><input type="password" inputMode="numeric" maxLength={6} value={apPin} onChange={(e) => setApPin(e.target.value.replace(/\D/g, ''))} aria-label="Admin 6-digit PIN" placeholder="••••••" className="h-10 w-36 rounded-full px-4 text-black tracking-[0.3em]" /><button onClick={approveHere} disabled={apPin.length !== 6} className="h-10 px-4 rounded-full bg-white text-black text-sm font-semibold disabled:opacity-50">Approve now</button></div>{apErr && <span role="alert" className="text-xs text-[#ffb4b4]">{apErr}</span>}</div>}
         </div>}
-        {SU || approved ? cta(`Complete credit sale · ${ghs(bal)} owed`, !!cust?.name && phClean(cust?.phone || '').length === 9, () => finishCredit())
+        {SU || approved ? cta(depositOk ? `Complete credit sale · ${ghs(bal)} owed` : `Confirm the ${ghs(paidNow)} payment first`, depositOk && !!cust?.name && phClean(cust?.phone || '').length === 9, () => finishCredit())
           : !reqId ? cta('Send to the Admin for approval', !!cust?.name && phClean(cust?.phone || '').length === 9, sendCredit, '#000') : cta('Waiting for approval…', false, () => undefined)}
       </div>}
 
       <div className="flex flex-col gap-2 pt-1 border-t border-[#ebebeb]">
         <span className="text-xs text-[#5f5c5a] pt-2">Other methods</span>
         <div className="rounded-2xl border border-[#ebebeb] p-3 flex items-center gap-3 flex-wrap"><span className="flex-1 min-w-[160px] text-sm"><b>Hire purchase</b> · credit paid in instalments</span><button onClick={onHP} className="h-10 px-4 rounded-full bg-black text-white text-sm font-semibold">Set up agreement & take deposit</button></div>
-        <div className="rounded-2xl border border-[#ebebeb] p-3 flex items-center gap-3 flex-wrap"><span className="flex-1 min-w-[160px] text-sm"><b>On account</b> · a business or regular customer settles later on their account</span><button onClick={() => { if (!cust?.name || phClean(cust.phone).length !== 9) return setErr('Put on account needs the customer’s name and phone number.'); if (!SU && !approved) { setM('credit'); return setErr('On-account sales need the Admin’s approval. Send it for approval below.'); } finishCredit(true); }} className="h-10 px-4 rounded-full border border-black bg-white text-sm font-semibold">Put on account</button></div>
+        <div className="rounded-2xl border border-[#ebebeb] p-3 flex items-center gap-3 flex-wrap"><span className="flex-1 min-w-[160px] text-sm"><b>On account</b> · a business or regular customer settles later on their account</span><button onClick={() => { if (!cust?.name || phClean(cust.phone).length !== 9) return setErr('Put on account needs the customer’s name and phone number.'); if (!SU && !approved) { setM('credit'); return setErr('On-account sales need the Admin’s approval. Send it for approval below.'); } if (!depositOk) { setM('credit'); return setErr(`Choose how the ${ghs(paidNow)} is being paid and tick that you have received it.`); } setErr(''); setAskAcct(true); }} className="h-10 px-4 rounded-full border border-black bg-white text-sm font-semibold">Put on account</button></div>
       </div>
+      {askAcct && <div role="alertdialog" aria-label="Confirm on account sale" className="rounded-[18px] border-2 border-black p-4 flex flex-col gap-2.5 bg-white">
+        <b>{paidNow ? `${ghs(bal)} will not be paid today` : 'No money is being taken for this sale'}</b>
+        <span className="text-sm text-[#5f5c5a]">{ghs(bal)} goes on {cust?.name}’s account, due {dueTxt}. The receipt and invoice will show it as owed.</span>
+        <div className="flex gap-2 flex-wrap"><button onClick={() => { setAskAcct(false); finishCredit(true); }} className="h-10 px-4 rounded-full bg-black text-white text-sm font-semibold">Yes, put {ghs(bal)} on account</button><button onClick={() => setAskAcct(false)} className="h-10 px-4 rounded-full border border-[#d9d9d9] text-sm">Cancel</button></div>
+      </div>}
       {err && <div role="alert" className="rounded-2xl px-4 py-3 text-sm" style={{ background: '#fbeaea', color: '#7d1a1a' }}>{err}</div>}
     </div>
   );

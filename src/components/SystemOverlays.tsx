@@ -4,7 +4,7 @@ import { usePersist, writeKey } from '../lib/persist';
 import { useSession } from '../lib/session';
 import { devLog, mfaOk, onDefaultPw, SUPPORT } from '../lib/sec';
 import type { Notice } from '../pages/admin/dev/Updates';
-import type { StaffMsg } from './TopBar';
+import { msgFor, type StaffMsg } from './TopBar';
 import { useState } from 'react';
 import { portalUrl } from '../lib/site';
 
@@ -34,7 +34,7 @@ export default function SystemOverlays() {
   const me = session.name;
   const pending = notices.filter((n) => n.state !== 'Cancelled' && n.to.includes(session.role) && !n.seen.includes(me));
   const n = pending.filter((x) => !later.includes(x.id))[0];
-  const sm = msgs.filter((x) => x.to.includes(session.role) && (x.br === 'all' || x.br === session.branch) && !x.readBy.includes(me) && x.from !== me && !later.includes(x.id))[0];
+  const sm = msgs.filter((x) => msgFor(x, session.role, me, session.branch) && !x.readBy.includes(me) && x.from !== me && !later.includes(x.id))[0];
   const viewing = view && view.as === session.username && session.role !== 'developer' && session.via === 'support';
   const weakPw = !viewing && session.username && onDefaultPw(session.username) && !later.includes('pw:' + session.username);
   return (

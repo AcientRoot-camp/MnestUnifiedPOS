@@ -42,10 +42,10 @@ function Hero() {
   return (
     // The big picture / video card at the top of the store.
     // Laptops and desktops (lg+): the picture fills the card and the heading sits over it on a dark gradient.
-    // Phones and tablets: the card is stacked. The media frame is a little taller than a banner (4:3 on phones, 3:2 on
-    // tablets) and the picture or video is enlarged to fill it (object-cover). Uploaded photos and videos stay centred;
-    // on phones and tablets the built-in illustrations are aligned to the right, where their products are, so none of
-    // them is cut off. On computers they stay centred: aligned right, the products would slide under the heading. The heading and buttons sit underneath on the navy background.
+    // Phones and upright tablets: the card is stacked and fills the screen under the header (index.css .hero-fit);
+    // the heading and buttons are small and sit underneath on the navy background, and the picture or video gets all
+    // the remaining height. Built-in illustrations use their tall versions there, so no product is cut off; uploaded
+    // photos and videos are enlarged to fill the frame, centred. Heading and text are smaller below 1280 px.
     // On phones and tablets (portrait and landscape, below 1280 px) the card also runs edge to edge (touching the left
     // and right of the screen, no side gutter, square corners, flush under the header); larger screens keep the gutter.
     <section ref={ref} aria-labelledby="hero-h" className="hero-fit relative mx-[var(--gut)] max-xl:mx-0 max-xl:rounded-none mt-[0.25rem] max-xl:mt-0 overflow-hidden flex flex-col lg:flex-row lg:items-center lg:min-h-[40rem]" style={{ background: NAVY }}>
@@ -53,7 +53,12 @@ function Hero() {
           No frame at all when the Admin chose "None" for the top picture (just the navy card and heading). */}
       {(W.site.heroVideo || slides.length > 0) && <div className="hero-media relative w-full overflow-hidden aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:absolute lg:inset-0">
         {W.site.heroVideo ? <video src={W.site.heroVideo} autoPlay muted loop playsInline aria-label="Video of products from our store" className="absolute inset-0 w-full h-full object-cover object-center" />
-          : slides.map((u, k) => <img key={u + k} src={u} alt={k === i ? (HERO_ART.find((a) => a.src === u)?.name || 'Products from our store') : ''} className={cx('absolute inset-0 w-full h-full object-cover transition-opacity duration-700', isHeroArt(u) ? 'object-center max-lg:object-right' : 'object-center', k === i ? 'opacity-100' : 'opacity-0')} />)}
+          // Below 1024 px a built-in illustration uses its tall version (same name + "-tall"), which fills any frame
+          // shape with its products whole; object-fill hands the fitting to the SVG itself. Photos are enlarged to fill.
+          : slides.map((u, k) => <picture key={u + k}>
+            {isHeroArt(u) && <source media="(max-width: 1023px)" srcSet={u.replace(/\.svg$/, '-tall.svg')} />}
+            <img src={u} alt={k === i ? (HERO_ART.find((a) => a.src === u)?.name || 'Products from our store') : ''} className={cx('absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700', isHeroArt(u) && 'max-lg:object-fill', k === i ? 'opacity-100' : 'opacity-0')} />
+          </picture>)}
         {/* Dark gradient behind the heading: only where the heading sits over the picture (lg+). */}
         <div aria-hidden="true" className="hidden lg:block absolute inset-0 bg-gradient-to-r from-[rgba(10,6,30,.85)] via-[rgba(10,6,30,.55)] to-transparent" />
         {slides.length > 1 && !W.site.heroVideo && (
@@ -64,10 +69,10 @@ function Hero() {
           </div>
         )}
       </div>}
-      <div className="hero-copy relative z-10 p-[1.5rem] sm:p-[2.5rem] lg:p-[3rem] max-w-[42rem] flex flex-col gap-4 text-white">
+      <div className="hero-copy relative z-10 p-[1.5rem] sm:p-[2.5rem] lg:p-[3rem] max-w-[42rem] flex flex-col gap-2.5 sm:gap-3 xl:gap-4 text-white">
         {tag && <span className="w-fit text-xs font-semibold px-3 py-1 rounded-full bg-white/15 backdrop-blur">{tag}</span>}
-        <h1 id="hero-h" className="m-0 text-[30px] sm:text-[44px] lg:text-[52px] leading-[1.05] font-semibold tracking-tight">{W.site.heroTitle}</h1>
-        <p className="m-0 text-base sm:text-lg text-white/85">{W.site.heroText}</p>
+        <h1 id="hero-h" className="m-0 text-[22px] sm:text-[28px] lg:text-[36px] xl:text-[52px] leading-[1.1] xl:leading-[1.05] font-semibold tracking-tight">{W.site.heroTitle}</h1>
+        <p className="m-0 text-[13px] leading-snug sm:text-[14px] xl:text-lg xl:leading-7 text-white/85">{W.site.heroText}</p>
         <div className="flex gap-2 flex-wrap"><a href="#featured" className="h-12 px-6 rounded-full bg-white text-black font-semibold flex items-center hover:text-black">Shop now</a>{pageOn(W, 'branches') && <button onClick={() => go('branches')} className="h-12 px-6 rounded-full border border-white/60 text-white font-semibold">Find a branch</button>}</div>
       </div>
     </section>

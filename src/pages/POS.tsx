@@ -324,7 +324,7 @@ export default function POS() {
   const complete = (d: PayDone) => {
     const no = nextNo();
     const c = custOut();
-    const s: TillSale = { no, ts: Date.now(), br, till, staff: me.name, username, lines: cart, sub, disc: discAmt, credit: credUse, fee, total, method: d.method, parts: d.parts, change: d.change, cust: c, biz: biz.on ? { name: biz.name.trim(), tin: biz.tin } : undefined, status: 'completed', ref: credit?.ref, adminWhy: SU && adminOk ? [adminOk.why, adminOk.more].filter(Boolean).join(' · ') : undefined, allowedBy: d.allowedBy, deliver: del.on ? del : undefined, code: docCode(), inv: invNo(br), kind: d.kind, paidNow: d.paidNow, balance: d.balance, due: d.due, momoNet: d.momoNet, payRef: d.payRef, cashRecv: d.cashRecv, offline: !online, training: train.on };
+    const s: TillSale = { no, ts: Date.now(), br, till, staff: me.name, username, lines: cart, sub, disc: discAmt, credit: credUse, fee, total, method: d.method, parts: d.parts, change: d.change, cust: c, biz: biz.on ? { name: biz.name.trim(), tin: biz.tin } : undefined, status: 'completed', ref: credit?.ref, adminWhy: SU && adminOk ? [adminOk.why, adminOk.more].filter(Boolean).join(' · ') : undefined, allowedBy: d.allowedBy, deliver: del.on ? del : undefined, code: docCode(), inv: invNo(br), kind: d.kind, paidBy: d.paidBy, paidNow: d.paidNow, balance: d.balance, due: d.due, momoNet: d.momoNet, payRef: d.payRef, cashRecv: d.cashRecv, offline: !online, training: train.on };
     setSales([s, ...sales]);
     // Serial numbers sold on this sale can never be sold again (ecompos.serialsSold); a return releases them.
     if (!train.on) { const sold = readKey<Record<string, { pid: string; name: string; sale: string; br: string; ts: number }>>('ecompos.serialsSold', {}); cart.forEach((l) => (l.serials || []).forEach((sn) => { sold[sn.toUpperCase()] = { pid: l.pid, name: l.name, sale: no, br, ts: Date.now() }; })); writeKey('ecompos.serialsSold', sold); }
@@ -436,17 +436,24 @@ export default function POS() {
               {/* Scan icon: opens the camera on a tablet / phone; on a computer it readies the box for the barcode scanner. */}
               <button onClick={() => { if (scanWay === 'camera') setCam(!cam); else { setCam(false); qRef.current?.focus(); setScanMsg({ tone: 'ok', text: 'Barcode scanner ready · scan the product now (USB or Bluetooth scanner).' }); } }} aria-label={scanWay === 'camera' ? 'Scan barcodes with the camera' : 'Get ready to scan with the barcode scanner'} aria-expanded={scanWay === 'camera' ? cam : undefined} className="w-10 h-10 rounded-full text-white flex items-center justify-center flex-none" style={{ background: TEAL, boxShadow: SHADOW }}><Icon name="barcode" size={17} /></button>
             </div>
+            {/* Scan adds / Scan removes and the category menu always share one line (on phones, under the search box);
+                both are a little more compact on small screens so they fit side by side. */}
+            <div className="flex items-center gap-2 w-full sm:w-auto min-w-0">
             {/* Scan adds / Scan removes: what the next scans do (USB or Bluetooth scanner, or the camera icon). */}
-            <div role="group" aria-label="What a scan does" className="flex items-center h-[50px] p-1 rounded-full bg-white border border-[rgba(0,0,0,0.1)]">
-              {([['add', '+ Scan adds'], ['remove', '− Scan removes']] as const).map(([k, l]) => <button key={k} onClick={() => { setScanMode(k); setScanMsg({ tone: 'ok', text: k === 'add' ? 'Scans now add items to the sale.' : 'Scans now remove items from the sale. Switch back to “Scan adds” when done.' }); qRef.current?.focus(); }} aria-pressed={scanMode === k} className={cx('h-full px-3.5 rounded-full text-[13px] font-semibold whitespace-nowrap', scanMode === k ? (k === 'remove' ? 'bg-[#c62828] text-white' : 'bg-black text-white') : 'text-[#3d3a38]')}>{l}</button>)}
+            <div role="group" aria-label="What a scan does" className="flex items-center flex-none h-[46px] sm:h-[50px] p-1 rounded-full bg-white border border-[rgba(0,0,0,0.1)]">
+              {([['add', '+ Scan adds'], ['remove', '− Scan removes']] as const).map(([k, l]) => <button key={k} onClick={() => { setScanMode(k); setScanMsg({ tone: 'ok', text: k === 'add' ? 'Scans now add items to the sale.' : 'Scans now remove items from the sale. Switch back to “Scan adds” when done.' }); qRef.current?.focus(); }} aria-pressed={scanMode === k} className={cx('h-full px-2.5 sm:px-3.5 rounded-full text-[12px] sm:text-[13px] font-semibold whitespace-nowrap', scanMode === k ? (k === 'remove' ? 'bg-[#c62828] text-white' : 'bg-black text-white') : 'text-[#3d3a38]')}>{l}</button>)}
             </div>
-            <select value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Category" className="h-[50px] px-4 rounded-full bg-white border border-black text-[15px]">
+            <select value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Category" className="flex-1 sm:flex-none min-w-0 h-[46px] sm:h-[50px] pl-3 pr-2 sm:px-4 rounded-full bg-white border border-black text-[13px] sm:text-[15px]">
               <option value="All">All categories · {list.length}</option>
               {cats.map((c) => <option key={c} value={c}>{c} · {list.filter((p) => p.cat === c).length}</option>)}
             </select>
+            </div>
           </div>
           {/* How this till scans (camera on tablets / phones, barcode scanner on computers); changeable per device. */}
-          <ScanWaySwitch onChange={(w) => { if (w === 'scanner') setCam(false); }} />
+          {/* Camera: asks for camera access, then opens the camera scanner by itself. Barcode scanner: closes the camera
+              and puts the cursor in the search box, where the scanner types each code and presses Enter. (A scan typed
+              while the cursor is elsewhere is still caught by the keyboard listener above.) */}
+          <ScanWaySwitch onChange={(w) => { setCam(w === 'camera'); if (w === 'scanner') { setScanMsg(null); window.setTimeout(() => qRef.current?.focus(), 0); } }} />
           {/* Camera scanner card: stays on and adds every product it reads to the sale (Remove mode takes one off). */}
           {cam && <div className="rounded-[24px] bg-white p-4 flex gap-4 flex-wrap items-start">
             <BarcodeCamera continuous onRead={doScan} height={150} className="w-[240px] flex-none" caption="Scan item after item" />

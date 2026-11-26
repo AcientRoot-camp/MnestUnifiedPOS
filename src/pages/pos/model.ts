@@ -9,7 +9,7 @@ export type TillSale = {
   no: string; ts: number; br: string; till: string; staff: string; username: string; lines: Line[]; sub: number; disc: number; credit: number; fee: number; total: number;
   method: string; parts: { m: string; amt: number }[]; change: number; cust?: Cust; biz?: { name: string; tin: string }; status: 'completed' | 'voided' | 'credit-pending'; ref?: string; adminWhy?: string; allowedBy?: string; deliver?: Deliver;
   /** Receipt code YYMM + 4 digits, invoice number, credit details, payment references. */
-  code?: string; inv?: string; kind?: 'sale' | 'credit'; paidNow?: number; balance?: number; due?: string; momoNet?: string; payRef?: string; cashRecv?: number; offline?: boolean; training?: boolean;
+  code?: string; inv?: string; kind?: 'sale' | 'credit'; paidBy?: string; paidNow?: number; balance?: number; due?: string; momoNet?: string; payRef?: string; cashRecv?: number; offline?: boolean; training?: boolean;
 };
 export type Parked = { id: string; ts: number; br: string; by: string; lines: Line[]; cust?: Cust; note: string; disc: number };
 export type RetLine = { pid: string; name: string; qty: number; each: number; cond: 'good' | 'damaged' };

@@ -15,6 +15,7 @@ export type PdfDoc = {
   highlight?: [string, string];       // e.g. ["Collection code", "482913"]
   table: { cols: { label: string; w: number; align?: 'left' | 'right' }[]; rows: string[][] };   // w = share of width
   totals: [string, string, boolean?][];   // label, value, bold
+  dashedTotals?: boolean;             // a dashed line above the first total (till receipts)
   notes?: string[];                   // paragraphs under the totals
   footer?: string;                    // left side of every page footer
 };
@@ -148,6 +149,7 @@ export async function renderPdf(doc: PdfDoc): Promise<Blob> {
 
   // --- Totals, right-aligned ---
   y += 10;
+  if (doc.dashedTotals) { if (y + 24 > bottom) y = newPage(); ops.push('q [4 3] 0 d'); hline(M, W - M, y, INK, 0.9); ops.push('Q'); y += 6; }
   doc.totals.forEach(([k, v, bold]) => {
     if (y + 18 > bottom) y = newPage();
     if (bold) { hline(W - M - 230, W - M, y + 2, INK, 0.8); y += 4; }

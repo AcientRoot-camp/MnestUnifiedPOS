@@ -197,7 +197,7 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; 
               <span role="img" aria-label={online ? 'Online · synced' : 'Offline · selling continues'} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
                 <span className={cx('w-2.5 h-2.5 rounded-full', online ? 'bg-green-500 ring-4 ring-green-500/25' : 'bg-amber-400 ring-4 ring-amber-400/25')} />
               </span>
-              <button onClick={() => window.dispatchEvent(new CustomEvent('ecompos:openMe'))} aria-label={`Open your account: ${me.name}, ${me.level}`}><Avatar name={me.name} photo={photo} size={32} dark={false} /></button>
+              <button onClick={() => window.dispatchEvent(new CustomEvent('ecompos:openProfile'))} title="My profile & photo" aria-label={`My profile and photo: ${me.name}, ${me.level}`}><Avatar name={me.name} photo={photo} size={32} dark={false} /></button>
             </>
           ) : (
             <>
@@ -205,13 +205,13 @@ export default function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; 
                 <span aria-hidden className={cx('w-2 h-2 rounded-full', online ? 'bg-green-500 ring-[3px] ring-green-500/25' : 'bg-amber-400 ring-[3px] ring-amber-400/25')} />
                 {online ? 'Online · everything synced' : 'Offline · keeps selling, syncs later'}
               </span>
-              <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent('ecompos:openMe')); }} aria-haspopup="menu" className="flex items-center gap-2.5 p-1.5 rounded-[14px] hover:bg-white/10 text-left">
+              <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent('ecompos:openProfile')); }} aria-haspopup="dialog" title="My profile & photo" aria-label={`My profile and photo: ${me.name}, ${me.level}`} className="flex items-center gap-2.5 p-1.5 rounded-[14px] hover:bg-white/10 text-left">
                 <Avatar name={me.name} photo={photo} size={32} dark={false} />
                 <span className="flex flex-col">
                   <span className="text-sm font-medium">{me.name}</span>
                   <span className="text-xs text-white/70">{me.level}</span>
                 </span>
-                <Icon name="chevronDown" size={14} stroke={2} className="ml-auto opacity-70" />
+                <span aria-hidden className="ml-auto text-xs opacity-80">📷</span>
               </button>
             </>
           )}

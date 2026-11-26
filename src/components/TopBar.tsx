@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { readPhoto } from '../lib/photo';
+import { EMPS0, type Emp } from '../data/people';
 import { Link, useNavigate } from 'react-router-dom';
 import Icon from './Icon';
 import { ACCOUNTS, BRANCHES, PEOPLE, buildNav } from '../data/nav';
-import { usePersist } from '../lib/persist';
+import { readKey, usePersist } from '../lib/persist';
 import { credSet, creds, endOtherSessions, pwProblem, secLog } from '../lib/sec';
 import { useSession } from '../lib/session';
 import NoticeModal from '../components/Notice';
@@ -64,7 +66,11 @@ export function SearchBar() {
 }
 
 export type Profile = { photo?: string; phone?: string; email?: string };
-export type StaffMsg = { id: string; from: string; title: string; body: string; to: string[]; br: string; confirm: boolean; readBy: string[]; at: number };
+/** A message from the Admin. to + br: the groups it is for; who: particular people by name (when set, only they get it). */
+export type StaffMsg = { id: string; from: string; title: string; body: string; to: string[]; br: string; who?: string[]; confirm: boolean; readBy: string[]; at: number };
+/** Whether a message is for this person. Inputs: the message, their role, name and branch ('' or 'all' for everywhere). */
+export const msgFor = (x: StaffMsg, role: string, name: string, branch?: string) =>
+  x.who?.length ? x.who.includes(name) : x.to.includes(role) && (x.br === 'all' || !branch || branch === 'all' || x.br === branch);
 /** A bell notification for some roles. br: only for that branch's people (and the Admin), e.g. a branch's 09:00 alert.
  * who: only for one person (e.g. "Your staff ID card is ready"). */
 export type Notif = { id: string; t: string; s: string; at: number; to: string[]; readBy: string[]; link?: string; br?: string; who?: string };
@@ -96,12 +102,39 @@ export function AccountBar() {
   const prof = profiles[uname] || {};
   const branch = viewBranch === 'all' ? 'All branches' : BRANCHES.find((b) => b.id === viewBranch)?.short ?? '';
   const forBranch = (n: Notif) => (!n.who || n.who === session?.name) && (!n.br || role === 'superuser' || role === 'developer' || !session?.branch || session.branch === 'all' || session.branch === n.br);
-  const mine = [...notifs.filter((n) => n.to.includes(role) && forBranch(n)), ...msgs.filter((m) => m.to.includes(role) && m.from !== me.name).map((m) => ({ id: m.id, t: `${m.from}: ${m.title}`, s: m.body, at: m.at, to: m.to, readBy: m.readBy, link: undefined }))].sort((a, b) => b.at - a.at);
+  const mine = [...notifs.filter((n) => n.to.includes(role) && forBranch(n)), ...msgs.filter((m) => msgFor(m, role, me.name, session?.branch) && m.from !== me.name).map((m) => ({ id: m.id, t: `${m.from}: ${m.title}`, s: m.body, at: m.at, to: m.to, readBy: m.readBy, link: undefined }))].sort((a, b) => b.at - a.at);
   const unread = mine.filter((n) => !n.readBy.includes(uname));
-  useEffect(() => { const f = () => setOpen(true); window.addEventListener('ecompos:openMe', f); return () => window.removeEventListener('ecompos:openMe', f); }, []);
+  // The account menu sits at the top of the page, so bring it into view when something else asks to open it.
+  useEffect(() => { const f = () => { setOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }; window.addEventListener('ecompos:openMe', f); return () => window.removeEventListener('ecompos:openMe', f); }, []);
   const [pf, setPf] = useState<Profile>({});
+  // Profile photo: saved straight away from the account menu or the "My profile & photo" window.
+  const [photoMsg, setPhotoMsg] = useState<null | { text: string; err: boolean }>(null);
+  const savePhoto = (photo: string) => { setProfiles((all) => ({ ...all, [uname]: { ...all[uname], photo } })); setPhotoMsg({ text: photo ? '✓ Photo saved' : 'Photo removed', err: false }); };
+  const pickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; e.target.value = ''; // cleared, so choosing the same file again still works
+    if (!f) return;
+    readPhoto(f).then(savePhoto).catch((x: Error) => setPhotoMsg({ text: x.message, err: true }));
+  };
+  /** Open "My profile & photo" (from the account menu, or the profile at the bottom of the side menu). */
+  const openProfile = () => { setPf({ phone: prof.phone ?? '', email: prof.email ?? `${uname}@ebenezerunique.com.gh` }); setPhotoMsg(null); setModal('profile'); setOpen(false); setBell(false); };
+  const openProfileRef = useRef(openProfile); openProfileRef.current = openProfile;
+  useEffect(() => { const f = () => openProfileRef.current(); window.addEventListener('ecompos:openProfile', f); return () => window.removeEventListener('ecompos:openProfile', f); }, []);
   const [pw, setPw] = useState({ cur: '', n1: '', n2: '', pin: '', err: '', ok: '' });
-  const [m, setM] = useState({ title: '', body: '', to: ['manager', 'supervisor', 'staff'], br: 'all', confirm: true, err: '' });
+  const blankMsg = { title: '', body: '', to: ['manager', 'supervisor', 'staff'], br: 'all', mode: 'roles' as 'roles' | 'people', who: [] as string[], q: '', confirm: true, err: '' };
+  const [m, setM] = useState(blankMsg);
+  /** Everyone a message can go to by name: the user accounts (Admin › Users), open accounts only, not the sender or support. */
+  const people = useMemo(() => {
+    const saved = readKey<{ name: string; level: string; role: string; br: string; closed?: boolean }[]>('ecompos.accounts3', []);
+    // Before Admin › Users has been opened the accounts list is not saved yet: use the sign-in accounts plus every
+    // employee on the HR list (people who have left are skipped), the same people Admin › Users starts with.
+    const ROLE_OF: Record<string, string> = { Admin: 'superuser', Manager: 'manager', Supervisor: 'supervisor', 'Sales staff': 'staff', Rider: 'rider' };
+    const base = ACCOUNTS.map((a) => ({ name: a.name, level: a.level, role: a.role as string, br: a.branch || 'all' }));
+    const list: { name: string; level: string; role: string; br: string; closed?: boolean }[] = saved.length ? saved
+      : [...base, ...readKey<Emp[]>('ecompos.staff2', EMPS0).filter((e) => e.status !== 'Left' && !base.some((b) => b.name === e.name)).map((e) => ({ name: e.name, level: e.level, role: ROLE_OF[e.level] || 'staff', br: e.br }))];
+    return list.filter((p) => !p.closed && p.role !== 'developer' && p.name !== me.name)
+      .map((p) => ({ name: p.name, level: p.level, role: p.role, brName: p.br === 'all' || !p.br ? 'All branches' : BRANCHES.find((b) => b.id === p.br)?.short ?? p.br }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [modal, me.name]); // eslint-disable-line react-hooks/exhaustive-deps
   const item = 'flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-canvas text-sm text-left w-full';
   const acc = ACCOUNTS.find((a) => a.username === uname);
   return (
@@ -132,11 +165,14 @@ export function AccountBar() {
       )}
       {open && (
         <div role="menu" className="absolute right-0 top-14 z-40 w-80 max-w-[92vw] bg-white rounded-2xl shadow-card p-3 flex flex-col gap-1">
-          <div className="flex items-center gap-3 p-2"><Avatar name={me.name} photo={prof.photo} size={44} /><span className="flex flex-col"><strong className="text-sm">{me.name}</strong><span className="text-xs text-muted">{me.level} · {SU ? 'All branches' : BRANCHES.find((b) => b.id === session?.branch)?.short} · @{uname}</span></span></div>
-          <button role="menuitem" onClick={() => { setPf({ phone: prof.phone ?? '', email: prof.email ?? `${uname}@ebenezerunique.com.gh`, photo: prof.photo }); setModal('profile'); setOpen(false); }} className={item}>👤 My profile &amp; photo</button>
+          <div className="flex items-center gap-3 p-2">
+            {/* The picture itself is an upload button (camera badge). */}
+            <label title="Upload your photo" className="relative flex-none cursor-pointer rounded-full focus-within:ring-2 focus-within:ring-black"><Avatar name={me.name} photo={prof.photo} size={44} /><span aria-hidden className="absolute -right-1 -bottom-1 w-5 h-5 rounded-full bg-white border border-line text-[10px] flex items-center justify-center">📷</span><input type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload your photo" className="sr-only" onChange={pickPhoto} /></label><span className="flex flex-col"><strong className="text-sm">{me.name}</strong><span className="text-xs text-muted">{me.level} · {SU ? 'All branches' : BRANCHES.find((b) => b.id === session?.branch)?.short} · @{uname}</span></span></div>
+          {photoMsg && <span role={photoMsg.err ? 'alert' : 'status'} className={`px-3 text-xs ${photoMsg.err ? 'text-danger' : 'text-ok'}`}>{photoMsg.text}</span>}
+          <button role="menuitem" onClick={openProfile} className={item}>👤 My profile &amp; photo</button>
           <button role="menuitem" onClick={() => { setPw({ cur: '', n1: '', n2: '', pin: '', err: '', ok: '' }); setModal('pw'); setOpen(false); }} className={item}><Icon name="lock" /> My account &amp; password</button>
           <Link role="menuitem" to="/staff" onClick={() => setOpen(false)} className={item}><Icon name="user" /> My sign-in, ID card, payslips &amp; leave</Link>
-          {SU && <button role="menuitem" onClick={() => { setM({ title: '', body: '', to: ['manager', 'supervisor', 'staff'], br: 'all', confirm: true, err: '' }); setModal('msg'); setOpen(false); }} className={item}><Icon name="messages" /> Send a message to staff</button>}
+          {SU && <button role="menuitem" onClick={() => { setM(blankMsg); setModal('msg'); setOpen(false); }} className={item}><Icon name="messages" /> Send a message to staff</button>}
           {SU && <Link role="menuitem" to="/settings" onClick={() => setOpen(false)} className={item}><Icon name="settings" /> Settings</Link>}
           {SU && <Link role="menuitem" to="/backup" onClick={() => setOpen(false)} className={item}><Icon name="backup" /> Backup &amp; restore</Link>}
           <button role="menuitem" onClick={signOut} className={`${item} text-danger`}><Icon name="signOut" /> Sign out</button>
@@ -147,12 +183,14 @@ export function AccountBar() {
           <section role="dialog" aria-modal="true" aria-label={modal === 'profile' ? 'My profile' : modal === 'pw' ? 'My account & password' : 'Send a message to staff'} onClick={(e) => e.stopPropagation()} className="bg-white w-full sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-[28px] sm:rounded-[28px] p-6 flex flex-col gap-3">
             <div className="flex justify-between"><h2 className="m-0 text-xl font-semibold">{modal === 'profile' ? 'My profile & photo' : modal === 'pw' ? 'My account & password' : 'Send a message to staff'}</h2><button onClick={() => setModal('')} aria-label="Close" className="w-9 h-9 rounded-full hover:bg-canvas text-xl">×</button></div>
             {modal === 'profile' && <>
-              <div className="flex items-center gap-3"><Avatar name={me.name} photo={pf.photo} size={64} /><label className="btn-ghost cursor-pointer">{pf.photo ? 'Change photo' : 'Upload photo'}<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (!f) return; if (!/jpe?g|png|webp/.test(f.type)) return alert('415 Unsupported Media Type · Use JPG, PNG or WebP.'); if (f.size > 3 * 1024 * 1024) return alert('413 Content Too Large · Use a photo under 3 MB.'); const r = new FileReader(); r.onload = () => setPf({ ...pf, photo: String(r.result) }); r.readAsDataURL(f); }} /></label>{pf.photo && <button onClick={() => setPf({ ...pf, photo: '' })} className="text-xs underline">Remove</button>}</div>
+              {/* The photo is saved as soon as it is chosen (no need to press "Save profile"). */}
+              <div className="flex items-center gap-3"><Avatar name={me.name} photo={prof.photo} size={64} /><label className="btn-ghost cursor-pointer focus-within:ring-2 focus-within:ring-black">{prof.photo ? 'Change photo' : 'Upload photo'}<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={pickPhoto} /></label>{prof.photo && <button onClick={() => savePhoto('')} className="text-xs underline">Remove</button>}</div>
+              {photoMsg && <span role={photoMsg.err ? 'alert' : 'status'} className={`text-sm ${photoMsg.err ? 'text-danger' : 'text-ok'}`}>{photoMsg.text}</span>}
               <span className="text-xs text-muted">JPG, PNG or WebP · shows on your ID card, the side menu and receipts you print.</span>
               <label className="label">Phone<input value={pf.phone} onChange={(e) => setPf({ ...pf, phone: e.target.value })} placeholder="+233 24 000 0000" className="field" /></label>
               <label className="label">Email<input value={pf.email} onChange={(e) => setPf({ ...pf, email: e.target.value })} className="field" /></label>
               <div className="text-sm rounded-2xl bg-canvas p-3"><span className="text-muted">My branch · </span><b>{SU ? 'All branches (Admin)' : BRANCHES.find((b) => b.id === session?.branch)?.name}</b><br /><span className="text-xs text-muted">Only the Admin can move you to another branch.</span></div>
-              <div className="flex gap-2 flex-wrap"><button onClick={() => { setProfiles({ ...profiles, [uname]: pf }); setModal(''); }} className="btn-primary">Save profile</button><button onClick={() => setModal('pw')} className="btn-ghost">Change password or PIN</button></div>
+              <div className="flex gap-2 flex-wrap"><button onClick={() => { setProfiles((all) => ({ ...all, [uname]: { ...all[uname], phone: pf.phone, email: pf.email } })); setModal(''); }} className="btn-primary">Save profile</button><button onClick={() => setModal('pw')} className="btn-ghost">Change password or PIN</button></div>
             </>}
             {modal === 'pw' && <>
               <span className="text-sm text-muted">Signed in as <b className="text-black">{uname}</b> · {me.level}. Use a password only you know.</span>
@@ -166,14 +204,26 @@ export function AccountBar() {
             </>}
             {modal === 'msg' && <>
               <label className="label">Title<input value={m.title} onChange={(e) => setM({ ...m, title: e.target.value })} placeholder="e.g. Stock count on Saturday" className="field" /></label>
-              <label className="label">Message<textarea rows={4} value={m.body} onChange={(e) => setM({ ...m, body: e.target.value })} className="p-3 rounded-2xl border border-line text-sm" /></label>
+              <label className="label flex flex-col gap-1">Message<textarea rows={4} value={m.body} onChange={(e) => setM({ ...m, body: e.target.value })} className="w-full p-3 rounded-2xl border border-line text-sm font-normal" /></label>
               <span className="text-[13px] font-semibold">Send to</span>
-              <div className="flex gap-1.5 flex-wrap">{([['manager', 'Managers'], ['supervisor', 'Supervisors'], ['staff', 'Sales staff'], ['rider', 'Riders']] as const).map(([v, l]) => <button key={v} aria-pressed={m.to.includes(v)} onClick={() => setM({ ...m, to: m.to.includes(v) ? m.to.filter((x) => x !== v) : [...m.to, v] })} className={`text-xs px-3 py-1.5 rounded-full border ${m.to.includes(v) ? 'bg-black text-white border-black' : 'border-line'}`}>{m.to.includes(v) ? '✓ ' : ''}{l}</button>)}</div>
-              <label className="label">Branch<select value={m.br} onChange={(e) => setM({ ...m, br: e.target.value })} className="field"><option value="all">All branches</option>{BRANCHES.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
+              {/* Either whole groups (by role and branch) or particular people picked by name. */}
+              <div className="flex gap-1 p-1 rounded-full bg-canvas w-fit" role="group" aria-label="Send to groups or particular people">{([['roles', 'Groups'], ['people', 'Particular people']] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={m.mode === v} onClick={() => setM({ ...m, mode: v, err: '' })} className={`h-8 px-3.5 rounded-full text-xs ${m.mode === v ? 'bg-white font-semibold shadow-sm' : 'text-muted'}`}>{l}</button>)}</div>
+              {m.mode === 'roles' ? <>
+                <div className="flex gap-1.5 flex-wrap">{([['manager', 'Managers'], ['supervisor', 'Supervisors'], ['staff', 'Sales staff'], ['rider', 'Riders']] as const).map(([v, l]) => <button key={v} aria-pressed={m.to.includes(v)} onClick={() => setM({ ...m, to: m.to.includes(v) ? m.to.filter((x) => x !== v) : [...m.to, v] })} className={`text-xs px-3 py-1.5 rounded-full border ${m.to.includes(v) ? 'bg-black text-white border-black' : 'border-line'}`}>{m.to.includes(v) ? '✓ ' : ''}{l}</button>)}</div>
+                <label className="label">Branch<select value={m.br} onChange={(e) => setM({ ...m, br: e.target.value })} className="field"><option value="all">All branches</option>{BRANCHES.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select></label>
+              </> : <>
+                <input value={m.q} onChange={(e) => setM({ ...m, q: e.target.value })} placeholder="Search by name, role or branch" aria-label="Search employees" className="field" />
+                <div className="flex flex-col gap-0.5 max-h-56 overflow-y-auto rounded-2xl border border-line p-1.5" role="group" aria-label="Employees">
+                  {people.filter((p) => !m.q.trim() || `${p.name} ${p.level} ${p.brName}`.toLowerCase().includes(m.q.trim().toLowerCase())).map((p) => { const on = m.who.includes(p.name); return (
+                    <label key={p.name} className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer text-sm ${on ? 'bg-canvas' : 'hover:bg-canvas'}`}><input type="checkbox" checked={on} onChange={() => setM({ ...m, who: on ? m.who.filter((x) => x !== p.name) : [...m.who, p.name], err: '' })} className="w-4 h-4 accent-brand flex-none" /><span className="flex-1 min-w-0 truncate"><b className="font-medium">{p.name}</b> <span className="text-muted">· {p.level} · {p.brName}</span></span></label>
+                  ); })}
+                </div>
+                <span className="text-xs text-muted">{m.who.length ? `${m.who.length} selected: ${m.who.join(', ')}` : 'Tick one or more people.'}</span>
+              </>}
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={m.confirm} onChange={() => setM({ ...m, confirm: !m.confirm })} className="w-4 h-4 accent-brand" />Ask each person to confirm they have read it</label>
               {m.err && <span role="alert" className="text-sm text-danger">{m.err}</span>}
-              <button onClick={() => { if (m.title.trim().length < 3 || m.body.trim().length < 5) return setM({ ...m, err: '422 Unprocessable Content · Add a title and the message.' }); if (!m.to.length) return setM({ ...m, err: 'Choose who should get it.' }); setMsgs([{ id: 'sm' + Date.now(), from: me.name, title: m.title.trim(), body: m.body.trim(), to: m.to, br: m.br, confirm: m.confirm, readBy: [], at: Date.now() }, ...msgs]); setModal(''); }} className="btn-primary w-fit">Send message</button>
-              {msgs.length > 0 && <div className="flex flex-col gap-1.5 border-t border-line pt-2"><strong className="text-sm">Sent messages</strong>{msgs.slice(0, 5).map((x) => <span key={x.id} className="text-xs"><b>{x.title}</b> · {ago(x.at)} ago · read by {x.readBy.length ? x.readBy.join(', ') : 'no one yet'}</span>)}</div>}
+              <button onClick={() => { if (m.title.trim().length < 3 || m.body.trim().length < 5) return setM({ ...m, err: '422 Unprocessable Content · Add a title and the message.' }); const byName = m.mode === 'people'; if (byName ? !m.who.length : !m.to.length) return setM({ ...m, err: byName ? 'Tick at least one person.' : 'Choose who should get it.' }); const picked = people.filter((p) => m.who.includes(p.name)); setMsgs([{ id: 'sm' + Date.now(), from: me.name, title: m.title.trim(), body: m.body.trim(), to: byName ? Array.from(new Set(picked.map((p) => p.role))) : m.to, br: byName ? 'all' : m.br, ...(byName ? { who: m.who } : {}), confirm: m.confirm, readBy: [], at: Date.now() }, ...msgs]); setModal(''); }} className="btn-primary w-fit">Send message</button>
+              {msgs.length > 0 && <div className="flex flex-col gap-1.5 border-t border-line pt-2"><strong className="text-sm">Sent messages</strong>{msgs.slice(0, 5).map((x) => <span key={x.id} className="text-xs"><b>{x.title}</b>{x.who?.length ? ` · to ${x.who.join(', ')}` : ''} · {ago(x.at)} ago · read by {x.readBy.length ? x.readBy.join(', ') : 'no one yet'}</span>)}</div>}
             </>}
           </section>
         </div>

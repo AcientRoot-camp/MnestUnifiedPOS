@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ACCOUNTS } from '../data/nav';
 import { creds, deviceName, secLog } from '../lib/sec';
 import { useSession } from '../lib/session';
-import { promptInstall, useInstallMode, type InstallMode } from '../lib/pwa';
+import { isStandalone, promptInstall, useInstallMode, type InstallMode } from '../lib/pwa';
 
 /** Safely read / write a value in local or session storage (storage can be blocked). */
 const store = {
@@ -156,5 +156,79 @@ export function PosInstall() {
       )}
       {done && <div role="status" className="fixed z-[60] left-3 right-3 bottom-3 sm:left-5 sm:right-auto sm:w-[380px] rounded-2xl bg-[#0b5c5c] text-white p-4 text-sm flex gap-3 items-start"><span className="flex-1">{done}</span><button onClick={() => setDone('')} aria-label="Close" className="text-lg leading-none">×</button></div>}
     </>
+  );
+}
+
+/* ---------------- Unified POS sign-in page ---------------- */
+
+/**
+ * "Install MNest UnifiedPOS" card on the POS sign-in page: top right on wide screens, across the top on smaller ones.
+ * It stays until the user closes it (× or "Not now"; hidden for the rest of that browser visit, including after
+ * sign-in). Never shown inside the installed app. Nobody is signed in yet, so "Install" asks for a username and that
+ * person's 6-digit passcode, keeping the rule that only company users may install the POS. 5 wrong tries lock
+ * installing on this device for 15 minutes, and every try goes to the security log.
+ */
+export function LoginInstall() {
+  const mode = useInstallMode();
+  const KEY = 'ecompos.installSnooze.pos';
+  const LOCK = '@sign-in-page';
+  const [closed, setClosed] = useState(() => !!store.get(sessionStorage, KEY));
+  const [ask, setAsk] = useState<null | { user: string; pin: string; err: string; ok: boolean }>(null);
+  if (closed || isStandalone()) return null;
+  const close = () => { store.set(sessionStorage, KEY, '1'); setClosed(true); setAsk(null); };
+
+  /** Check the username and passcode, then open the browser's install dialog (must run inside the click). */
+  const confirm = async () => {
+    if (!ask) return;
+    const until = Number(store.get(localStorage, lockKey(LOCK)) || 0);
+    if (until > Date.now()) return setAsk({ ...ask, err: `Too many wrong tries. Try again in ${Math.ceil((until - Date.now()) / 60000)} minutes.` });
+    const user = ask.user.trim().toLowerCase();
+    if (!user || !/^\d{6}$/.test(ask.pin)) return setAsk({ ...ask, err: 'Enter your username and all 6 digits of your passcode.' });
+    if (ask.pin !== passcodeOf(user)) {
+      const k = 'ecompos.installTries.' + LOCK; const n = Number(store.get(sessionStorage, k) || 0) + 1; const lock = n >= LOCK_TRIES;
+      store.set(sessionStorage, k, lock ? '0' : String(n));
+      if (lock) store.set(localStorage, lockKey(LOCK), String(Date.now() + LOCK_MIN * 60000));
+      secLog('POS install · wrong passcode', `Wrong username or passcode for “${user.slice(0, 40)}” on the sign-in page, ${deviceName()}${lock ? ` · installing locked for ${LOCK_MIN} minutes` : ''}`, lock ? 'high' : 'medium', user.slice(0, 40));
+      // The same message for an unknown username and a wrong passcode, so usernames cannot be guessed.
+      return setAsk({ ...ask, pin: '', err: lock ? `Too many wrong tries. Installing is locked for ${LOCK_MIN} minutes.` : 'That username and passcode do not match.' });
+    }
+    store.set(sessionStorage, 'ecompos.installTries.' + LOCK, '0');
+    secLog('POS install · passcode confirmed', `${user} confirmed their passcode to install the POS on ${deviceName()}`, 'low', user);
+    if (mode !== 'prompt') return setAsk({ ...ask, ok: true, err: '' });
+    if ((await promptInstall()) === 'accepted') close(); else setAsk(null);
+  };
+
+  const field = 'h-11 rounded-full border border-black/15 px-4 text-sm font-normal bg-white focus:outline-none focus:border-[#0b5c5c]';
+  return (
+    <section role="dialog" aria-label="Install MNest UnifiedPOS" className="w-full xl:fixed xl:z-30 xl:top-5 xl:right-5 xl:w-[360px] rounded-[24px] bg-white text-black ring-1 ring-black/10 shadow-[0_24px_60px_-20px_rgba(0,0,0,.45)] p-4 flex flex-col gap-3 text-left">
+      <div className="flex gap-3 items-start">
+        <img src="/icons/pos-192.png" alt="" className="w-12 h-12 rounded-2xl ring-1 ring-black/10 flex-none" />
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
+          <strong className="text-[15px] leading-snug">Install MNest UnifiedPOS</strong>
+          <span className="text-[13px] leading-relaxed text-[#55524f]">Open the POS straight from your home screen or desktop, full screen.</span>
+        </div>
+        <button type="button" onClick={close} aria-label="Close" className="-mr-1 -mt-1 w-8 h-8 rounded-full text-[#55524f] hover:bg-black/5 flex-none text-lg leading-none">×</button>
+      </div>
+      {!ask && (
+        <div className="flex gap-2 justify-end">
+          <button type="button" onClick={close} className="h-10 px-4 rounded-full text-sm font-semibold border border-black/15 hover:border-black">Not now</button>
+          <button type="button" onClick={() => setAsk({ user: '', pin: '', err: '', ok: false })} className="h-10 px-5 rounded-full text-sm font-semibold text-white" style={{ background: '#0b5c5c' }}>Install</button>
+        </div>
+      )}
+      {ask && !ask.ok && (
+        <form onSubmit={(e) => { e.preventDefault(); void confirm(); }} className="flex flex-col gap-2">
+          <span className="text-[13px] font-semibold">Confirm you are a company user</span>
+          <input autoFocus value={ask.user} onChange={(e) => setAsk({ ...ask, user: e.target.value, err: '' })} aria-label="Username to install" placeholder="Username" autoCapitalize="none" autoComplete="off" className={field} />
+          <input type="password" inputMode="numeric" maxLength={6} value={ask.pin} onChange={(e) => setAsk({ ...ask, pin: e.target.value.replace(/\D/g, ''), err: '' })} aria-label="6-digit passcode to install" placeholder="6-digit passcode" autoComplete="off" className={field} />
+          {ask.err && <span role="alert" className="text-[13px] text-[#c62828]">{ask.err}</span>}
+          <div className="flex gap-2 justify-end"><button type="button" onClick={() => setAsk(null)} className="h-10 px-4 rounded-full text-sm font-semibold border border-black/15">Back</button><button type="submit" className="h-10 px-5 rounded-full text-sm font-semibold text-white" style={{ background: '#0b5c5c' }}>Confirm and install</button></div>
+        </form>
+      )}
+      {/* After the passcode, on browsers with no install button: what to do by hand. */}
+      {ask?.ok && (
+        <span role="status" className="text-[13px] leading-relaxed">{mode === 'ios' || mode === 'mac-safari' ? <HowTo mode={mode} name="MNest UnifiedPOS" />
+          : <>In Chrome or Edge, use the <b>Install</b> icon in the address bar, or the <b>⋮</b> menu › <b>Install app</b>. If it is already installed, open it from your apps. Some browsers cannot install apps.</>}</span>
+      )}
+    </section>
   );
 }

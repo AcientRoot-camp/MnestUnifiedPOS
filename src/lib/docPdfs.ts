@@ -82,6 +82,7 @@ export function tillSaleDoc(s: TillSale, biz: Biz, kind: 'receipt' | 'invoice', 
       ['Customer', s.biz?.name || s.cust?.name || 'Walk-in customer'], ...(s.biz?.tin ? [['Customer TIN', s.biz.tin] as [string, string]] : []),
       ['Payment', s.parts?.length ? s.parts.map((p) => `${p.m} ${ghs(p.amt)}`).join(' + ') : s.method], ...(s.payRef ? [['Payment ref', s.payRef] as [string, string]] : [])],
     table: { cols: ITEM_COLS(), rows: s.lines.map((l) => [String(l.qty), l.name + (l.unit && l.unit !== 'single' ? ` (${l.unit})` : ''), l.sku, ghs(l.price), ghs(l.price * l.qty)]) },
+    dashedTotals: !inv,
     totals: [['Subtotal', ghs(s.sub)], ...(s.disc ? [['Discount', '-' + ghs(s.disc)] as [string, string]] : []), ...(s.credit ? [['Store credit used', '-' + ghs(s.credit)] as [string, string]] : []),
       ...(taxed ? [['VAT 15%', ghs(after * 0.15)], ['NHIL 2.5%', ghs(after * 0.025)], ['GETFund 2.5%', ghs(after * 0.025)]] as [string, string][] : []),
       ...(s.fee ? [['Delivery', ghs(s.fee)] as [string, string]] : []), ['Total', ghs(s.total), true],
@@ -96,6 +97,7 @@ export function tillSaleDoc(s: TillSale, biz: Biz, kind: 'receipt' | 'invoice', 
 export function saleDoc(sl: Sale, biz: Biz, kind: 'receipt' | 'invoice', branchName: string): PdfDoc {
   const inv = kind === 'invoice'; const no = `${inv ? 'INV' : 'RCP'}-${sl.no}`;
   return {
+    dashedTotals: !inv,
     title: inv ? 'Tax invoice' : 'Sales receipt', number: no, business: biz, logoUrl: biz.logo,
     badge: sl.status === 'voided' ? { text: 'VOIDED', tone: 'bad' } : sl.status === 'completed' ? { text: 'PAID', tone: 'ok' } : { text: sl.status.toUpperCase(), tone: 'warn' },
     meta: [['Sale number', `#${sl.no}`], ['Date', stamp(sl.ts)], ['Branch', branchName], ['Served by', sl.staff], ['Customer', sl.cust || 'Walk-in customer'], ['Payment', sl.method === 'CREDIT' ? 'Credit' : sl.method]],
