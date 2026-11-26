@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { navName } from '../../data/web';
+import { branchArt, navName } from '../../data/web';
 import { readKey, writeKey } from '../../lib/persist';
 import { cx } from '../../lib/format';
 import { useShop } from './ctx';
@@ -137,10 +137,15 @@ function BranchCard({ b, sel, pick }: { b: BrInfo; sel: boolean; pick: () => voi
   const w = W.branches[b.id];
   const pics = (w?.photos || []).filter(Boolean);
   const [i, setI] = useState(0);
+  // Pictures: the branch's own photos, or until there are some, its illustrations (its shop house, then the showroom
+  // inside; data/web.ts branchArt). Like the big picture on the home page, they change by themselves every few
+  // seconds (the same "Change picture every" setting), with a soft fade; the arrows still move them by hand.
+  const gal = pics.length ? pics : branchArt(b.id, BR_INFO.findIndex((x) => x.id === b.id));
+  const ms = (W.site.heroInterval || 4) * 1000;
+  useEffect(() => { if (gal.length < 2) return; const t = window.setTimeout(() => setI((x) => (x + 1) % gal.length), ms); return () => window.clearTimeout(t); }, [i, gal.length, ms]);
+  useEffect(() => { if (i >= gal.length) setI(0); }, [gal.length, i]);
   // Phones: only the first 3 details show until "More details" is tapped, to keep each card short.
   const [more, setMore] = useState(false);
-  const tones = ['linear-gradient(135deg,#e7ece6,#d5ddd3)', 'linear-gradient(135deg,#eee6dc,#ddd0c0)', 'linear-gradient(135deg,#e6eaee,#d3dae0)'];
-  const gal = pics.length ? pics : [null, null, null];
   const services = String(w?.services || '').split(/[·,•|]/).map((x) => x.trim()).filter(Boolean);
   const rows: [string, string, React.ReactNode][] = ([
     ['clock', 'Hours', w?.hours || b.open], ['phone', 'Phone', b.phone ? <a href={`tel:${b.phone.replace(/\s/g, '')}`} className="hover:underline">{b.phone}</a> : ''],
@@ -150,7 +155,8 @@ function BranchCard({ b, sel, pick }: { b: BrInfo; sel: boolean; pick: () => voi
   return (
     <article role="listitem" className={cx('group rounded-[28px] bg-white overflow-hidden flex flex-col transition-all duration-200', sel ? 'ring-2 ring-black shadow-[0_24px_48px_-24px_rgba(0,0,0,.45)]' : 'ring-1 ring-black/[.08] shadow-[0_1px_2px_rgba(0,0,0,.04),0_18px_40px_-28px_rgba(0,0,0,.35)] hover:-translate-y-0.5 hover:shadow-[0_24px_48px_-24px_rgba(0,0,0,.4)]')}>
       <div className="relative h-40 sm:h-56 mx-2.5 sm:mx-3 mt-2.5 sm:mt-3 rounded-[18px] sm:rounded-[20px] overflow-hidden">
-        {gal[i] ? <img src={gal[i] as string} alt={`${b.name} branch, picture ${i + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" /> : <div className="w-full h-full flex items-center justify-center text-sm text-muted" style={{ background: tones[i % 3] }}>{b.short} branch · picture {i + 1}</div>}
+        {/* All pictures are stacked and the current one fades in (the timer restarts after an arrow is used). */}
+        {gal.map((u, k) => <img key={u + k} src={u} alt={k === i ? (pics.length ? `${b.name} branch, picture ${k + 1}` : k === 0 ? `Illustration of the ${b.short} branch shop` : 'Illustration of the showroom inside the branch') : ''} aria-hidden={k !== i} className={cx('absolute inset-0 w-full h-full object-cover transition-[opacity,transform] duration-700 group-hover:scale-[1.03]', k === i ? 'opacity-100' : 'opacity-0')} />)}
         <span aria-hidden className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/45 to-transparent" />
         {gal.length > 1 && <>
           <button onClick={() => setI((i - 1 + gal.length) % gal.length)} aria-label={`Previous picture of ${b.name}`} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 backdrop-blur text-lg shadow">‹</button>

@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { BRS, PRODUCTS0, brName, now, type Product } from '../../data/catalogue';
 import { PEOPLE } from '../../data/nav';
 import { usePersist } from '../../lib/persist';
-import { FAQ0, HERO_ART, NAV_NAMES0, useWeb, type Code, type Faq, type Job, type Review, type Upd, type Web } from '../../data/web';
+import { FAQ0, HERO_ART, NAV_NAMES0, branchArt, useWeb, type Code, type Faq, type Job, type Review, type Upd, type Web } from '../../data/web';
 import { useSession } from '../../lib/session';
 import { cx, ghs } from '../../lib/format';
 import { Card, Pills } from '../finance/shared';
@@ -263,6 +263,16 @@ function Branches({ W, up, done }: { W: Web; up: (p: Partial<Web>) => void; done
       <div className="flex gap-2 items-end flex-wrap">{T('lat', 'Latitude')}{T('lng', 'Longitude')}<button onClick={() => { if (!navigator.geolocation) return done('This device cannot share its location.'); navigator.geolocation.getCurrentPosition((pos) => setF({ ...f, lat: pos.coords.latitude.toFixed(5), lng: pos.coords.longitude.toFixed(5) }), () => done('Location was not shared. Type the latitude and longitude instead.')); }} className="btn-ghost">📍 Use my current location</button></div>
       <span className="text-[13px] font-semibold">Branch pictures</span>
       <Pics pics={f.photos || []} set={(photos) => setF({ ...f, photos })} />
+      {/* Until photos are uploaded the store shows this branch's illustrations (data/web.ts branchArt); either way the
+          pictures change by themselves every few seconds, using "Change picture every" from Store settings. */}
+      {!(f.photos || []).length && <div className="flex flex-col gap-1.5">
+        <span className="text-xs text-muted">No photos yet, so the store shows these illustrations of the branch, changing every {W.site.heroInterval || 4} s:</span>
+        <div className="flex gap-2">{branchArt(b, BRS.findIndex((x) => x.id === b)).map((u) => <img key={u} src={u} alt="" className="w-28 h-16 rounded-lg object-cover border border-line" />)}</div>
+      </div>}
+      <div className="rounded-2xl bg-canvas p-3 text-xs leading-relaxed flex flex-col gap-0.5">
+        <b className="text-[13px]">Recommended photo size</b>
+        <span><b>1600 × 1000 px</b> (16:10, landscape) · at least 1200 × 750 px · JPG, ideally under 500 KB. Take the shop front from across the road in daylight, plus one or two of the showroom inside. Keep the shop name and door near the middle: the card trims a little from the edges.</span>
+      </div>
       <div className="flex items-center gap-2 flex-wrap"><span className="text-[13px] font-semibold">Products stocked at this branch</span><Pills small opts={[['all', 'All products'], ['none', 'None'], ['pick', 'Pick products']]} value={f.stocked || 'all'} onChange={(v) => setF({ ...f, stocked: v as 'all' | 'none' | 'pick' })} /></div>
       {f.stocked === 'pick' && <div className="grid sm:grid-cols-2 gap-1 max-h-56 overflow-y-auto p-2 rounded-2xl bg-canvas">{live.map((p) => { const on = (f.picked || []).includes(p.id); return <label key={p.id} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={on} onChange={() => setF({ ...f, picked: on ? (f.picked || []).filter((x) => x !== p.id) : [...(f.picked || []), p.id] })} className="accent-brand" />{p.name}</label>; })}</div>}
       <button onClick={() => { up({ branches: { ...W.branches, [b]: f } }); done(`${brName(b)} branch page published`); }} className="btn-primary w-fit">Publish branch page</button>

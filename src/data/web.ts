@@ -81,6 +81,19 @@ export const HERO_ART: { src: string; name: string }[] = [
   { src: '/assets/hero-entertainment.svg', name: 'Smart TV, soundbar, speakers and GOtv' },
   { src: '/assets/hero-power.svg', name: 'Stabiliser, UPS and fridge guard' },
 ];
+/**
+ * Built-in branch illustrations for the store's branch cards (public/assets), used until the Admin uploads photos
+ * of that branch: the branch's own shop house, then the showroom inside. They change automatically like the big
+ * picture on the home page. A branch added later (no drawing of its own) gets one of the houses by its position.
+ */
+export const BRANCH_HOUSES: Record<string, string> = { osu: '/assets/branch-osu.svg', legon: '/assets/branch-legon.svg', adum: '/assets/branch-adum.svg' };
+export const BRANCH_INSIDE = '/assets/branch-inside.svg';
+/** The illustrations for one branch. Inputs: the branch id and its position in the branch list. */
+export function branchArt(id: string, index = 0): string[] {
+  const houses = Object.values(BRANCH_HOUSES);
+  return [BRANCH_HOUSES[id] || houses[index % houses.length], BRANCH_INSIDE];
+}
+
 /** True for one of the built-in illustrations (they are aligned right on phones; photos stay centred). */
 export const isHeroArt = (u: string) => HERO_ART.some((a) => a.src === u);
 

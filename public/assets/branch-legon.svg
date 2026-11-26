@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="1200" height="680">
+<!-- Branch illustration (East Legon, Accra): a house-style two-storey shop with a red pitched roof, an upstairs
+     balcony with a railing, a green awning over the shop windows (air conditioners, fans and a TV on show) and a
+     small garden, under a warm sunset. Used on the store's branch cards until the Admin uploads real photos. -->
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a3aa8"/><stop offset="0.55" stop-color="#ff8a5b"/><stop offset="1" stop-color="#ffd39b"/></linearGradient>
+<linearGradient id="wall" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff6e8"/><stop offset="1" stop-color="#f0e2cc"/></linearGradient>
+<linearGradient id="roof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c0392b"/><stop offset="1" stop-color="#8e2a20"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a2350"/><stop offset="1" stop-color="#5a6fa0"/></linearGradient>
+<linearGradient id="lit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe8a8"/><stop offset="1" stop-color="#ffc46b"/></linearGradient>
+<filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.25"/></filter>
+</defs>
+<rect width="1200" height="680" fill="url(#sky)"/>
+<circle cx="200" cy="380" r="70" fill="#ffd166" opacity="0.85"/>
+<!-- Ground -->
+<rect y="560" width="1200" height="120" fill="#5f8f4e"/><rect y="560" width="1200" height="14" fill="#7aa864"/>
+<path d="M560 680 L600 560 H700 L740 680 Z" fill="#d9c7a8"/>
+
+<!-- House-style shop -->
+<g filter="url(#sh)">
+<path d="M310 230 L620 80 L930 230 Z" fill="url(#roof)"/>
+<rect x="340" y="226" width="560" height="334" fill="url(#wall)"/>
+<!-- Upstairs windows (lit) and balcony -->
+<rect x="390" y="256" width="110" height="90" rx="6" fill="url(#lit)"/><rect x="740" y="256" width="110" height="90" rx="6" fill="url(#lit)"/>
+<g stroke="#f0e2cc" stroke-width="5"><line x1="445" y1="256" x2="445" y2="346"/><line x1="795" y1="256" x2="795" y2="346"/></g>
+<rect x="560" y="250" width="120" height="110" rx="6" fill="url(#glass)"/>
+<rect x="540" y="350" width="160" height="12" rx="3" fill="#6b4a2b"/>
+<g stroke="#6b4a2b" stroke-width="5"><line x1="550" y1="350" x2="550" y2="312"/><line x1="580" y1="350" x2="580" y2="312"/><line x1="610" y1="350" x2="610" y2="312"/><line x1="640" y1="350" x2="640" y2="312"/><line x1="670" y1="350" x2="670" y2="312"/><line x1="690" y1="350" x2="690" y2="312"/><line x1="545" y1="312" x2="695" y2="312"/></g>
+<!-- Sign -->
+<rect x="420" y="378" width="400" height="40" rx="8" fill="#0b5c5c"/>
+<text x="620" y="405" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#ffffff" letter-spacing="3">ELECTRONICS &amp; APPLIANCES</text>
+<!-- Awning -->
+<path d="M350 424 H890 L910 458 H330 Z" fill="#2a9d8f"/>
+<g fill="#e9fff9" opacity="0.9"><path d="M400 424 H440 L448 458 H408 Z"/><path d="M490 424 H530 L538 458 H498 Z"/><path d="M580 424 H620 L628 458 H588 Z"/><path d="M670 424 H710 L718 458 H678 Z"/><path d="M760 424 H800 L808 458 H768 Z"/><path d="M850 424 H890 L898 458 H858 Z"/></g>
+<!-- Shop windows -->
+<rect x="360" y="464" width="210" height="96" rx="6" fill="url(#glass)"/>
+<rect x="376" y="476" width="110" height="28" rx="8" fill="#eef1f5"/><circle cx="530" cy="512" r="26" fill="none" stroke="#eef1f5" stroke-width="4"/><line x1="530" y1="538" x2="530" y2="556" stroke="#eef1f5" stroke-width="4"/>
+<rect x="670" y="464" width="210" height="96" rx="6" fill="url(#glass)"/>
+<rect x="690" y="478" width="110" height="64" rx="4" fill="#0d1b4c"/><rect x="696" y="484" width="98" height="52" rx="2" fill="#2f6fd6"/><circle cx="770" cy="502" r="10" fill="#ffd166"/>
+<!-- Door -->
+<rect x="590" y="464" width="60" height="96" rx="4" fill="#6b4a2b"/><circle cx="638" cy="514" r="4" fill="#ffd166"/>
+</g>
+<!-- Garden -->
+<g fill="#2f7d45"><circle cx="300" cy="540" r="34"/><circle cx="260" cy="552" r="26"/><circle cx="950" cy="540" r="34"/><circle cx="990" cy="552" r="26"/></g>
+<g fill="#ff6b8a"><circle cx="290" cy="526" r="5"/><circle cx="310" cy="546" r="5"/><circle cx="944" cy="528" r="5"/><circle cx="962" cy="548" r="5"/></g>
+<!-- Tree on the right -->
+<g><rect x="1076" y="420" width="18" height="140" fill="#6b4a2b"/><circle cx="1085" cy="390" r="64" fill="#2f7d45"/><circle cx="1040" cy="420" r="40" fill="#3a9254"/><circle cx="1130" cy="420" r="40" fill="#3a9254"/></g>
+</svg>
