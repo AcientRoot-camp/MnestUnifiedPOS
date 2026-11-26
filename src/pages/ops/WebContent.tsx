@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { BRS, PRODUCTS0, brName, now, type Product } from '../../data/catalogue';
 import { PEOPLE } from '../../data/nav';
 import { usePersist } from '../../lib/persist';
-import { FAQ0, NAV_NAMES0, useWeb, type Code, type Faq, type Job, type Review, type Upd, type Web } from '../../data/web';
+import { FAQ0, HERO_ART, NAV_NAMES0, useWeb, type Code, type Faq, type Job, type Review, type Upd, type Web } from '../../data/web';
 import { useSession } from '../../lib/session';
 import { cx, ghs } from '../../lib/format';
 import { Card, Pills } from '../finance/shared';
@@ -480,8 +480,32 @@ function Site({ W, up, done }: { W: Web; up: (p: Partial<Web>) => void; done: (m
         </Card>
         <Card title="Home page">
           <div className="flex items-center gap-2 flex-wrap"><span className="text-[13px] font-semibold">Big picture at the top</span><Pills small opts={[['slides', 'Sliding pictures'], ['single', 'One picture'], ['video', 'Video'], ['none', 'No picture']]} value={s.heroVideo && s.hero === 'video' ? 'video' : s.hero} onChange={(v) => setS({ ...s, hero: v, heroVideo: v === 'video' ? s.heroVideo : '' })} /></div>
-          {s.hero !== 'video' && s.hero !== 'none' && <><Pics pics={pics} set={(heroPics) => setS({ ...s, heroPics })} /><div className="flex items-center gap-2 flex-wrap"><span className="text-[13px] font-semibold">Change picture every</span><Pills small opts={[['4', '4 s'], ['5', '5 s'], ['7', '7 s'], ['10', '10 s']]} value={String(s.heroInterval || 5)} onChange={(v) => setS({ ...s, heroInterval: Number(v) })} /></div></>}
+          {s.hero !== 'video' && s.hero !== 'none' && <>
+            <Pics pics={pics} set={(heroPics) => setS({ ...s, heroPics })} />
+            {/* Recommended picture size: the card is about 1.9 : 1 on computers, 3 : 2 on tablets and 4 : 3 on phones, and
+                pictures are enlarged to fill it, so a 16 : 9 landscape picture with the subject in the middle suits all three. */}
+            <div className="rounded-2xl bg-canvas p-3 text-xs leading-relaxed flex flex-col gap-0.5">
+              <b className="text-[13px]">Recommended picture size</b>
+              <span><b>1920 × 1080 px</b> (16:9, landscape) · at least 1600 × 900 px · JPG (or PNG / WebP), ideally under 500 KB so it loads fast (5 MB at most).</span>
+              <span>Keep the main subject in the <b>middle</b>: phones show the centre of the picture (about the middle three-quarters of its width), and computers trim a little from the top and bottom. Avoid text in the picture; the heading is added by the store.</span>
+            </div>
+            {/* Built-in illustrations (data/web.ts HERO_ART): shown when no photos are uploaded, or mixed in with them. */}
+            <div className="flex flex-col gap-2">
+              <span className="text-[13px] font-semibold">Built-in illustrations · {HERO_ART.length}</span>
+              <div className="flex gap-2 flex-wrap">{HERO_ART.map((a) => <img key={a.src} src={a.src} alt={a.name} title={a.name} className="w-28 h-[50px] rounded-lg object-cover border border-line" />)}</div>
+              {pics.length
+                ? <div className="flex items-center justify-between gap-3"><span className="text-xs text-muted">Also show the built-in illustrations after your {pics.length} picture{pics.length === 1 ? '' : 's'}</span><Switch on={!!s.heroArt} onChange={() => setS({ ...s, heroArt: !s.heroArt })} label="Also show the built-in illustrations" /></div>
+                : <span className="text-xs text-muted">You have not uploaded pictures, so the store shows these {HERO_ART.length} illustrations{s.hero === 'single' ? ' (only the first, because “One picture” is chosen)' : ', one after another'}.</span>}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap"><span className="text-[13px] font-semibold">Change picture every</span><Pills small opts={[['3', '3 s'], ['4', '4 s'], ['6', '6 s'], ['8', '8 s']]} value={String(s.heroInterval || 4)} onChange={(v) => setS({ ...s, heroInterval: Number(v) })} /></div>
+          </>}
           {s.hero === 'video' && <div className="flex items-center gap-3 flex-wrap"><label className="btn-ghost cursor-pointer">🎬 {s.heroVideo ? 'Change video' : 'Upload video'}<input type="file" accept="video/mp4,video/webm" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (!f) return; if (f.size > 60 * 1024 * 1024) return done('The video must be 60 MB or smaller.'); setS({ ...s, hero: 'video', heroVideo: URL.createObjectURL(f) }); }} /></label><span className="text-xs text-muted">MP4 or WebM, up to 60 MB · plays muted on a loop</span></div>}
+          {/* Recommended video size: same shape as the pictures; short and light so it starts quickly on mobile data. */}
+          {s.hero === 'video' && <div className="rounded-2xl bg-canvas p-3 text-xs leading-relaxed flex flex-col gap-0.5">
+            <b className="text-[13px]">Recommended video size</b>
+            <span><b>1920 × 1080 px (1080p)</b> or 1280 × 720 px (720p), 16:9 landscape · MP4 (H.264) or WebM.</span>
+            <span><b>10–30 seconds</b>, under <b>20 MB</b> (60 MB at most) so it starts quickly on mobile data. It plays muted on a loop, so no sound is needed. Keep the action in the middle: phones show the centre of the video.</span>
+          </div>}
           {T('tagline', 'Tagline (small label above the heading)')}
           {T('heroTitle', 'Heading')}
           <L l="Text under the heading"><textarea rows={3} value={s.heroText || ''} onChange={(e) => setS({ ...s, heroText: e.target.value })} className="p-3 rounded-2xl border border-line font-normal text-sm" /></L>

@@ -23,7 +23,9 @@ const load = (): Msg[] => { try { return JSON.parse(sessionStorage.getItem(KEY) 
 const save = (m: Msg[]) => { try { sessionStorage.setItem(KEY, JSON.stringify(m.slice(-40))); } catch { /* storage blocked: the chat still works for this page */ } };
 
 /** Chat bubble icon (speech bubble with three dots). */
-const Bubble = ({ size = 26 }: { size?: number }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.5 8.5 0 1 1 21 11.5Z" /><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" strokeWidth={2.6} /></svg>;
+/** The shop assistant's illustrated face (public/assets/assistant-avatar.svg), used on the chat button and in the
+ *  chat header in place of a plain message icon. Input: size in px. Decorative: the button / header text names it. */
+const Avatar = ({ size }: { size: number }) => <img src="/assets/assistant-avatar.svg" alt="" aria-hidden="true" width={size} height={size} className="rounded-full block" style={{ width: size, height: size }} />;
 
 /** Product card inside a reply: photo, name, price, stock, Add to basket and View. */
 function ProductRow({ p, onAdd, onView }: { p: SP; onAdd: () => void; onView: () => void }) {
@@ -64,7 +66,9 @@ export function ChatAssistant() {
   const inRef = useRef<HTMLInputElement>(null);
   useEffect(() => save(msgs), [msgs]);
   // Keep the newest message in view and the cursor in the box while the window is open.
-  useEffect(() => { if (open) logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' }); }, [msgs, busy, open]);
+  // Keep the newest message in view. A new chat (no messages yet) starts at the top instead, so the welcome
+  // illustration and the starter questions are the first thing the customer sees.
+  useEffect(() => { if (!open) return; const el = logRef.current; if (!el) return; if (!msgs.length && !busy) el.scrollTo({ top: 0 }); else el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }); }, [msgs, busy, open]);
   useEffect(() => { if (open) inRef.current?.focus(); }, [open]);
   useEffect(() => { if (!open) return; const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [open]);
 
@@ -116,33 +120,34 @@ export function ChatAssistant() {
     <>
       {/* "Hello" greeting bubble attached to the launcher (left of it) while the chat is closed; tapping it opens the chat. */}
       {!open && <button onClick={() => setOpen(true)} aria-label="Hello! Chat with our shop assistant" className="fixed right-[84px] bottom-[26px] z-[45] h-9 pl-3.5 pr-4 rounded-full rounded-br-md bg-white text-[#1a1240] text-sm font-semibold flex items-center gap-1.5 shadow-[0_8px_24px_rgba(26,18,64,0.22)] border border-black/5 hover:-translate-y-0.5 transition-transform"><span aria-hidden>👋</span>Hello</button>}
-      {/* Launcher: navy with a gold ring, bottom right. */}
+      {/* Launcher: the shop assistant's illustrated face in a gold ring, bottom right (× while the chat is open). */}
       <button onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="shop-chat" aria-label={open ? 'Close the chat' : 'Chat with our shop assistant'}
         className="fixed right-4 bottom-4 z-[45] w-14 h-14 rounded-full text-white flex items-center justify-center shadow-[0_10px_30px_rgba(26,18,64,0.35)] transition-transform hover:scale-105 active:scale-95"
         style={{ background: 'linear-gradient(145deg,#2a1d63,#1a1240)', boxShadow: `0 0 0 2px ${GOLD}, 0 10px 30px rgba(26,18,64,0.35)` }}>
-        {open ? <span className="text-2xl leading-none" aria-hidden>×</span> : <Bubble />}
+        {/* Closed: the shop assistant's face; open: a × to close. */}
+        {open ? <span className="text-2xl leading-none" aria-hidden>×</span> : <Avatar size={52} />}
       </button>
-      {/* Phones: a light backdrop over the store; tapping it closes the chat (tablets and up have no backdrop). */}
-      {open && <div aria-hidden="true" onClick={() => setOpen(false)} className="sm:hidden fixed inset-0 z-[59] bg-black/30" />}
       {open && (
-        // Phones: a bottom sheet about half the screen tall (55% of the visible height, at least 360px so the messages,
-        // suggestions and the typing box all fit), with rounded top corners; the store stays visible above it.
-        // Tablets and up: the floating panel above the chat button.
-        <div id="shop-chat" role="dialog" aria-label="Shop assistant chat" className="fixed z-[60] inset-x-0 bottom-0 h-[max(55dvh,360px)] max-h-[92dvh] rounded-t-[28px] sm:inset-auto sm:right-4 sm:bottom-[88px] sm:w-[390px] sm:h-[min(640px,calc(100dvh-120px))] sm:max-h-none flex flex-col bg-[#faf8f5] sm:rounded-[28px] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:border sm:border-black/5">
+        // A compact floating chat card above the chat button, like the chat widgets on other websites, on every screen:
+        // phones about 340 × 340 px (40% of the screen height, between 300 and 380 px, never full width), tablets and
+        // computers 360 × 520 px. The store stays fully visible and usable around it (no backdrop); × or Esc closes it.
+        <div id="shop-chat" role="dialog" aria-label="Shop assistant chat" className="fixed z-[60] right-3 bottom-[84px] w-[min(340px,calc(100vw-24px))] h-[clamp(300px,40dvh,380px)] sm:right-4 sm:bottom-[88px] sm:w-[360px] sm:h-[min(520px,calc(100dvh-120px))] flex flex-col bg-[#faf8f5] rounded-[24px] sm:rounded-[28px] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:border sm:border-black/5">
           {/* Header: navy, gold hairline, assistant identity and online dot. */}
-          <div className="relative px-4 pt-4 pb-3.5 text-white flex items-center gap-3" style={{ background: 'linear-gradient(135deg,#2a1d63 0%,#1a1240 70%)' }}>
-            <span className="relative w-11 h-11 rounded-full flex items-center justify-center flex-none" style={{ background: 'rgba(255,255,255,0.08)', boxShadow: `inset 0 0 0 1.5px ${GOLD}` }}><Bubble size={22} /><span className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-[#2ecc71] ring-2 ring-[#1a1240]" /></span>
-            <span className="flex-1 min-w-0 flex flex-col"><b className="text-[15px] leading-tight truncate">{bizName(W)}</b><span className="text-xs text-white/70">Shop assistant · online</span></span>
+          <div className="relative px-3.5 py-2.5 sm:px-4 sm:pt-4 sm:pb-3.5 text-white flex items-center gap-2.5 sm:gap-3" style={{ background: 'linear-gradient(135deg,#2a1d63 0%,#1a1240 70%)' }}>
+            <span className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center flex-none" style={{ background: 'rgba(255,255,255,0.08)', boxShadow: `0 0 0 1.5px ${GOLD}` }}><Avatar size={36} /><span className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-[#2ecc71] ring-2 ring-[#1a1240]" /></span>
+            <span className="flex-1 min-w-0 flex flex-col"><b className="text-[14px] sm:text-[15px] leading-tight truncate">{bizName(W)}</b><span className="text-xs text-white/70">Shop assistant · online</span></span>
             {msgs.length > 0 && <button onClick={() => setMsgs([])} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20">New chat</button>}
             <button onClick={() => setOpen(false)} aria-label="Close the chat" className="w-9 h-9 rounded-full hover:bg-white/10 text-xl leading-none">×</button>
             <span className="absolute left-0 right-0 bottom-0 h-px" style={{ background: `linear-gradient(90deg,transparent,${GOLD},transparent)` }} />
           </div>
-          <div ref={logRef} role="log" aria-live="polite" aria-busy={busy} className="flex-1 overflow-y-auto px-3.5 py-4 flex flex-col gap-3">
+          <div ref={logRef} role="log" aria-live="polite" aria-busy={busy} className="flex-1 overflow-y-auto px-3 py-3 sm:px-3.5 sm:py-4 flex flex-col gap-3">
             {/* Welcome card with starter questions (always at the top of a conversation). */}
-            <div className="rounded-3xl bg-white border border-[#ece9e4] p-4 flex flex-col gap-3">
+            <div className="rounded-3xl bg-white border border-[#ece9e4] p-3 sm:p-4 flex flex-col gap-2 sm:gap-3">
+              {/* Illustration: the shop assistant at the counter, waving, with help bubbles (delivery, orders, prices). */}
+              <img src="/assets/assistant-welcome.svg" alt="" aria-hidden="true" className="block w-full aspect-[8/3] rounded-2xl object-cover" />
               <span className="text-[15px] font-semibold">Akwaaba{first ? `, ${first}` : ''} 👋</span>
-              <span className="text-[13px] text-sub leading-relaxed">I’m the {bizName(W)} shop assistant. Type any question, or just a few words, about our products, your order, delivery, payment, returns, our policies, branches or jobs.</span>
-              <div className="flex flex-wrap gap-1.5">{STARTERS.map(([i, q]) => <button key={q} onClick={() => void send(q)} className="h-8 px-3 rounded-full bg-[#f4f1ec] hover:bg-[#ebe6de] text-[12px] font-medium">{i} {q}</button>)}</div>
+              <span className="text-[12.5px] sm:text-[13px] text-sub leading-relaxed">I’m the {bizName(W)} shop assistant. Type any question, or just a few words, about our products, your order, delivery, payment, returns, our policies, branches or jobs.</span>
+              <div className="flex flex-wrap gap-1.5">{STARTERS.map(([i, q]) => <button key={q} onClick={() => void send(q)} className="h-7 sm:h-8 px-2.5 sm:px-3 rounded-full bg-[#f4f1ec] hover:bg-[#ebe6de] text-[11.5px] sm:text-[12px] font-medium">{i} {q}</button>)}</div>
             </div>
             {msgs.map((m) => m.who === 'me' ? (
               <div key={m.id} className="self-end max-w-[85%] px-3.5 py-2.5 rounded-[20px] rounded-br-md text-[14px] text-white whitespace-pre-line" style={{ background: '#1a1240' }}>{m.text}</div>
@@ -157,12 +162,12 @@ export function ChatAssistant() {
             ))}
             {busy && <div className="self-start px-4 py-3 rounded-[20px] rounded-bl-md bg-white border border-[#ece9e4] flex gap-1" aria-label="Typing">{[0, 1, 2].map((i) => <span key={i} className="w-1.5 h-1.5 rounded-full bg-[#9a948a] animate-bounce" style={{ animationDelay: `${i * 140}ms` }} />)}</div>}
           </div>
-          <form onSubmit={submit} className="p-3 bg-white border-t border-[#ece9e4] flex flex-col gap-1.5">
-            <div className="flex items-center gap-2 h-12 pl-4 pr-1.5 rounded-full border border-[#d9d9d9] focus-within:border-black focus-within:shadow-[0_0_0_4px_rgba(0,0,0,0.06)] transition-[border-color,box-shadow]">
+          <form onSubmit={submit} className="p-2 sm:p-3 bg-white border-t border-[#ece9e4] flex flex-col gap-1 sm:gap-1.5">
+            <div className="flex items-center gap-2 h-11 sm:h-12 pl-4 pr-1.5 rounded-full border border-[#d9d9d9] focus-within:border-black focus-within:shadow-[0_0_0_4px_rgba(0,0,0,0.06)] transition-[border-color,box-shadow]">
               <input ref={inRef} value={txt} onChange={(e) => setTxt(e.target.value)} maxLength={600} placeholder="Type any question or a few words…" aria-label="Your message" autoComplete="off" className="flex-1 min-w-0 h-full bg-transparent text-[14px] outline-none focus:outline-none focus-visible:outline-none" />
               <button disabled={!txt.trim() || busy} aria-label="Send" className="w-9 h-9 rounded-full text-white flex items-center justify-center disabled:opacity-40" style={{ background: '#1a1240' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
             </div>
-            <span className="text-[10px] text-muted text-center">Automated assistant · never share PINs, passwords or card numbers</span>
+            <span className="text-[9.5px] sm:text-[10px] text-muted text-center">Automated assistant · never share PINs, passwords or card numbers</span>
           </form>
         </div>
       )}

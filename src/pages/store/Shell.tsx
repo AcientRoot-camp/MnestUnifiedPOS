@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { navName, type Web } from '../../data/web';
 import { usePersist } from '../../lib/persist';
 import { cx } from '../../lib/format';
 import { useShop } from './ctx';
 import { BIZ, BR_INFO, NAVY, dirHref, embedHref, ini, mapsHref, money, waHref } from './model';
-import { COMPANY_LOGO, companyLogo } from '../../lib/brand';
+import { COMPANY_LOGO, POWERED_BY_LOGO, companyLogo } from '../../lib/brand';
 import NoticeModal from '../../components/Notice';
 import { useSession } from '../../lib/session';
 import { clearStaffStore, isStaffStore, portalUrl } from '../../lib/site';
 import { StoreInstall } from '../../components/InstallPrompt';
+import { ChristmasHat } from '../../components/Seasonal';
+import { seasonOf } from '../../lib/season';
 import { ChatAssistant } from './Chat';
 import { SearchPanel, type SearchPanelApi } from './SearchPanel';
 
@@ -118,6 +120,8 @@ function BizMark({ W, light = true }: { W: Web; light?: boolean }) {
 export function Header() {
   const s = useShop();
   const { W, me, count, wish, go, q, setQ } = s;
+  // Christmas hat on the sign-in / account icon from 15 to 31 December.
+  const hat = useMemo(() => seasonOf().hat, []);
   const [mob, setMob] = useState(false);
   const [srch, setSrch] = useState(false);
   // Store-wide results under the search box (SearchPanel): open while typing, closed after a choice or Escape.
@@ -175,10 +179,11 @@ export function Header() {
           <button onClick={() => setSrch(!srch)} aria-label={srch ? 'Hide search' : 'Search the shop'} aria-expanded={srch} aria-controls="shop-search-row" className={cx('w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-colors', srch ? 'bg-white text-black' : 'hover:bg-white/10')}><Svg d={srch ? 'close' : 'search'} /></button>
           {/* Signed out: Sign in / Sign up as a person icon on every screen size (phone, tablet, desktop), between search
               and the wishlist; the label shows on hover and is read out by screen readers. */}
-          {!me && <button onClick={() => s.setAuth('in')} aria-label="Sign in or sign up" title="Sign in / Sign up" className="w-10 h-10 sm:w-11 sm:h-11 rounded-full hover:bg-white/10 flex items-center justify-center"><Svg d="user" /></button>}
+          {/* 15–31 December: a Christmas hat sits on the sign-in / account icon (components/Seasonal.tsx, lib/season.ts). */}
+          {!me && <button onClick={() => s.setAuth('in')} aria-label="Sign in or sign up" title="Sign in / Sign up" className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-full hover:bg-white/10 flex items-center justify-center"><Svg d="user" />{hat && <ChristmasHat size={20} className="absolute left-1/2 top-0 -translate-x-[30%] -translate-y-[2px] rotate-[14deg]" />}</button>}
           {me && (
             <div className="relative">
-              <button onClick={() => setMenu(!menu)} aria-haspopup="menu" aria-expanded={menu} className="flex items-center gap-2 h-10 pl-1 pr-3 rounded-full bg-white/10 hover:bg-white/20 text-sm font-semibold"><span className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-xs font-bold">{ini(me.name)}</span><span className="hidden sm:inline">{me.name.split(' ')[0]}</span><Svg d="chev" size={16} /></button>
+              <button onClick={() => setMenu(!menu)} aria-haspopup="menu" aria-expanded={menu} className="flex items-center gap-2 h-10 pl-1 pr-3 rounded-full bg-white/10 hover:bg-white/20 text-sm font-semibold"><span className="relative w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-xs font-bold">{ini(me.name)}{hat && <ChristmasHat size={20} className="absolute left-1/2 -top-[11px] -translate-x-[20%] rotate-[14deg]" />}</span><span className="hidden sm:inline">{me.name.split(' ')[0]}</span><Svg d="chev" size={16} /></button>
               {menu && (
                 <div role="menu" aria-label="Your account" className="absolute right-0 top-12 w-72 bg-white text-black rounded-3xl shadow-card border border-line p-2 z-50">
                   <div className="flex items-center gap-3 p-3 border-b border-line"><span className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center text-sm font-bold">{ini(me.name)}</span><span className="flex flex-col min-w-0"><strong className="text-sm">{me.name}</strong><span className="text-xs text-muted truncate">{me.email}</span><span className={cx('text-[11px] font-semibold', me.verified ? 'text-ok' : 'text-[#b26a00]')}>{me.verified ? '✓ Verified' : 'Email not verified'}</span></span></div>
@@ -339,9 +344,10 @@ export function Footer() {
         <span className="max-md:order-3">MNEST Systems 2026</span>
         {/* Accepted payment methods: desktop and tablet only (hidden on phones to keep the footer short). */}
         <div className="hidden md:flex gap-1.5 flex-wrap justify-center items-center" aria-label="Payment methods we accept"><span className="mr-1">We accept</span>{['MTN MoMo', 'Telecel Cash', 'AirtelTigo', 'Visa', 'Mastercard', 'Bank transfer'].map((m) => <span key={m} className="px-2.5 py-1 rounded-full bg-white/[.06] ring-1 ring-white/15 text-[11px] text-white">{m}</span>)}</div>
-        {/* "Powered by" credit: the MNEST Systems logo (always the platform's own logo, never the store's) on a small
-            white tile, because the logo's navy lettering would disappear on the dark footer. The alt text keeps the name for screen readers. */}
-        <span className="inline-flex items-center gap-2">Powered by<span className="inline-flex items-center justify-center rounded-md bg-white px-1 py-0.5 ring-1 ring-white/20"><img src={COMPANY_LOGO} alt="MNEST Systems" className="h-7 w-auto" /></span></span>
+        {/* "Powered by" credit: the MNEST Systems wordmark (lib/brand POWERED_BY_LOGO; always the platform's own logo,
+            never the store's) on a small white tile, because its navy lettering would disappear on the dark footer. If
+            that image is missing it falls back to COMPANY_LOGO. The alt text keeps the name for screen readers. */}
+        <span className="inline-flex items-center gap-2">Powered by<span className="inline-flex items-center justify-center rounded-md bg-white px-1 py-0.5 ring-1 ring-white/20"><img src={POWERED_BY_LOGO} alt="MNEST Systems" onError={(e) => { if (!e.currentTarget.src.endsWith(COMPANY_LOGO)) e.currentTarget.src = COMPANY_LOGO; }} className="h-7 w-auto" /></span></span>
       </div>
     </footer>
   );

@@ -7,6 +7,7 @@ import Home from './store/Home';
 import { About, Branches, Careers, Contact, CustomPage, Faqs, JobPage, Reviews, Updates } from './store/Pages';
 import { Basket, Notify, ProductPage, QuickView } from './store/Product';
 import { Footer, Header, Overlays, PromoBar, Skeleton, TopStrip, bizName, pageOn } from './store/Shell';
+import { SeasonCelebration } from '../components/Seasonal';
 
 /** A page the store owner hid in Post to online opens Home instead. */
 function On({ k, children }: { k: string; children: ReactNode }) {
@@ -57,6 +58,8 @@ function Store() {
       <AuthModal />
       <Modals />
       <Overlays />
+      {/* 25 December: Merry Christmas · 26 December: Happy Boxing Day (components/Seasonal.tsx; once a day per device). */}
+      <SeasonCelebration where="store" biz={bizName(W)} />
     </div>
   );
 }

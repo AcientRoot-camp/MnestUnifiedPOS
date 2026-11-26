@@ -11,6 +11,8 @@ import POS from './pages/POS';
 import Rider from './pages/Rider';
 import SystemOverlays from './components/SystemOverlays';
 import { PosInstall } from './components/InstallPrompt';
+import { SeasonCelebration } from './components/Seasonal';
+import { bizInfo } from './pages/pos/Docs';
 import { NoSignInWatch } from './pages/team/TimeClock';
 import ModulePage from './pages/ModulePage';
 import { SCREENS } from './data/screens';
@@ -127,6 +129,8 @@ export default function App() {
     <>
     {/* "Install the POS" pop-up for signed-in branch staff; asks for their 6-digit passcode first (components/InstallPrompt.tsx). */}
     <PosInstall />
+    {/* 25 December: Merry Christmas · 26 December: Happy Boxing Day, for staff on every POS page incl. the till. */}
+    <SeasonCelebration where="pos" biz={bizInfo().name} />
     {/* "Nobody signed in by 09:00" alert to the Admin and managers (HR time clock). */}
     <NoSignInWatch />
     <Routes>

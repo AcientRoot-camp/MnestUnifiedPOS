@@ -38,6 +38,35 @@ function PhoneIn({ id, label, value, onChange }: { id: string; label: string; va
 
 const OA: [string, string][] = [['google', 'Google'], ['apple', 'Apple'], ['facebook', 'Facebook']];
 
+/**
+ * The real sign-in brand marks, drawn as inline SVG so they stay sharp at any size and need no image download:
+ * Google's four-colour "G", Apple's black apple and Facebook's blue "f" roundel, in their official colours and
+ * shapes (brand rules: the marks are not recoloured or redrawn). Inputs: k ('google' | 'apple' | 'facebook') and
+ * size in px. Output: an <svg>, hidden from screen readers because the button text already names the provider.
+ */
+export function BrandLogo({ k, size = 20 }: { k: string; size?: number }) {
+  if (k === 'google') return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  );
+  if (k === 'apple') return (
+    // Apple's mark is taller than wide (814 × 1000), so it is drawn a touch narrower to sit level with the others.
+    <svg width={size * 0.82} height={size} viewBox="0 0 814 1000" aria-hidden="true" focusable="false">
+      <path fill="#000000" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z" />
+    </svg>
+  );
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="#1877F2" d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.971H15.83c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" />
+      <path fill="#FFFFFF" d="M16.671 15.563l.532-3.49h-3.328v-2.25c0-.944.465-1.874 1.956-1.874h1.513V4.978s-1.374-.236-2.686-.236c-2.741 0-4.533 1.671-4.533 4.697v2.634H7.078v3.49h3.047V24a12.15 12.15 0 003.75 0v-8.437h2.796z" />
+    </svg>
+  );
+}
+
 export function AuthModal() {
   const { auth, setAuth, users, setUsers, signIn, W, go } = useShop();
   const [v, setV] = useState({ email: '', pw: '', pw2: '', name: '', phone: '', code: '', oEmail: '' });
@@ -74,7 +103,7 @@ export function AuthModal() {
   const titles: Record<AuthMode, [string, string]> = { in: ['Sign in', `Welcome back to ${n}`], up: ['Create your account', 'Track orders, save addresses and reorder in a tap'], verify: ['Verify your email', `Enter the 6-digit code we sent to ${pending}`], twofa: ['Enter your code', 'Extra security is on for this account'], reset: ['Forgot your password?', 'We will email you a link to set a new one'], sent: ['Check your email', 'Reset link sent'], newpw: ['Set a new password', resetFor], oauth: [`Continue with ${oName}`, `Sign in to ${n} with ${oName}`], otp: ['Use your phone number', 'We send a code by SMS or WhatsApp'] };
   const [t, sub] = titles[auth];
   // Social sign-in: three compact buttons in one row, then an "or with email" divider before the email fields.
-  const oaBtns = (verb: string) => <><div className="grid grid-cols-3 gap-2" role="group" aria-label={`${verb} with Google, Apple or Facebook`}>{OA.map(([k, l]) => <button key={k} type="button" onClick={() => { setOName(l); setAuth('oauth'); }} aria-label={`${verb} with ${l}`} className="h-12 rounded-2xl border border-[#d9d9d9] font-semibold text-[13px] flex items-center justify-center gap-2 transition-colors hover:border-black"><span className={cx('w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center text-white', k === 'google' ? 'bg-[#4285f4]' : k === 'apple' ? 'bg-black' : 'bg-[#1877f2]')}>{l[0]}</span>{l}</button>)}</div><div className="flex items-center gap-3 text-xs text-muted" aria-hidden><span className="flex-1 h-px bg-line" />or with email<span className="flex-1 h-px bg-line" /></div></>;
+  const oaBtns = (verb: string) => <><div className="grid grid-cols-3 gap-2" role="group" aria-label={`${verb} with Google, Apple or Facebook`}>{OA.map(([k, l]) => <button key={k} type="button" onClick={() => { setOName(l); setAuth('oauth'); }} aria-label={`${verb} with ${l}`} className="h-12 rounded-2xl border border-[#d9d9d9] font-semibold text-[13px] flex items-center justify-center gap-2 transition-colors hover:border-black"><span className="w-5 h-5 flex items-center justify-center flex-none"><BrandLogo k={k} size={19} /></span>{l}</button>)}</div><div className="flex items-center gap-3 text-xs text-muted" aria-hidden><span className="flex-1 h-px bg-line" />or with email<span className="flex-1 h-px bg-line" /></div></>;
   return (
     <div className="fixed inset-0 z-[75] bg-black/50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setAuth(null)}>
       <div role="dialog" aria-modal="true" aria-labelledby="au-h" onClick={(e) => e.stopPropagation()} className="bg-white w-full sm:max-w-[440px] max-h-[94vh] overflow-y-auto rounded-t-[28px] sm:rounded-[28px] p-6 sm:p-8 flex flex-col gap-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.35)]">
@@ -131,7 +160,7 @@ export function AuthModal() {
           <button className={btn}>Save new password</button>
         </form>}
         {auth === 'oauth' && <div className="flex flex-col gap-3">
-          <div className="rounded-2xl bg-canvas p-3 text-sm">{oName} will share your name, email address and profile picture with {n}. {n} never sees your {oName} password.</div>
+          <div className="rounded-2xl bg-canvas p-3 text-sm flex items-start gap-3"><span className="w-9 h-9 rounded-full bg-white border border-line flex items-center justify-center flex-none"><BrandLogo k={oName.toLowerCase()} size={18} /></span><span>{oName} will share your name, email address and profile picture with {n}. {n} never sees your {oName} password.</span></div>
           <button onClick={() => oauthGo('ama.owusu@gmail.com', 'Ama Owusu')} className="flex items-center gap-3 p-3 rounded-2xl border border-line text-left hover:border-black"><span className="w-10 h-10 rounded-full bg-black text-white text-sm font-bold flex items-center justify-center">AO</span><span className="flex flex-col"><span className="font-semibold text-sm">Ama Owusu</span><span className="text-xs text-muted">ama.owusu@gmail.com</span></span></button>
           <form onSubmit={(e) => { e.preventDefault(); oauthGo(v.oEmail, v.oEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())); }} className="flex flex-col gap-2"><label htmlFor="oa-em" className="text-sm font-semibold">Use another account</label><input id="oa-em" value={v.oEmail} onChange={f('oEmail')} placeholder="name@example.com" autoComplete="email" className={inp} /><button className={btn}>Continue with {oName}</button></form>
           <button onClick={() => mode('in')} className="text-sm underline">Cancel</button>
@@ -223,7 +252,7 @@ export function AccountPage() {
             <section aria-label="Login and security" className="flex flex-col gap-3">
               <div className="rounded-3xl border border-line p-5 flex flex-col gap-3"><div className="flex justify-between"><strong>Profile</strong><button onClick={() => setMd({ k: 'profile' })} className="text-sm underline">Edit profile</button></div><dl className="m-0 grid gap-3 sm:grid-cols-3">{row('Name', me.name)}{row('Email', me.email)}{row('Phone', phFmt(me.phone))}</dl></div>
               <div className="rounded-3xl border border-line p-5 flex justify-between items-center gap-3 flex-wrap"><div className="flex flex-col"><strong>Password</strong><span className="text-sm text-muted">{me.pw ? 'Set · change it any time' : `You sign in with ${me.via || 'a linked account'} · set a password to sign in with email too`}</span></div><button onClick={() => setMd({ k: 'pw' })} className="h-10 px-4 rounded-full border border-black text-sm font-semibold">{me.pw ? 'Change password' : 'Set a password'}</button></div>
-              <div className="rounded-3xl border border-line p-5 flex flex-col gap-3"><strong>Sign-in methods</strong>{OA.map(([k, l]) => <div key={k} className="flex justify-between items-center gap-3"><span className="flex flex-col"><span className="text-sm font-medium">{l}</span><span className="text-xs text-muted">{me.linked[k] ? 'Linked' : 'Not linked'}</span></span><Sw on={!!me.linked[k]} label={`${l} sign-in`} onClick={() => upMe((u) => ({ linked: { ...u.linked, [k]: !u.linked[k] } }))} /></div>)}</div>
+              <div className="rounded-3xl border border-line p-5 flex flex-col gap-3"><strong>Sign-in methods</strong>{OA.map(([k, l]) => <div key={k} className="flex justify-between items-center gap-3"><span className="flex items-center gap-3"><span className="w-9 h-9 rounded-full border border-line flex items-center justify-center flex-none"><BrandLogo k={k} size={18} /></span><span className="flex flex-col"><span className="text-sm font-medium">{l}</span><span className="text-xs text-muted">{me.linked[k] ? 'Linked' : 'Not linked'}</span></span></span><Sw on={!!me.linked[k]} label={`${l} sign-in`} onClick={() => upMe((u) => ({ linked: { ...u.linked, [k]: !u.linked[k] } }))} /></div>)}</div>
               <div className="rounded-3xl border border-line p-5 flex flex-col gap-3"><strong>Extra security</strong>{[['twofa', 'Text me a code when I sign in', 'Two-step sign-in by SMS'], ['alerts', 'Email me about new sign-ins', 'Alerts for new devices']].map(([k, l, n]) => <div key={k} className="flex justify-between items-center gap-3"><span className="flex flex-col"><span className="text-sm font-medium">{l}</span><span className="text-xs text-muted">{n}</span></span><Sw on={!!me.secure[k]} label={l} onClick={() => { if (k === 'twofa' && !me.phone) return setMsg('Add a phone number to your profile first.'); upMe((u) => ({ secure: { ...u.secure, [k]: !u.secure[k] } })); }} /></div>)}</div>
               <div className="rounded-3xl border border-line p-5 flex flex-col gap-2"><strong>Where you're signed in</strong>{[['This device · ' + (navigator.userAgent.includes('Mac') ? 'Mac' : navigator.userAgent.includes('Android') ? 'Android' : 'Windows') + ' · Accra', 'Active now'], ['iPhone · Safari · Accra', '2 days ago']].map(([d, w]) => <div key={d} className="flex justify-between text-sm"><span>{d}</span><span className="text-muted">{w}</span></div>)}<button onClick={() => setMsg('Signed out of all other devices.')} className="text-sm underline w-fit mt-1">Sign out of all other devices</button></div>
             </section>

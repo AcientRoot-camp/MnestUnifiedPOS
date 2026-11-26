@@ -5,6 +5,7 @@ import { MiniCard, ProductCard } from './Product';
 import { pageOn, Svg } from './Shell';
 import { BR_INFO, CAT_INFO, NAVY, ini, isOos, stars, type SP } from './model';
 import NoticeModal from '../../components/Notice';
+import { HERO_ART, isHeroArt } from '../../data/web';
 
 const SORTS: [string, string][] = [['rec', 'Recommended'], ['plh', 'Price: low to high'], ['phl', 'Price: high to low'], ['az', 'Name: A to Z'], ['new', 'Newest first']];
 /** Price filter bands for an electronics shop (GHS): accessories, small appliances, mid-range and premium. */
@@ -13,32 +14,34 @@ const RANGES: [string, string, string][] = [['Under 1,000', '', '1000'], ['1,000
 function Hero() {
   const { W, go } = useShop();
   const pics = (W.site.heroPics || []).filter(Boolean).slice(0, 8);
-  const slides = W.site.hero === 'none' ? [] : pics.length ? (W.site.hero === 'single' ? pics.slice(0, 1) : pics) : ['/assets/hero-electronics.svg'];
+  // Pictures to show: the Admin's photos; the five built-in illustrations (data/web.ts HERO_ART) when there are no
+  // photos, or after the photos when "Also show the built-in illustrations" is on. "One picture" shows only the first.
+  const art = HERO_ART.map((a) => a.src);
+  const all = pics.length ? (W.site.heroArt ? [...pics, ...art] : pics) : art;
+  const slides = W.site.hero === 'none' ? [] : W.site.hero === 'single' ? all.slice(0, 1) : all;
   const [i, setI] = useState(0);
-  const ms = (W.site.heroInterval || 5) * 1000;
-  // Phones and tablets: the media frame takes the shape (width ÷ height) of the picture or video actually showing,
-  // read when it loads, so it is seen whole with no empty bands; 16:9 until it has loaded. Clamped between 3:4
-  // (a tall photo cannot fill the whole phone) and 3:1 (a very wide banner stays readable).
-  const [ratios, setRatios] = useState<Record<string, number>>({});
-  const noteRatio = (key: string, w: number, h: number) => { if (w > 0 && h > 0 && !ratios[key]) setRatios((r) => ({ ...r, [key]: Math.min(3, Math.max(0.75, w / h)) })); };
-  const curKey = W.site.heroVideo ? 'video' : slides[i] || '';
-  const ar = ratios[curKey] || 16 / 9;
-  // Tagline pill above the heading: shown only when the Admin sets one in Post to webstore. The old demo default
-  // "Accra · Kumasi · family-run" was removed; browsers that saved it before are treated as having no tagline.
-  const tag = (W.site.tagline || '').trim() === 'Accra · Kumasi · family-run' ? '' : (W.site.tagline || '').trim();
+  // Changes picture every 4 s by default (the Admin can pick 3, 4, 6 or 8 s in Post to webstore).
+  const ms = (W.site.heroInterval || 4) * 1000;
+  // Tagline pill above the heading: shown only when the Admin sets one in Post to webstore (the old demo tagline is
+  // cleared by the content upgrade in data/web.ts mergeWeb).
+  const tag = (W.site.tagline || '').trim();
+  useEffect(() => { if (i >= slides.length) setI(0); }, [slides.length, i]);
   useEffect(() => { if (slides.length < 2) return; const t = window.setInterval(() => setI((x) => (x + 1) % slides.length), ms); return () => window.clearInterval(t); }, [slides.length, ms]);
   return (
     // The big picture / video card at the top of the store.
     // Laptops and desktops (lg+): the picture fills the card and the heading sits over it on a dark gradient.
-    // Phones and tablets: the card is stacked, so the picture or video is shown whole and centred (object-contain in a
-    // frame the shape of the picture, nothing cropped), with the heading and buttons underneath on the navy background.
-    // On phones the card also runs edge to edge (no side gutter, square corners, flush under the header).
-    <section aria-labelledby="hero-h" className="relative mx-[var(--gut)] max-sm:mx-0 max-sm:rounded-none mt-[0.25rem] max-sm:mt-0 overflow-hidden flex flex-col lg:flex-row lg:items-center lg:min-h-[40rem]" style={{ background: NAVY }}>
-      {/* Media: a frame the shape of the picture on phones and tablets (see ar), the whole card from lg. The slide controls sit on the picture.
-          No frame at all when the Admin chose "None" for the top picture (just the navy card with the heading). */}
-      {(W.site.heroVideo || slides.length > 0) && <div className="relative w-full aspect-[var(--ar)] lg:aspect-auto lg:absolute lg:inset-0" style={{ ['--ar' as string]: String(ar) } as React.CSSProperties}>
-        {W.site.heroVideo ? <video src={W.site.heroVideo} autoPlay muted loop playsInline onLoadedMetadata={(e) => noteRatio('video', e.currentTarget.videoWidth, e.currentTarget.videoHeight)} aria-label="Video of products from our store" className="absolute inset-0 w-full h-full object-contain lg:object-cover object-center" />
-          : slides.map((u, k) => <img key={u + k} src={u} alt={k === i ? 'A smart TV with soundbar and DStv decoder, a double-door fridge, a split air conditioner and a standing fan from our showroom' : ''} onLoad={(e) => noteRatio(u, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)} className={cx('absolute inset-0 w-full h-full object-contain lg:object-cover object-center transition-opacity duration-700', k === i ? 'opacity-100' : 'opacity-0')} />)}
+    // Phones and tablets: the card is stacked. The media frame is a little taller than a banner (4:3 on phones, 3:2 on
+    // tablets) and the picture or video is enlarged to fill it (object-cover). Uploaded photos and videos stay centred;
+    // on phones and tablets the built-in illustrations are aligned to the right, where their products are, so none of
+    // them is cut off. On computers they stay centred: aligned right, the products would slide under the heading. The heading and buttons sit underneath on the navy background.
+    // On phones and tablets (portrait and landscape, below 1280 px) the card also runs edge to edge (touching the left
+    // and right of the screen, no side gutter, square corners, flush under the header); larger screens keep the gutter.
+    <section aria-labelledby="hero-h" className="relative mx-[var(--gut)] max-xl:mx-0 max-xl:rounded-none mt-[0.25rem] max-xl:mt-0 overflow-hidden flex flex-col lg:flex-row lg:items-center lg:min-h-[40rem]" style={{ background: NAVY }}>
+      {/* Media: 4:3 on phones, 3:2 on tablets, the whole card from lg. The slide controls sit on the picture.
+          No frame at all when the Admin chose "None" for the top picture (just the navy card and heading). */}
+      {(W.site.heroVideo || slides.length > 0) && <div className="relative w-full overflow-hidden aspect-[4/3] sm:aspect-[3/2] lg:aspect-auto lg:absolute lg:inset-0">
+        {W.site.heroVideo ? <video src={W.site.heroVideo} autoPlay muted loop playsInline aria-label="Video of products from our store" className="absolute inset-0 w-full h-full object-cover object-center" />
+          : slides.map((u, k) => <img key={u + k} src={u} alt={k === i ? (HERO_ART.find((a) => a.src === u)?.name || 'Products from our store') : ''} className={cx('absolute inset-0 w-full h-full object-cover transition-opacity duration-700', isHeroArt(u) ? 'object-center max-lg:object-right' : 'object-center', k === i ? 'opacity-100' : 'opacity-0')} />)}
         {/* Dark gradient behind the heading: only where the heading sits over the picture (lg+). */}
         <div aria-hidden="true" className="hidden lg:block absolute inset-0 bg-gradient-to-r from-[rgba(10,6,30,.85)] via-[rgba(10,6,30,.55)] to-transparent" />
         {slides.length > 1 && !W.site.heroVideo && (

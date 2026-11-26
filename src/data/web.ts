@@ -24,7 +24,7 @@ export type BranchWeb = {
 };
 export type Site = {
   name: string; social: Record<string, string>; hero: string;
-  logo?: string; heroPics?: string[]; heroVideo?: string; heroInterval?: number; tagline?: string; heroTitle?: string; heroText?: string;
+  logo?: string; heroPics?: string[]; heroVideo?: string; heroInterval?: number; heroArt?: boolean; tagline?: string; heroTitle?: string; heroText?: string;
   announceOn?: boolean; announce?: string; phone?: string; whatsapp?: string; email?: string; hours?: string; contactIntro?: string; footerLine?: string;
   trustpilot?: string; newsOn?: boolean; log?: string[];
 };
@@ -67,6 +67,22 @@ const BR_EXTRA: Record<string, Partial<BranchWeb>> = {
   legon: { manager: 'Kwame Asante', landmark: 'Near A&C Mall', parking: 'Shared mall parking', areas: 'East Legon, Shiashie, Adjiringanor', pays: 'Cash, MoMo, card', lat: '5.6370', lng: '-0.1540', hours: 'Mon–Sat 8:00–21:00 · Sun 11:00–18:00' },
   adum: { manager: 'Kofi Antwi', landmark: 'Next to the Prempeh II roundabout', parking: 'Street parking', areas: 'Adum, Ahodwo, Asokwa', pays: 'Cash, MoMo, hire purchase', lat: '6.6900', lng: '-1.6250', hours: 'Mon–Sat 7:00–20:00' },
 };
+
+/**
+ * Built-in illustrations for the big picture at the top of the online store (public/assets). They are shown when
+ * the Admin has not uploaded photos, or mixed in with the photos when "Also show the built-in illustrations" is on
+ * (site.heroArt). Each is 1600 × 720 with its products in the right-hand part, so the heading on computers and the
+ * right-aligned crop on phones never cover them.
+ */
+export const HERO_ART: { src: string; name: string }[] = [
+  { src: '/assets/hero-electronics.svg', name: 'TV, fridge, air conditioner and fan' },
+  { src: '/assets/hero-kitchen.svg', name: 'Microwave, washing machine and water dispenser' },
+  { src: '/assets/hero-cooling.svg', name: 'Air conditioner, chest freezer and fans' },
+  { src: '/assets/hero-entertainment.svg', name: 'Smart TV, soundbar, speakers and GOtv' },
+  { src: '/assets/hero-power.svg', name: 'Stabiliser, UPS and fridge guard' },
+];
+/** True for one of the built-in illustrations (they are aligned right on phones; photos stay centred). */
+export const isHeroArt = (u: string) => HERO_ART.some((a) => a.src === u);
 
 export const WEB0: Web = {
   codes: [
@@ -114,13 +130,13 @@ export const WEB0: Web = {
   freeOver: 500, freeOn: true, collect: 0, collectNote: '',
   site: {
     name: '', social: { tiktok: 'https://www.tiktok.com/@ebenezerunique', instagram: 'https://www.instagram.com/ebenezerunique', facebook: 'https://www.facebook.com/ebenezerunique', whatsapp: 'https://wa.me/233244000111', youtube: '', x: '' }, hero: 'slides',
-    logo: '', heroPics: [], heroVideo: '', heroInterval: 5, tagline: '', heroTitle: 'TVs, fridges and air conditioners, delivered the same day', heroText: 'TCL, Nasco, Samsung, LG and Hisense at fair prices, with warranty, installation and hire purchase. Order online, collect at a branch, or get it delivered today.',
+    logo: '', heroPics: [], heroVideo: '', heroInterval: 4, heroArt: false, tagline: '', heroTitle: 'TVs, fridges and air conditioners, delivered the same day', heroText: 'TCL, Nasco, Samsung, LG and Hisense at fair prices, with warranty, installation and hire purchase. Order online, collect at a branch, or get it delivered today.',
     announceOn: false, announce: 'Free delivery in Accra on orders over GHS 500 this week.', phone: '+233 30 000 1111', whatsapp: '+233 24 400 0111', email: 'info@ebenezerunique.com.gh', hours: 'Mon–Sat 8:00–20:00 · Sun 12:00–18:00',
     contactIntro: CONTACT_INTRO_V2, footerLine: 'Accra · Kumasi', trustpilot: '', newsOn: true, log: [],
   },
   faqs: FAQ0,
   navNames: {},
-  contentV: 2,
+  contentV: 3,
 };
 
 /** Fills in anything an older saved copy is missing, so new fields always have a value. */
@@ -143,6 +159,13 @@ export function mergeWeb(w: Partial<Web> | null | undefined): Web {
   (Object.keys(OLD_ABOUT) as (keyof typeof OLD_ABOUT)[]).forEach((k) => { if (about[k] === OLD_ABOUT[k]) about[k] = ABOUT_V2[k]; });
   const site = { ...WEB0.site, ...(x.site || {}), social: { ...WEB0.site.social, ...(x.site?.social || {}) } };
   if (site.contactIntro === OLD_CONTACT_INTRO) site.contactIntro = CONTACT_INTRO_V2;
+  // 4. Once per store (contentV below 3): the picture card used to change every 5 s by default and now changes every
+  //    4 s; a store still on the old default moves to 4 s. The old demo tagline "Accra · Kumasi · family-run" is
+  //    cleared (it is no longer shown). Choices made after this upgrade are kept, because contentV 3 is saved.
+  if ((x.contentV ?? 1) < 3) {
+    if (site.heroInterval === 5 || !site.heroInterval) site.heroInterval = 4;
+    if ((site.tagline || '').trim() === 'Accra · Kumasi · family-run') site.tagline = '';
+  }
   return {
     ...WEB0, ...x,
     about,
@@ -154,7 +177,7 @@ export function mergeWeb(w: Partial<Web> | null | undefined): Web {
     updates: topUp(x.updates, MORE_UPDATES, WEB0.updates),
     jobs: topUp(x.jobs, MORE_JOBS, WEB0.jobs),
     navNames: x.navNames || {},
-    contentV: 2,
+    contentV: 3,
   } as Web;
 }
 

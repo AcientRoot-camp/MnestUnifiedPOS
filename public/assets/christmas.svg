@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+<!-- Christmas Day celebration (25 December, components/Seasonal.tsx): a decorated Christmas tree with a gold star,
+     baubles and a garland of lights, wrapped presents underneath, on a night sky with stars and falling snow. -->
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1240"/><stop offset="1" stop-color="#3b23b8"/></linearGradient>
+<radialGradient id="glow" cx="0.5" cy="0.45" r="0.5"><stop offset="0" stop-color="#ffe6a8" stop-opacity="0.55"/><stop offset="1" stop-color="#ffe6a8" stop-opacity="0"/></radialGradient>
+<linearGradient id="tree" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2fa35a"/><stop offset="1" stop-color="#14632f"/></linearGradient>
+<linearGradient id="snow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe7ff"/></linearGradient>
+<filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.3"/></filter>
+</defs>
+<rect width="640" height="360" fill="url(#sky)"/><rect width="640" height="360" fill="url(#glow)"/>
+<!-- Stars and snowflakes -->
+<g fill="#ffffff"><circle cx="60" cy="50" r="2"/><circle cx="140" cy="30" r="1.5"/><circle cx="520" cy="40" r="2"/><circle cx="590" cy="90" r="1.5"/><circle cx="100" cy="120" r="1.5"/><circle cx="560" cy="150" r="2"/><circle cx="40" cy="200" r="1.5"/><circle cx="600" cy="230" r="1.5"/></g>
+<g fill="#ffffff" opacity="0.8"><circle cx="180" cy="80" r="3"/><circle cx="460" cy="70" r="3"/><circle cx="90" cy="250" r="3"/><circle cx="540" cy="200" r="3"/><circle cx="220" cy="170" r="2.5"/><circle cx="420" cy="160" r="2.5"/></g>
+<!-- Snowy ground -->
+<path d="M0 300 C120 285 220 295 320 290 S520 282 640 296 L640 360 L0 360 Z" fill="url(#snow)"/>
+
+<!-- Tree -->
+<g filter="url(#sh)">
+<rect x="306" y="270" width="28" height="30" rx="4" fill="#7a4a24"/>
+<path d="M320 70 L410 180 H372 L436 262 H204 L268 180 H230 Z" fill="url(#tree)"/>
+</g>
+<!-- Garland of lights -->
+<path d="M268 140 Q320 170 372 140" fill="none" stroke="#ffd166" stroke-width="3"/>
+<path d="M250 205 Q320 240 390 205" fill="none" stroke="#ffd166" stroke-width="3"/>
+<g><circle cx="282" cy="150" r="5" fill="#ff5a5a"/><circle cx="320" cy="158" r="5" fill="#5ad1ff"/><circle cx="358" cy="150" r="5" fill="#ffd166"/>
+<circle cx="266" cy="214" r="6" fill="#5ad1ff"/><circle cx="300" cy="226" r="6" fill="#ff5a5a"/><circle cx="340" cy="226" r="6" fill="#ffd166"/><circle cx="374" cy="214" r="6" fill="#ff5a5a"/>
+<circle cx="300" cy="118" r="5" fill="#ff5a5a"/><circle cx="342" cy="124" r="5" fill="#5ad1ff"/><circle cx="240" cy="252" r="6" fill="#ffd166"/><circle cx="400" cy="250" r="6" fill="#5ad1ff"/><circle cx="320" cy="250" r="6" fill="#ff5a5a"/></g>
+<!-- Gold star -->
+<path d="M320 44 L328 62 L348 63 L332 75 L338 95 L320 84 L302 95 L308 75 L292 63 L312 62 Z" fill="#ffd166" stroke="#ffb020" stroke-width="2"/>
+
+<!-- Presents -->
+<g filter="url(#sh)">
+<rect x="214" y="262" width="62" height="44" rx="5" fill="#e63946"/><rect x="240" y="262" width="10" height="44" fill="#ffd166"/><rect x="214" y="278" width="62" height="10" fill="#ffd166"/>
+<path d="M245 262 C230 246 222 258 245 262 C268 258 260 246 245 262 Z" fill="#ffd166"/>
+<rect x="360" y="270" width="54" height="36" rx="5" fill="#2a9d8f"/><rect x="382" y="270" width="10" height="36" fill="#ffffff"/>
+<path d="M387 270 C374 256 366 266 387 270 C408 266 400 256 387 270 Z" fill="#ffffff"/>
+<rect x="296" y="282" width="48" height="26" rx="4" fill="#ffb020"/><rect x="316" y="282" width="8" height="26" fill="#e63946"/>
+</g>
+</svg>

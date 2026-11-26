@@ -99,3 +99,11 @@ body { margin: 0; background: #f2f4f5; color: #000; font-family: Inter, system-u
    auto", which lets one wide table or toolbar stretch a column, and so the whole page, past the screen). Wide tables
    then scroll inside their own box instead of pushing the page sideways. */
 .grid > * { min-width: 0; }
+
+/* Seasonal celebration (components/Seasonal.tsx): falling snow on Christmas Day and a gentle pop-in for the card.
+   Turned off for visitors who ask their device for less motion. */
+.season-snow span { position: absolute; top: -12px; border-radius: 9999px; background: #ffffff; opacity: 0.9; box-shadow: 0 0 6px rgba(255,255,255,0.8); animation-name: season-fall; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes season-fall { 0% { transform: translate3d(0, -12px, 0); } 50% { transform: translate3d(18px, 50vh, 0); } 100% { transform: translate3d(-10px, 105vh, 0); } }
+.season-pop { animation: season-pop .45s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes season-pop { 0% { opacity: 0; transform: scale(.92) translateY(12px); } 100% { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .season-snow span { animation: none; display: none; } .season-pop { animation: none; } }

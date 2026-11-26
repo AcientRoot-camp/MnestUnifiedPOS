@@ -11,6 +11,12 @@ import { readKey, usePersist } from './persist';
  */
 export const COMPANY_LOGO = '/assets/mnest-logo-tight.svg';
 export const COMPANY_ICON = '/assets/mnest-icon.svg';
+/**
+ * "Powered by" credit in the online store footer: the MNEST Systems wordmark (big "mNEST" with "Systems" under it).
+ * Put the image at public/assets/mnest-powered-by.png (transparent background). Until that file exists, the footer
+ * falls back to COMPANY_LOGO, so it never shows a broken image.
+ */
+export const POWERED_BY_LOGO = '/assets/mnest-powered-by.png';
 export const LOGO_KEY = 'ecompos.logo';
 
 /** Live company logo: re-renders everywhere the moment the Admin uploads a new one. icon → the square mark. */
