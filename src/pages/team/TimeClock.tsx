@@ -1,6 +1,7 @@
 // HR time clock screens (HRSign.md): the QR display, the camera scanner, the staff "Scan to sign in / out" card and
 // the HR admin "Time clock & QR" tab. The rules and data live in data/clock.ts; the QR encoder in lib/qr.ts.
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { noSignInCheck } from '../../data/clock';
 import { NOTIF0 } from '../../components/TopBar';
 import { useSession } from '../../lib/session';
@@ -218,9 +219,11 @@ export function ClockAdmin({ E, codes, gate, L, me, biz, logo, who, setWho, onPu
           <button onClick={() => { if (isGate) { const c = onNewGate(); setMsg(`New gate code ${c} issued. Print the poster again for the main gate; the old code no longer works.`); } else { const c = onNewBadge(target!.name); setMsg(`New sign-in code for ${target!.name}: ${c}. Give them the badge again.`); } }} className="h-11 px-5 rounded-full text-white text-sm font-semibold" style={{ background: TEAL }}>{isGate ? 'Issue a new gate code' : 'Issue a new badge code'}</button>
         </div>
       </section>
-      {/* Print-only layouts (shown only while printing that kind). */}
-      {isGate ? <GatePoster code={tCode} biz={biz} logo={logo} issued={gate ? `Issued ${gate.at} by ${gate.by || 'HR'}` : ''} />
-        : <BadgePrint e={target!} code={tCode} biz={biz} logo={logo} />}
+      {/* Print-only layouts (shown only while printing that kind). They are rendered straight under <body>, outside
+          the app, so the print stylesheet can hide the whole app (#root) and the sheet holds only the poster or badge:
+          no blank pages after it from the hidden app still taking up room. */}
+      {createPortal(isGate ? <GatePoster code={tCode} biz={biz} logo={logo} issued={gate ? `Issued ${gate.at} by ${gate.by || 'HR'}` : ''} />
+        : <BadgePrint e={target!} code={tCode} biz={biz} logo={logo} />, document.body)}
 
       <div className="flex flex-col gap-6 min-w-0">
         <ClockMsg msg={msg} onClose={() => setMsg('')} />
@@ -286,7 +289,7 @@ export function NoSignInWatch() {
  */
 function GatePoster({ code, biz, logo, issued }: { code: string; biz: string; logo?: string; issued: string }) {
   return (
-    <div className="hr-poster print-doc" style={{ width: '210mm', height: '297mm', padding: '16mm 18mm', boxSizing: 'border-box', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', textAlign: 'center', background: '#fff', color: '#000' }}>
+    <div className="hr-poster print-doc" style={{ width: '210mm', height: '296mm', overflow: 'hidden', padding: '16mm 18mm', boxSizing: 'border-box', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', textAlign: 'center', background: '#fff', color: '#000' }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3mm' }}>
         {logo && <img src={logo} alt="" style={{ height: '18mm', width: 'auto' }} />}
         <span style={{ fontSize: '14pt', fontWeight: 600 }}>{biz}</span>

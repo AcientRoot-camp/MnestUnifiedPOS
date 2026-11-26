@@ -93,9 +93,10 @@ function Grid() {
       </div>
       {qq && <span role="status" className="text-sm">Showing results for “<strong>{q}</strong>” · {list.length} found</span>}
       {chips.length > 0 && <div className="flex gap-2 flex-wrap">{chips.map(([l, f]) => <button key={l} onClick={f} aria-label={`Remove filter ${l}`} className="text-sm pl-3.5 pr-2 py-1.5 rounded-full bg-black text-white flex items-center gap-1.5">{l}<span aria-hidden="true">×</span></button>)}<button onClick={clear} className="text-sm underline px-2">Clear all</button></div>}
-      <div className="flex flex-col md:flex-row gap-6 items-start">
-        <button onClick={() => setFOpen(!fOpen)} aria-expanded={fOpen} className="md:hidden h-11 px-5 rounded-full border border-line text-sm font-semibold flex items-center gap-2"><Svg d="filter" size={16} />{fOpen ? 'Hide filters' : 'Show filters'}</button>
-        <aside aria-label="Filter products" className={cx('w-full md:w-60 flex-none flex-col gap-5 md:sticky md:top-40', fOpen ? 'flex' : 'hidden md:flex')}>
+      {/* Phones and tablets: filters fold behind a button so the product cards get the full width; laptops and up: sidebar. */}
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
+        <button onClick={() => setFOpen(!fOpen)} aria-expanded={fOpen} className="lg:hidden h-11 px-5 rounded-full border border-line text-sm font-semibold flex items-center gap-2"><Svg d="filter" size={16} />{fOpen ? 'Hide filters' : 'Show filters'}</button>
+        <aside aria-label="Filter products" className={cx('w-full lg:w-60 flex-none flex-col gap-5 lg:sticky lg:top-40', fOpen ? 'flex' : 'hidden lg:flex')}>
           <div className="flex justify-between items-center"><strong>Filters</strong>{chips.length > 0 && <button onClick={clear} className="text-xs underline">Clear all</button>}</div>
           <div role="group" aria-labelledby="fl-cat" className="flex flex-col gap-1"><h3 id="fl-cat" className="m-0 text-sm font-semibold mb-1">Category</h3>{cats.map((c) => <button key={c} onClick={() => setCat(c)} aria-pressed={cat === c} className={cx('flex justify-between text-sm px-3 py-2 rounded-xl text-left', cat === c ? 'bg-black text-white font-semibold' : 'hover:bg-canvas')}><span>{c}</span><span className={cat === c ? 'text-white/70' : 'text-muted'}>{c === 'All' ? products.length : products.filter((p) => p.cat === c).length}</span></button>)}</div>
           <div role="group" aria-labelledby="fl-pr" className="flex flex-col gap-2"><h3 id="fl-pr" className="m-0 text-sm font-semibold">Price (GHS)</h3>
@@ -108,7 +109,8 @@ function Grid() {
         </aside>
         <div className="flex-1 w-full min-w-0">
           {!list.length && <div className="rounded-3xl bg-canvas p-10 flex flex-col items-center gap-2 text-center"><strong>No products match these filters</strong><span className="text-sm text-muted">Try a wider price range or another category.</span><button onClick={clear} className="mt-2 h-11 px-5 rounded-full bg-black text-white font-semibold">Clear filters</button></div>}
-          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>
+          {/* Phones 2 per row, tablets 3–4 (smaller cards), computers 4–5. */}
+          <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>
         </div>
       </div>
     </section>
@@ -128,7 +130,7 @@ function Categories() {
       {cats.map((c) => { const L = products.filter((p) => p.cat === c); return (
         <div key={c} id={`cat-${c.toLowerCase()}`} className="flex flex-col gap-3">
           <div className="flex items-end justify-between gap-3"><div><h3 className="m-0 text-xl font-semibold">{c}</h3><span className="text-sm text-muted">{CAT_INFO[c]?.[0] ?? ''}</span></div><button onClick={() => pick(c)} className="text-sm font-semibold underline whitespace-nowrap">See all {L.length}</button></div>
-          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">{L.slice(0, 6).map((p) => <ProductCard key={p.id} p={p} compact />)}</div>
+          <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">{L.slice(0, 6).map((p) => <ProductCard key={p.id} p={p} compact />)}</div>
         </div>
       ); })}
     </section>

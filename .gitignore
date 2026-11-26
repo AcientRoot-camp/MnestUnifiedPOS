@@ -1,3 +1,8 @@
 node_modules
 dist
 .DS_Store
+
+# Local environment settings hold API keys: never commit them (share .env.example instead)
+.env
+.env.local
+.env.*.local

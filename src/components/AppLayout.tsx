@@ -20,14 +20,16 @@ export default function AppLayout({ children, bare }: { children: ReactNode; bar
           <LogoMark size={36} />
           <Wordmark dark className="text-[17px]" />
         </div>
-        <main className={bare ? 'flex-1 min-w-0' : 'flex-1 min-w-0 px-4 sm:px-8 pt-7 pb-12 flex flex-col gap-6'}>
+        <main className={bare ? 'flex-1 min-w-0' : 'flex-1 min-w-0 px-4 sm:px-8 pt-4 sm:pt-7 pb-12 flex flex-col gap-5 sm:gap-6'}>
           {!bare && (
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="xl:flex-1 flex items-center"><BackButton /></div>
-              <div className="flex-[0_1_520px] min-w-[260px] w-full sm:w-auto">
+              {/* Phones and tablets: Back and the account / bell buttons share one row, with search full width below.
+                  Large screens: Back · search · account on one row. */}
+              <div className="order-1 xl:flex-1 flex items-center"><BackButton /></div>
+              <div className="order-3 xl:order-2 w-full xl:w-auto xl:flex-[0_1_520px] xl:min-w-[260px]">
                 <SearchBar />
               </div>
-              <div className="flex-1 flex justify-end">
+              <div className="order-2 xl:order-3 flex-1 flex justify-end">
                 <AccountBar />
               </div>
             </div>

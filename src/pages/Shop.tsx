@@ -19,7 +19,8 @@ function Store() {
   const loc = useLocation();
   const [boot, setBoot] = useState(true);
   useEffect(() => { const t = window.setTimeout(() => setBoot(false), 2000); return () => window.clearTimeout(t); }, []);
-  useEffect(() => { document.title = `${bizName(W)} online shop`; return () => { document.title = 'MNest UnifiedPOS'; }; }, [W]);
+  // Browser tab / window header for the online store: just the business name (e.g. "Ebenezer Unique Ventures").
+  useEffect(() => { document.title = bizName(W); return () => { document.title = 'MNest UnifiedPOS'; }; }, [W]);
   useEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]);
   return (
     <div className="min-h-screen bg-white text-black font-[Inter,system-ui,sans-serif]" style={{ ['--gut' as string]: 'clamp(1rem, 6vw, 7rem)' }}>

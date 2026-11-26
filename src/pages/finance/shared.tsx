@@ -1,3 +1,4 @@
+import { PillSelect } from '../../components/ui';
 import type { ReactNode } from 'react';
 import { cx } from '../../lib/format';
 import type { FinState } from '../../data/finance';
@@ -30,15 +31,23 @@ export function Card({ title, sub, actions, children, className }: { title?: str
   );
 }
 
+/**
+ * A choice of options as pill buttons. With three or more options it becomes a dropdown on phones and tablets (below
+ * lg), so a long row of choices never runs off a small screen; two options stay as buttons everywhere.
+ */
 export function Pills<T extends string>({ opts, value, onChange, small }: { opts: [T, string][]; value: T; onChange: (v: T) => void; small?: boolean }) {
+  const drop = opts.length >= 3;
   return (
-    <div className="flex gap-1.5 flex-wrap">
+    <>
+    {drop && <PillSelect className="lg:hidden" label="Choose" value={value} onChange={(v) => onChange(v as T)} items={opts.map(([id, label]) => ({ id, label }))} />}
+    <div className={cx('gap-1.5 flex-wrap', drop ? 'hidden lg:flex' : 'flex')}>
       {opts.map(([k, l]) => (
         <button key={k} type="button" aria-pressed={value === k} onClick={() => onChange(k)} className={cx('rounded-full border', small ? 'text-xs px-3 py-1.5' : 'text-[13px] px-3.5 py-2', value === k ? 'bg-black text-white border-black' : 'bg-white border-line hover:bg-canvas')}>
           {l}
         </button>
       ))}
     </div>
+    </>
   );
 }
 

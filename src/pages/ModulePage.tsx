@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { NavLink, useParams } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Icon from '../components/Icon';
-import { Kpi, PageHeader, Section, Table, Toast } from '../components/ui';
+import { Kpi, PageHeader, PillSelect, Section, Table, Toast } from '../components/ui';
 import { SCREENS } from '../data/screens';
 import { buildNav } from '../data/nav';
 import { useSession } from '../lib/session';
@@ -10,6 +10,8 @@ import { cx } from '../lib/format';
 export default function ModulePage({ screen }: { screen: string }) {
   const s = SCREENS[screen];
   const { tab } = useParams();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { session } = useSession();
   const [q, setQ] = useState('');
   const [toast, setToast] = useState('');
@@ -26,13 +28,17 @@ export default function ModulePage({ screen }: { screen: string }) {
         actions={s.primary && <button onClick={() => setToast(`${s.primary} · coming in the next build`)} className="btn-primary"><Icon name="plus" /> {s.primary}</button>}
       />
       {group && (
-        <nav aria-label={`${s.title} sections`} className="flex gap-1 p-1 rounded-full bg-white shadow-card w-fit max-w-full overflow-x-auto">
+        <>
+        {/* Phones and tablets: the sections as a dropdown that opens the chosen page. */}
+        <PillSelect className="lg:hidden" label={`${s.title} sections`} value={group.items.find((i) => i.path === pathname)?.path || ''} onChange={(path) => navigate(path)} items={[...(group.items.some((i) => i.path === pathname) ? [] : [{ id: '', label: `${s.title} sections` }]), ...group.items.filter((i) => !i.id.startsWith('br:') && i.id !== 'addbranch').map((i) => ({ id: i.path, label: i.label }))]} />
+        <nav aria-label={`${s.title} sections`} className="hidden lg:flex gap-1 p-1 rounded-full bg-white shadow-card w-fit max-w-full overflow-x-auto">
           {group.items.filter((i) => !i.id.startsWith('br:') && i.id !== 'addbranch').map((i) => (
             <NavLink key={i.id} to={i.path} end className={({ isActive }) => cx('flex items-center gap-1.5 text-sm px-3.5 py-2 rounded-full whitespace-nowrap', isActive ? 'bg-black text-white font-semibold' : 'text-sub hover:bg-canvas')}>
               <Icon name={i.id} size={15} /> {i.label}
             </NavLink>
           ))}
         </nav>
+        </>
       )}
       <section aria-label="Key figures" className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
         {s.kpis.map(([l, v, n]) => (

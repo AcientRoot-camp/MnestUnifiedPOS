@@ -35,6 +35,9 @@ body { margin: 0; background: #f2f4f5; color: #000; font-family: Inter, system-u
   .id-card { box-shadow: none !important; border: 0.2mm solid #999 !important; page-break-inside: avoid; }
   /* A4 gate poster / staff badge (TimeClock.tsx): shown only while printing that kind; the on-screen card is hidden. */
   body.print-poster .hr-poster, body.print-badge .hr-badge-print { display: flex !important; }
+  /* The poster and badge are portalled under <body>; hide the app itself so it adds no blank pages after them. */
+  body.print-poster > #root, body.print-badge > #root { display: none !important; }
+  body.print-poster .hr-poster, body.print-badge .hr-badge-print { position: static !important; }
   body.print-poster .hr-print, body.print-poster .hr-print *, body.print-badge .hr-print, body.print-badge .hr-print * { visibility: hidden !important; }
 }
 .hr-poster, .hr-badge-print { display: none; }
@@ -91,3 +94,8 @@ body { margin: 0; background: #f2f4f5; color: #000; font-family: Inter, system-u
 .marquee:hover .marquee-track, .marquee:focus-within .marquee-track, .marquee:focus .marquee-track { animation-play-state: paused; }
 @keyframes marquee-move { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } .marquee-track > [aria-hidden] { display: none; } }
+
+/* Phones and tablets: grid columns may shrink below their content's natural width (the CSS default is "min-width:
+   auto", which lets one wide table or toolbar stretch a column, and so the whole page, past the screen). Wide tables
+   then scroll inside their own box instead of pushing the page sideways. */
+.grid > * { min-width: 0; }

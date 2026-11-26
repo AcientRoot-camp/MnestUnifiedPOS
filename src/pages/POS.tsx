@@ -85,6 +85,8 @@ export default function POS() {
   const [cam, setCam] = useState(false);
   // How this till scans: the camera on tablets / phones, a USB or Bluetooth barcode scanner on laptops / desktops.
   const [scanWay] = useScanWay();
+  // Phones and tablets: the till actions sit in a "More" dropdown instead of a row of buttons that would overflow.
+  const [actMenu, setActMenu] = useState(false);
   const [scanMsg, setScanMsg] = useState<null | { tone: 'ok' | 'bad' | 'warn'; text: string; unknown?: string }>(null);
   const [oos, setOos] = useState('');
   const [cart, setCart] = useState<Line[]>([]);
@@ -187,6 +189,18 @@ export default function POS() {
    * The unit being sold: a single, the product's carton / crate / pack (its own size), an extra unit (e.g. half carton)
    * or a weighed amount from the scale. Output: its line name, singles (kg) in it and price, using any running sale.
    */
+  // "Added" pop-up: a short message each time something goes into the sale (or credit sale). It closes by itself after
+  // 2.2 s and never blocks the till, so the cashier can keep tapping or scanning; each new item replaces the last one.
+  const [added, setAdded] = useState<{ id: number; name: string; qty: number } | null>(null);
+  const addedTimer = useRef<number | undefined>(undefined);
+  /** Show the pop-up for one addition. Inputs: the product, its unit text ('single', 'carton of 12', '0.500 kg @ …') and the line's new quantity. */
+  const announce = (p: Product, unit: string, qty: number) => {
+    const name = unit === 'single' ? p.name : `${p.name} (${unit.replace(/ @.*$/, '')})`;
+    setAdded({ id: Date.now(), name, qty });
+    window.clearTimeout(addedTimer.current);
+    addedTimer.current = window.setTimeout(() => setAdded(null), 2200);
+  };
+  useEffect(() => () => window.clearTimeout(addedTimer.current), []);
   const unitFor = (p: Product, kind: 's' | 'c' | 'u' | 'w', o: { uid?: string; kg?: number; price?: number } = {}) => {
     const pr = priced(p);
     if (kind === 'c') return { unit: cartonTxt(p), per: perCarton(p), price: pr.ctPrice || pr.price * perCarton(p) };
@@ -204,6 +218,9 @@ export default function POS() {
     setCart((c) => { const i = c.findIndex((l) => l.pid === p.id && (l.unit || 'single') === u.unit); if (i < 0) return [...c, { pid: p.id, name: p.name, sku: p.sku, price: u.price, cost: Math.round(p.cost * u.per * 100) / 100, qty: 1, max: Math.floor(max / u.per), unit: u.unit, per: u.per }]; const n = [...c]; n[i] = { ...n[i], qty: n[i].qty + 1 }; return n; });
     // Tapping + (or scanning) just adds the item: no serial pop-up. Serial numbers stay optional and can be added from
     // the sale line ("Add serial number").
+    // Pop-up "… is added": the line's quantity after this tap (weighed amounts are always a new line of 1).
+    const same = cart.find((l) => l.pid === p.id && (l.unit || 'single') === u.unit);
+    announce(p, u.unit, kind === 'w' ? 1 : (same?.qty || 0) + 1);
     return true;
   };
   /** Add one single or one carton (the card buttons). Weighed goods ask for the weight first. */
@@ -365,10 +382,28 @@ export default function POS() {
         <span className="h-8 px-3 rounded-full text-[13px] font-medium inline-flex items-center" style={{ background: '#f2f4f5', border: '1px solid #ebebeb' }}>{branch.short} · Till 1</span>
         <span className="flex items-center gap-2 h-11 pl-1 pr-3 rounded-full bg-white border border-[#ebebeb]">
           <span className="w-[30px] h-[30px] rounded-full bg-black text-white text-[11px] font-bold flex items-center justify-center">{ini(me.name)}</span>
-          <span className="flex flex-col leading-tight"><span className="text-[13px] font-medium">{me.name} · {me.level}</span><span className="text-[11px] text-[#5f5c5a]">Shift opened {shift}</span></span>
-          {allowSwitch && <button onClick={() => { setLockPinOnly(true); setLocked(true); }} className="text-[12px] underline ml-1">Switch user (PIN)</button>}
+          <span className="flex flex-col leading-tight min-w-0"><span className="text-[13px] font-medium truncate">{me.name}<span className="hidden sm:inline"> · {me.level}</span></span><span className="text-[11px] text-[#5f5c5a] hidden sm:block">Shift opened {shift}</span></span>
+          {allowSwitch && <button onClick={() => { setLockPinOnly(true); setLocked(true); }} className="hidden lg:inline text-[12px] underline ml-1">Switch user (PIN)</button>}
         </span>
-        <div className="ml-auto flex gap-1.5 flex-wrap items-center">
+        {/* Phones and tablets: online status, a "More" dropdown with every till action, and Log out. */}
+        <div className="lg:hidden ml-auto flex gap-1.5 items-center relative">
+          <button onClick={() => setManualOff(!manualOff)} aria-pressed={!online} className={topPill}><span className="w-2 h-2 rounded-full" style={{ background: online ? '#1f7a2a' : RED }} />{online ? 'Online' : 'Offline'}</button>
+          <button onClick={() => setActMenu(!actMenu)} aria-expanded={actMenu} aria-haspopup="menu" className={topPill}>More<span className="min-w-5 h-5 px-1.5 rounded-full bg-black text-white text-[11px] font-bold flex items-center justify-center">{openOnline + pickups}</span><span aria-hidden className="text-[10px]">▼</span></button>
+          <button onClick={signOut} className="h-11 px-4 rounded-full text-white text-[13px] font-semibold" style={{ background: RED }}>Log out</button>
+          {actMenu && <>
+            <div className="fixed inset-0 z-[300]" onClick={() => setActMenu(false)} aria-hidden />
+            <div role="menu" aria-label="Till actions" className="absolute right-0 top-[52px] z-[301] w-[min(300px,calc(100vw-32px))] bg-white rounded-2xl shadow-[0_18px_50px_rgba(0,0,0,0.22)] border border-black/5 p-1.5 flex flex-col">
+              {([
+                ['Riders', String(freeRiders), () => setPanel('riders')], ['Online orders', `${openOnline}${toConfirm ? ` · ${toConfirm} to confirm` : ''}`, () => setPanel('online')],
+                ['Online pickups', String(pickups), () => setPanel('pickup')], ['My sales', String(mySalesToday.length), () => setPanel('mysales')],
+                ['Lock till', '', () => { setLockPinOnly(false); setLocked(true); }], ...(allowSwitch ? [['Switch user (PIN)', '', () => { setLockPinOnly(true); setLocked(true); }] as [string, string, () => void]] : []),
+                ['Close shift', '', () => setPanel('close')],
+              ] as [string, string, () => void][]).map(([l, n, f]) => <button key={l} role="menuitem" onClick={() => { setActMenu(false); f(); }} className="h-11 px-3.5 rounded-xl text-left text-[14px] flex items-center justify-between gap-2 hover:bg-[#f2f4f5]"><span>{l}</span>{n && <span className="min-w-6 h-6 px-2 rounded-full bg-[#f2f4f5] text-[12px] font-semibold flex items-center justify-center">{n}</span>}</button>)}
+              {(season || ann) && <span className="px-3.5 py-2 text-[12px] text-[#5f5c5a] border-t border-[#ebebeb] mt-1">{[season, ann && `📣 ${ann.title}`].filter(Boolean).join(' · ')}</span>}
+            </div>
+          </>}
+        </div>
+        <div className="hidden lg:flex ml-auto gap-1.5 flex-wrap items-center">
           {season && <span className="h-11 px-3.5 rounded-full text-[13px] inline-flex items-center" style={{ background: '#fff4e5' }}>{season}</span>}
           {ann && <span className="h-11 px-3.5 rounded-full text-[13px] inline-flex items-center max-w-[220px] truncate" style={{ background: '#e7f4e8' }} title={ann.title}>📣 {ann.title}</span>}
           <button onClick={() => setPanel('riders')} className={topPill}><Icon name="bike" size={15} />Riders<span className="min-w-5 h-5 px-1.5 rounded-full text-[11px] font-bold text-white flex items-center justify-center" style={{ background: '#1f7a2a' }}>{freeRiders}</span></button>
@@ -386,7 +421,8 @@ export default function POS() {
       {SU && adminOk && <div className="mx-4 mb-2 w-fit rounded-full bg-black text-white text-[13px] px-4 py-2">Exceptional sale by the Admin · Reason: {[adminOk.why, adminOk.more].filter(Boolean).join(' · ')} · logged in the audit trail</div>}
       {train.on && <div className="mx-4 mb-2 w-fit rounded-full text-white text-[12px] font-bold px-4 py-1.5" style={{ background: RED }}>TRAINING MODE · practice data only, not for real sales</div>}
 
-      <div className="flex-1 grid gap-4 px-4 pb-4 lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_620px] 2xl:grid-cols-[1fr_720px] items-start">
+      {/* Products left, sale card right from tablets up (md); on phones the sale card sits below the products. */}
+      <div className="flex-1 grid gap-4 px-4 pb-4 md:grid-cols-[1fr_minmax(340px,44%)] lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_620px] 2xl:grid-cols-[1fr_720px] items-start">
         {/* Products */}
         <section className="flex flex-col gap-3 min-w-0">
           <div className="flex gap-2 flex-wrap">
@@ -422,7 +458,11 @@ export default function POS() {
           {oos && <div role="alert" className="rounded-[18px] px-4 py-3 text-sm flex items-center gap-3" style={{ background: '#fbeaea', border: `1px solid ${RED}`, color: '#7d1a1a' }}><span className="flex-1">{oos}</span><button onClick={() => setOos('')} aria-label="Dismiss" className="text-lg">×</button></div>}
           {q && <div className="flex items-center gap-3 text-sm"><span>{shown.length} product{shown.length === 1 ? '' : 's'} match “{q}”</span><button onClick={() => { setQ(''); setCat('All'); }} className="h-8 px-3.5 rounded-full border border-black text-[13px]">Show all products</button></div>}
           {!shown.length && <div className="rounded-[20px] border-2 border-dashed border-[#d9d9d9] p-6 text-center text-sm text-[#5f5c5a]">No products match your search. Check the spelling, try part of the name, or scan the barcode.</div>}
-          <div className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {/* Product tiles: 3 across on phones (sale card below); 4 on small tablets under 768px; 2 across on tablets
+              (md and lg, 768–1279px) with the sale card on the right; 5 across on laptops and desktops (xl+).
+              Extra products continue in rows below. On tablets the cards are kept small (a short 3:1 picture strip and
+              smaller text) so more products fit on screen beside the sale card. */}
+          <div className="grid gap-1.5 sm:gap-2 grid-cols-3 sm:grid-cols-4 md:grid-cols-2 xl:grid-cols-5">
             {shown.map((p) => {
               // free = what this till may sell; n = what is left after this sale's own items (shown on the card).
               // gone = nothing left even before this sale (greyed out as sold out); n = 0 with items in the sale just stops adding.
@@ -433,15 +473,16 @@ export default function POS() {
               const badges = ([pr.was && [`-${pr.off}%`, RED, 'On sale'], top && ['★ Best seller', '#b8860b', 'One of the 5 best sellers here in the last 30 days'], low && !out && ['Low stock', '#b26a00', `Only ${n} left · reorder level ${p.reorder || 10}`], isNewP && !out && ['New', '#0b5c5c', 'New product']].filter(Boolean) as [string, string, string][]).slice(0, 3);
               return (
               <article key={p.id} className="bg-white flex flex-col gap-1 p-1.5" style={{ borderRadius: 16, border: `1px solid ${gone ? '#cccccc' : '#000'}`, opacity: gone ? 0.68 : 1, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                <div className="relative overflow-hidden" style={{ aspectRatio: '2 / 1', borderRadius: 10, background: isArt(p.img) ? ART_BG : '#f2f4f5' }}>
+                <div className="relative overflow-hidden aspect-[3/2] sm:aspect-[2/1] md:aspect-[3/1] xl:aspect-[2/1]" style={{ borderRadius: 10, background: isArt(p.img) ? ART_BG : '#f2f4f5' }}>
                   {/* Drawn illustrations are shown whole (contain) on their own background; photos fill the box. */}
                   {p.img ? <img src={p.img} alt="" className={cx('w-full h-full', isArt(p.img) ? 'object-contain' : 'object-cover')} /> : <span className="absolute inset-0 flex items-center justify-center text-[#9a9794]"><Icon name="products" size={20} /></span>}
                   {/* Product info: the same description the online store shows (lib/describe.ts). */}
-                  <button onClick={() => setInfo(p)} aria-label={`About ${p.name}`} title="Product info" className="absolute right-1.5 top-1.5 w-6 h-6 rounded-full bg-white/90 border border-black/10 text-[11px] font-bold italic font-serif flex items-center justify-center hover:bg-white">i</button>
-                  {badges.length > 0 && <span className="absolute left-1.5 top-1.5 flex flex-col items-start gap-0.5">{badges.map(([t, bg, why]) => <span key={t} title={why} className="text-[9px] font-bold px-1.5 py-px rounded-full text-white whitespace-nowrap" style={{ background: bg }}>{t}</span>)}</span>}
+                  <button onClick={() => setInfo(p)} aria-label={`About ${p.name}`} title="Product info" className="absolute right-1 top-1 sm:right-1.5 sm:top-1.5 w-6 h-6 rounded-full bg-white/90 border border-black/10 text-[11px] font-bold italic font-serif flex items-center justify-center hover:bg-white">i</button>
+                  {/* Phones show only the two most important badges so the small photo stays visible. */}
+                  {badges.length > 0 && <span className="absolute left-1 top-1 sm:left-1.5 sm:top-1.5 flex flex-col items-start gap-0.5 max-sm:[&>*:nth-child(n+3)]:hidden">{badges.map(([t, bg, why]) => <span key={t} title={why} className="text-[9px] font-bold px-1.5 py-px rounded-full text-white whitespace-nowrap" style={{ background: bg }}>{t}</span>)}</span>}
                   <span className="absolute left-1.5 right-1.5 bottom-1 flex justify-end 2xl:justify-between items-end gap-1 text-[10px] leading-tight">{inSale ? <span /> : <span className="hidden 2xl:inline text-[#5f5c5a] bg-white/80 rounded px-1 truncate min-w-0">{p.cat}</span>}<span className="bg-white/85 rounded px-1 text-right flex-none max-w-[72%]" style={{ color: out ? RED : low ? '#b26a00' : '#3d3a38', fontWeight: out ? 700 : 500 }}>{gone ? 'Out of stock' : out ? '0 left' : low ? `${qtyTxt(p, n)} left` : `${qtyTxt(p, n)} in stock`}{inSale ? ` · ${qtyTxt(p, inSale)} in sale` : ''}</span></span>
                 </div>
-                <span className="text-[12px] font-medium leading-tight line-clamp-2" style={gone ? { textDecoration: 'line-through', color: '#9a9794' } : undefined} title={p.name}>{p.name}</span>
+                <span className="text-[11px] sm:text-[12px] md:text-[11.5px] xl:text-[12px] font-medium leading-tight line-clamp-2" style={gone ? { textDecoration: 'line-through', color: '#9a9794' } : undefined} title={p.name}>{p.name}</span>
                 {/* On sale: normal price crossed out, sale price beside it in red. */}
                 {pr.was
                   ? <span className="flex items-baseline gap-1.5 flex-wrap"><s className="text-[11px] text-[#9a9794]" aria-label={`Was ${ghs(pr.was)}`}>{ghs(pr.was)}</s><b className="text-[12px] font-semibold whitespace-nowrap" style={{ color: RED }} aria-label={`Now ${ghs(pr.price)}`}>{ghs(pr.price)}</b></span>
@@ -459,12 +500,17 @@ export default function POS() {
         </section>
 
         {/* Current sale */}
-        <aside aria-label="Current sale" className="bg-white flex flex-col lg:sticky lg:top-3" style={{ borderRadius: 28, padding: 22, gap: 16, boxShadow: 'rgba(0,0,0,0.1) 0 4px 6px -1px' }}>
+        {/* Sticky beside the products from tablets up; max height + its own scroll keep Charge reachable on a long sale. */}
+        <aside aria-label="Current sale" className="bg-white flex flex-col md:sticky md:top-3 md:max-h-[calc(100dvh-24px)] md:overflow-y-auto" style={{ borderRadius: 28, padding: 22, gap: 16, boxShadow: 'rgba(0,0,0,0.1) 0 4px 6px -1px' }}>
           {step === 'sell' && <>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="m-0 text-[20px] font-medium flex-1 whitespace-nowrap" style={{ letterSpacing: '-0.05em' }}>{creditMode ? 'Credit Sale' : 'Sale'} #{saleNo}</h2>
+              {/* Parked sales sits on the right side of the sale card, last in the row; ml-auto keeps the buttons
+                  right-aligned even when they wrap under the title on a narrow card. */}
+              <div className="flex gap-2 flex-wrap justify-end ml-auto">
               <button onClick={() => setPanel('return')} className="h-9 px-3.5 rounded-full border border-[#d9d9d9] bg-white text-[13px]">Return / exchange</button>
               <button onClick={() => setPanel('parked')} className={cx('h-9 px-3.5 rounded-full border text-[13px] inline-flex items-center gap-1', myParked ? 'bg-[#fff4e5] border-[#b26a00] text-[#8a4b00] font-semibold' : 'bg-white border-[#d9d9d9]')}>⏸ Parked sales · {myParked}</button>
+              </div>
             </div>
 
             <div className="p-3.5 flex flex-col gap-2" style={{ background: '#f2f4f5', borderRadius: 16 }}>
@@ -478,7 +524,7 @@ export default function POS() {
             <div className="flex flex-col gap-2">
               <span className="text-[13px] font-semibold text-[#3d3a38]">Customer · find a previous customer or add a new one ({creditMode ? 'required for credit' : 'optional'})</span>
               {!picked && !isNew && <>
-                <div className="flex gap-2"><span className="flex-1 flex items-center gap-2 h-11 px-3.5 rounded-full border border-[#d9d9d9]"><Icon name="search" size={15} /><input value={cq} onChange={(e) => setCq(e.target.value)} placeholder="Find a previous customer · name or phone" aria-label="Find a previous customer" className="flex-1 min-w-0 outline-none text-sm" /></span><button onClick={() => startNew()} className="h-11 px-3.5 rounded-full border border-black bg-white text-[13px] font-medium whitespace-nowrap">+ New customer</button></div>
+                <div className="flex gap-2 flex-wrap"><span className="flex-1 min-w-[200px] flex items-center gap-2 h-11 px-3.5 rounded-full border border-[#d9d9d9]"><Icon name="search" size={15} /><input value={cq} onChange={(e) => setCq(e.target.value)} placeholder="Find a previous customer · name or phone" aria-label="Find a previous customer" className="flex-1 min-w-0 outline-none text-sm" /></span><button onClick={() => startNew()} className="h-11 px-3.5 rounded-full border border-black bg-white text-[13px] font-medium whitespace-nowrap">+ New customer</button></div>
                 {hits.length > 0 && <div className="bg-white border border-[#ebebeb] flex flex-col overflow-hidden" style={{ borderRadius: 14 }}>{hits.map((c) => <button key={c.id} onClick={() => useCustomer(c)} className="flex items-center gap-2 px-3 py-2 text-left hover:bg-[#f2f4f5] border-b border-[#f2f2f2] last:border-0"><span className="flex-1 min-w-0 flex flex-col"><b className="text-sm font-medium">{c.name}</b><span className="text-xs text-[#5f5c5a]">{c.phone}{owesOf(c) ? ` · owes ${ghs(owesOf(c))}` : ''}</span></span><span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f2f4f5]">{c.group} · {c.tier}</span></button>)}</div>}
                 {cq.trim().length >= 2 && !hits.length && <div className="text-sm flex items-center gap-2 flex-wrap"><span>No previous customer matches “{cq}”.</span><button onClick={() => startNew(cq)} className="h-8 px-3 rounded-full bg-black text-white text-[12px] font-semibold">Add as a new customer</button></div>}
               </>}
@@ -515,7 +561,9 @@ export default function POS() {
             {/* Cart */}
             <div className="flex flex-col gap-2.5">
               {!cart.length && <div className="rounded-2xl bg-[#f2f4f5] p-5 text-center text-sm text-[#5f5c5a]">Scan or tap a product to start the sale.</div>}
-              {cart.map((l) => <div key={l.pid + (l.unit || '')} className="flex items-center gap-2"><span className="flex-1 min-w-0 flex flex-col"><span className="text-sm font-medium truncate">{l.name}</span><span className="text-xs text-[#5f5c5a]">{l.unit || 'single'} · {ghs(l.price)}</span>{l.serials?.length ? <span className="text-xs text-[#5f5c5a]">SN {l.serials.join(', ')}</span> : null}{P.find((x) => x.id === l.pid)?.track === 'serial' && (l.serials?.length || 0) < l.qty * (l.per || 1) && <button onClick={() => setSerialFor({ pid: l.pid, unit: l.unit || 'single' })} className="text-xs text-[#5f5c5a] underline w-fit">Add serial number (optional)</button>}</span><button onClick={() => setQty(l, l.qty - 1)} aria-label={`One less ${l.name}`} className="w-9 h-9 rounded-full border border-[#d9d9d9] text-lg">−</button><span className="w-6 text-center text-sm font-semibold">{l.qty}</span><button onClick={() => setQty(l, l.qty + 1)} aria-label={`One more ${l.name}`} className="w-9 h-9 rounded-full border border-[#d9d9d9] text-lg">+</button><b className="w-20 text-right text-sm font-medium">{ghs(l.qty * l.price)}</b></div>)}
+              {/* Sale lines. On phones and tablets the sale card is narrow, so the name gets its own full-width line and the
+                  − qty + buttons and line total sit under it; on laptops and desktops it is all one row. */}
+              {cart.map((l) => <div key={l.pid + (l.unit || '')} className="flex flex-wrap lg:flex-nowrap items-center gap-x-2 gap-y-1"><span className="basis-full lg:basis-auto flex-1 min-w-0 flex flex-col"><span className="text-sm font-medium line-clamp-2 lg:line-clamp-none lg:truncate">{l.name}</span><span className="text-xs text-[#5f5c5a]">{l.unit || 'single'} · {ghs(l.price)}</span>{l.serials?.length ? <span className="text-xs text-[#5f5c5a]">SN {l.serials.join(', ')}</span> : null}{P.find((x) => x.id === l.pid)?.track === 'serial' && (l.serials?.length || 0) < l.qty * (l.per || 1) && <button onClick={() => setSerialFor({ pid: l.pid, unit: l.unit || 'single' })} className="text-xs text-[#5f5c5a] underline w-fit">Add serial number (optional)</button>}</span><button onClick={() => setQty(l, l.qty - 1)} aria-label={`One less ${l.name}`} className="w-9 h-9 rounded-full border border-[#d9d9d9] text-lg">−</button><span className="w-6 text-center text-sm font-semibold">{l.qty}</span><button onClick={() => setQty(l, l.qty + 1)} aria-label={`One more ${l.name}`} className="w-9 h-9 rounded-full border border-[#d9d9d9] text-lg">+</button><b className="ml-auto lg:ml-0 min-w-[80px] text-right text-sm font-medium whitespace-nowrap">{ghs(l.qty * l.price)}</b></div>)}
             </div>
 
             {cart.length > 0 && <div className="flex flex-col gap-2">
@@ -577,6 +625,18 @@ export default function POS() {
       {intro && <Intro d={CREDIT_INTRO} user={username} onBack={() => { setIntro(false); if (step === 'sell' && !cart.length) nav('/sell'); }} onGo={() => setIntro(false)} />}
       {panel === 'park' && <ParkDialog defName={cust.name} onPark={parkIt} onClose={() => setPanel('')} />}
       {info && <ProductInfo p={info} desc={shownDesc(info, W.desc[info.id]?.desc || '', B.name)} price={priced(info)} stock={Math.max(0, stockAt(info) - inCart(info.id))} onAdd={() => { add(info); setInfo(null); }} onClose={() => setInfo(null)} />}
+      {/* "Added" pop-up (see announce). Phones get "View sale", since the sale card sits below the products there. */}
+      {added && (
+        // Centred with a flex wrapper, not translate, because the slide-in animation (live-in) sets transform itself.
+        <div className="fixed z-[400] inset-x-0 top-4 px-4 flex justify-center pointer-events-none">
+        <div key={added.id} role="status" aria-live="polite" className="live-in pointer-events-auto w-full max-w-[420px] rounded-2xl bg-black text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] px-4 py-3 flex items-center gap-3">
+          <span aria-hidden className="w-7 h-7 flex-none rounded-full bg-[#1f7a2a] flex items-center justify-center text-sm font-bold">✓</span>
+          <span className="flex-1 min-w-0 text-sm leading-snug"><b className="font-semibold line-clamp-2">{added.name}</b><span className="text-white/80">is added to the {creditMode ? 'credit sale' : 'sale'}{added.qty > 1 ? ` · ${added.qty} in this sale` : ''}</span></span>
+          <button onClick={() => { document.querySelector('aside[aria-label="Current sale"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); setAdded(null); }} className="md:hidden h-8 px-3 rounded-full bg-white text-black text-xs font-semibold flex-none">View sale</button>
+          <button onClick={() => setAdded(null)} aria-label="Close" className="text-white/70 hover:text-white text-lg leading-none flex-none">×</button>
+        </div>
+        </div>
+      )}
       {weigh && <WeighPrompt p={weigh.p} kg={weigh.kg} setKg={(kg) => setWeigh({ ...weigh, kg })} price={priced(weigh.p).price} onAdd={(kg) => { if (addUnit(weigh.p, 'w', { kg })) setWeigh(null); }} err={oos} onClose={() => { setWeigh(null); setOos(''); }} />}
       {serialFor && <SerialPrompt line={cart.find((l) => l.pid === serialFor.pid && (l.unit || 'single') === serialFor.unit)} product={P.find((x) => x.id === serialFor.pid)} cart={cart} onSave={(sns) => { setCart((c) => c.map((l) => (l.pid === serialFor.pid && (l.unit || 'single') === serialFor.unit ? { ...l, serials: sns } : l))); setSerialFor(null); window.setTimeout(() => qRef.current?.focus(), 0); }} onClose={() => { setSerialFor(null); window.setTimeout(() => qRef.current?.focus(), 0); }} />}
       {panel === 'parked' && <ParkedPanel br={br} me={me.name} role={role} onResume={(p) => { /* take it off the parked list here too: the panel closes before its own save runs, and a parked sale left behind would hold its stock twice */ setParked((L) => L.filter((x) => x.id !== p.id)); setCart(p.lines); if (p.cust) { setCust({ ...custBlank, ...p.cust, phone: p.cust.phone ? phClean(p.cust.phone) : '' }); setIsNew(true); setSaved(!!p.cust.phone); } if (p.disc) { setDisc(String(p.disc)); setDiscApplied(p.disc); setDiscOk(p.disc); } setStep('sell'); setPanel(''); setToast('Parked sale resumed'); }} onClose={() => setPanel('')} />}

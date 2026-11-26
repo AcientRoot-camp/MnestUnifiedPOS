@@ -9,6 +9,7 @@ import { SupportOnly } from './Developer';
 import ZeroTrust from './ZeroTrust';
 import { B, Chips, Sec, Tag } from './dev/ui';
 import NoticeModal from '../../components/Notice';
+import { Tabs } from '../../components/ui';
 
 type Tab = 'over' | 'zt' | 'access' | 'threat' | 'fw' | 'int' | 'code';
 type Threat = { key: string; score: number; title: string; body: string; advice: string; act?: [string, () => void] };
@@ -142,7 +143,7 @@ export default function Security() {
   return (
     <>
       <header className="flex flex-col gap-1"><h1 className="m-0 text-[30px] font-medium tracking-tightest">Security centre</h1><p className="m-0 text-sm text-muted">{SUPPORT} only · Zero Trust sign-in, firewall, threat detection and data integrity in one place</p><span className="text-xs text-muted">As of {new Date(now).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} · updates live</span></header>
-      <div role="tablist" aria-label="Security sections" className="flex gap-1.5 flex-wrap">{tabs.map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={cx('text-sm px-4 py-2 rounded-full whitespace-nowrap', tab === k ? 'bg-black text-white font-semibold' : 'bg-white shadow-card hover:bg-canvas')}>{l}</button>)}</div>
+      <Tabs label="Security sections" tabs={tabs.map(([k, l]) => ({ id: k, label: l }))} value={tab} onChange={(k) => setTab(k as typeof tab)} />
       <NoticeModal msg={msg} onClose={() => setMsg('')} />
 
       {tab === 'over' && <>

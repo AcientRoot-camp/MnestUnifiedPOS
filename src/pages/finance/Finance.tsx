@@ -10,6 +10,7 @@ import { Accounts, Assistant, Refunds } from './Admin';
 import { Cashup, Deposits, Moves } from './Banking';
 import Overview from './Overview';
 import type { Ctx } from './shared';
+import { PillSelect } from '../../components/ui';
 
 const TL: Record<string, string> = { overview: 'Overview', cashup: 'Cash-up', deposits: 'Bank deposits', moves: 'Money movements', refunds: 'Refunds', accounts: 'Bank accounts', assistant: 'Finance assistant' };
 
@@ -49,7 +50,9 @@ export default function Finance() {
         <div className="flex flex-col gap-1"><h1 className="m-0 text-[30px] font-medium tracking-tightest">{title}{T !== 'overview' ? ` · ${TL[T]}` : ''}</h1><p className="m-0 text-sm text-muted max-w-2xl">{note}</p></div>
         <span className="flex flex-col items-end text-xs"><span className="font-semibold">{me} · {PEOPLE[role].level}</span><span className="text-muted">As of {new Date().toTimeString().slice(0, 5)} today</span></span>
       </header>
-      <nav aria-label="Finance sections" className="flex gap-1 p-1 rounded-full bg-white shadow-card w-fit max-w-full overflow-x-auto">
+      {/* Phones and tablets: the sections as a dropdown; computers: the pill row below. */}
+      <PillSelect className="lg:hidden" label="Finance sections" value={T} onChange={(t) => c.goTab(t as typeof T)} items={tabs.map((t) => ({ id: t, label: N[t] ? `${TL[t]} (${N[t]})` : TL[t] }))} />
+      <nav aria-label="Finance sections" className="hidden lg:flex gap-1 p-1 rounded-full bg-white shadow-card w-fit max-w-full overflow-x-auto">
         {tabs.map((t) => (
           <button key={t} onClick={() => c.goTab(t)} aria-current={T === t ? 'page' : undefined} className={cx('text-sm px-3.5 py-2 rounded-full whitespace-nowrap inline-flex items-center gap-1.5', T === t ? 'bg-black text-white font-semibold' : 'text-sub hover:bg-canvas')}>
             {TL[t]}{N[t] ? <span className={cx('pill px-1.5 py-0', T === t ? 'bg-white text-black' : 'bg-danger text-white')}>{N[t]}</span> : null}

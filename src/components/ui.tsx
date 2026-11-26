@@ -108,27 +108,64 @@ export function Table({ cols, rows }: { cols: string[]; rows: (string | ReactNod
   );
 }
 
-export function Tabs({ tabs, value, onChange }: { tabs: { id: string; label: string }[]; value: string; onChange: (id: string) => void }) {
+/** Native dropdown styled like the app's pills: used for tabs and options on phones and tablets. */
+export function PillSelect({ label, value, onChange, items, className }: { label: string; value: string; onChange: (id: string) => void; items: { id: string; label: string }[]; className?: string }) {
   return (
-    <div role="tablist" className="flex gap-1 p-1 rounded-full bg-white shadow-card w-fit max-w-full overflow-x-auto">
-      {tabs.map((t) => (
-        <button
-          key={t.id}
-          role="tab"
-          aria-selected={value === t.id}
-          onClick={() => onChange(t.id)}
-          className={cx('text-sm px-4 py-2 rounded-full whitespace-nowrap', value === t.id ? 'bg-black text-white font-semibold' : 'text-sub hover:bg-canvas')}
-        >
-          {t.label}
-        </button>
-      ))}
-    </div>
+    <label className={cx('relative inline-flex w-full max-w-md', className)}>
+      <span className="sr-only">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-11 pl-4 pr-10 rounded-full bg-white border border-black text-sm font-semibold appearance-none cursor-pointer">
+        {items.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+      </select>
+      <span aria-hidden className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs">▼</span>
+    </label>
   );
 }
 
+/**
+ * Section tabs that fit every screen: a row of pill tabs on laptops and desktops (lg and up), and a dropdown on
+ * phones and tablets, where a long row of tabs would run off the screen. badge: a small count shown on the tab
+ * (and after the name in the dropdown). Inputs: tabs, the selected id, onChange and an accessible label.
+ */
+export function Tabs({ tabs, value, onChange, label = 'Sections' }: { tabs: { id: string; label: string; badge?: string | number }[]; value: string; onChange: (id: string) => void; label?: string }) {
+  return (
+    <>
+      <PillSelect className="lg:hidden" label={label} value={value} onChange={onChange} items={tabs.map((t) => ({ id: t.id, label: t.badge ? `${t.label} (${t.badge})` : t.label }))} />
+      <div role="tablist" aria-label={label} className="hidden lg:flex gap-1 p-1 rounded-full bg-white shadow-card w-fit max-w-full overflow-x-auto">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={value === t.id}
+            onClick={() => onChange(t.id)}
+            className={cx('text-sm px-3.5 py-2 rounded-full whitespace-nowrap inline-flex items-center gap-1.5', value === t.id ? 'bg-black text-white font-semibold' : 'text-sub hover:bg-canvas')}
+          >
+            {t.label}{t.badge ? <span className={cx('pill px-1.5 py-0', value === t.id ? 'bg-white text-black' : 'bg-danger text-white')}>{t.badge}</span> : null}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/**
+ * Branch picker (All branches / Osu / East Legon / Adum) used on the POS dashboard.
+ * Inputs: the selected branch id, a change handler and the branch options.
+ * Phones and tablets (below lg) get a dropdown, because four wide pills wrap onto several lines there;
+ * laptops and desktops keep the pill row. With a single option (a user tied to one branch) only the pill shows.
+ */
 export function BranchPills({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { id: string; label: string }[] }) {
   return (
-    <div role="group" aria-label="Branch" className="flex gap-2 flex-wrap">
+    <>
+      {options.length > 1 && <PillSelect label="Branch" value={value} onChange={onChange} items={options} className="lg:hidden sm:max-w-xs" />}
+      <BranchPillRow value={value} onChange={onChange} options={options} className={options.length > 1 ? 'hidden lg:flex' : 'flex'} />
+    </>
+  );
+}
+
+/** The pill row half of BranchPills (laptops and desktops, or a single-branch user on any screen). */
+function BranchPillRow({ value, onChange, options, className }: { value: string; onChange: (v: string) => void; options: { id: string; label: string }[]; className: string }) {
+  return (
+    <div role="group" aria-label="Branch" className={cx('gap-2 flex-wrap', className)}>
       {options.map((b) => (
         <button
           key={b.id}

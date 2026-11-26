@@ -5,7 +5,7 @@ import { ADMIN_ONLY, MANAGER_UP, PAGE_PERM, anyOn, can, type Grants } from '../l
 import { useSession } from '../lib/session';
 import Icon from './Icon';
 
-const NAMES: Record<string, string> = { users: 'Users & permissions', audit: 'Audit trail', backup: 'Backup & restore', payments: 'Payments', tax: 'Tax & E-VAT', marketing: 'Marketing', settings: 'Settings' };
+const NAMES: Record<string, string> = { users: 'Users & permissions', audit: 'Audit trail', backup: 'Backup & restore', payments: 'Payments', tax: 'Tax & E-VAT', marketing: 'Marketing', settings: 'Settings', documents: 'Documents & stamp' };
 
 export function TurnedOff({ title, body, fullscreen, switchAcc }: { title: string; body: string; fullscreen?: boolean; switchAcc?: () => void }) {
   const box = (

@@ -15,6 +15,7 @@ import Training from './dev/Training';
 import Updates from './dev/Updates';
 import { B, Ctx, Kpi, Modal, Sec, Tag, type Ask } from './dev/ui';
 import NoticeModal from '../../components/Notice';
+import { Tabs } from '../../components/ui';
 
 export const TABS: [string, string][] = [['monitor', 'System monitor'], ['accounts', 'User accounts'], ['escalated', 'Escalated issues'], ['company', 'New company'], ['training', 'Training mode'], ['branches', 'Company branches'], ['it', 'IT management'], ['updates', 'Updates & maintenance'], ['setup', 'Set-up & hand-over'], ['activity', 'My activity'], ['limits', 'Access limits']];
 const ALIAS: Record<string, string> = { companies: 'company', tickets: 'escalated' };
@@ -87,7 +88,7 @@ export default function Developer() {
         <Kpi l="E-VAT queue" v="3" n="receipts waiting for GRA" tone="warn" />
         <Kpi l="Last backup" v="03:00" n="Today · test restore passed" />
       </section>
-      <div role="tablist" aria-label="Console sections" className="flex gap-1.5 flex-wrap">{TABS.map(([k, l]) => <button key={k} role="tab" aria-selected={T === k} onClick={() => go(k)} className={cx('text-sm px-4 py-2 rounded-full whitespace-nowrap', T === k ? 'bg-black text-white font-semibold' : 'bg-white shadow-card hover:bg-canvas')}>{l}</button>)}</div>
+      <Tabs label="Console sections" tabs={TABS.map(([k, l]) => ({ id: k, label: l }))} value={T} onChange={(k) => go(k as typeof T)} />
       <section aria-label="Company in view" className="bg-white rounded-3xl shadow-card p-4 flex items-center gap-4 flex-wrap">
         <span className="w-12 h-12 rounded-2xl bg-canvas overflow-hidden flex items-center justify-center font-bold flex-none">{d.co.logo ? <img src={d.co.logo} alt="" className="w-full h-full object-contain" /> : ini(d.co.name)}</span>
         <span className="flex-1 min-w-[200px] flex flex-col"><strong className="flex items-center gap-2 flex-wrap">{d.co.name} <Tag t={meta?.held ? 'On hold' : d.co.status} tone={meta?.held || d.co.status === 'Suspended' ? 'bad' : 'ok'} /></strong><span className="text-xs text-muted">{d.co.type} · {d.co.plan} plan · Admin {d.co.owner} · Database <code>{d.co.db}</code></span><span className="text-xs text-muted">{brs.map((b) => b.name).join(' · ')}</span></span>

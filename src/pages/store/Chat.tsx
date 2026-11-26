@@ -114,7 +114,9 @@ export function ChatAssistant() {
 
   return (
     <>
-      {/* Launcher: navy with a gold ring, bottom right (the WhatsApp button sits above it). */}
+      {/* "Hello" greeting bubble attached to the launcher (left of it) while the chat is closed; tapping it opens the chat. */}
+      {!open && <button onClick={() => setOpen(true)} aria-label="Hello! Chat with our shop assistant" className="fixed right-[84px] bottom-[26px] z-[45] h-9 pl-3.5 pr-4 rounded-full rounded-br-md bg-white text-[#1a1240] text-sm font-semibold flex items-center gap-1.5 shadow-[0_8px_24px_rgba(26,18,64,0.22)] border border-black/5 hover:-translate-y-0.5 transition-transform"><span aria-hidden>👋</span>Hello</button>}
+      {/* Launcher: navy with a gold ring, bottom right. */}
       <button onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="shop-chat" aria-label={open ? 'Close the chat' : 'Chat with our shop assistant'}
         className="fixed right-4 bottom-4 z-[45] w-14 h-14 rounded-full text-white flex items-center justify-center shadow-[0_10px_30px_rgba(26,18,64,0.35)] transition-transform hover:scale-105 active:scale-95"
         style={{ background: 'linear-gradient(145deg,#2a1d63,#1a1240)', boxShadow: `0 0 0 2px ${GOLD}, 0 10px 30px rgba(26,18,64,0.35)` }}>

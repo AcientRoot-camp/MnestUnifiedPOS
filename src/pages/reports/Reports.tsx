@@ -10,6 +10,7 @@ import { DEFS, MODS, PERIODS, salesIn, type Opts, type Period } from './engine';
 import ReportDoc from './ReportDoc';
 import CrmReports from '../crm/Reports';
 import CustomReport from './CustomReport';
+import { Tabs } from '../../components/ui';
 
 const TABS: [string, string][] = [['live', 'Generate a report'], ['overview', 'Snapshot'], ['system', 'Reference reports'], ['builder', 'Custom report'], ['crm', 'CRM']];
 
@@ -48,9 +49,8 @@ export default function Reports() {
   return (
     <>
       <Head title="Reports" sub="Every channel from one database: no reconciliation between shop and website" />
-      <div role="tablist" className="flex gap-1 p-1 rounded-full bg-white shadow-card w-fit max-w-full overflow-x-auto">
-        {TABS.map(([k, l]) => <button key={k} role="tab" aria-selected={T0 === k} onClick={() => nav(k === 'live' ? '/reports' : `/reports/${k}`)} className={cx('text-sm px-3.5 py-2 rounded-full whitespace-nowrap', T0 === k ? 'bg-black text-white font-semibold' : 'text-sub hover:bg-canvas')}>{l}</button>)}
-      </div>
+      {/* Pill tabs on computers, a dropdown on phones and tablets (components/ui Tabs). */}
+      <Tabs label="Report sections" tabs={TABS.map(([k, l]) => ({ id: k, label: l }))} value={T0} onChange={(k) => nav(k === 'live' ? '/reports' : `/reports/${k}`)} />
 
       {T0 === 'live' && (
         <div className="grid gap-6 xl:grid-cols-[320px_1fr] items-start">

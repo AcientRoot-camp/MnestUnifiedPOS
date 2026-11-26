@@ -15,6 +15,7 @@ import { companyBiz, downloadPdf, invoiceDoc, summaryDoc, tillSaleDoc } from '..
 import { companyLogo } from '../../../lib/brand';
 import Intro, { PF_INTRO, introSeen } from '../../../components/Intro';
 import { DEFAULT_TERMS, SEED_DOCS, totals, type Doc } from './model';
+import { Tabs } from '../../../components/ui';
 
 type Row = { no: string; type: string; code: string; date: string; ts: number; cust: string; phone: string; items: string; by: string; br: string; meth: string; status: string; total: number; group: string; doc?: Doc; sale?: TillSale };
 const BRCODE: Record<string, string> = { osu: 'OSU', legon: 'LEG', adum: 'ADM' };
@@ -104,9 +105,8 @@ export default function DocsPage({ mode }: { mode: 'pf' | 'inv' }) {
           <p className="m-0 text-sm text-muted">{pf ? 'Estimates and quotations for customers · set how long they are valid and the advance needed · convert to an invoice when accepted' : 'Every invoice and receipt the system makes from sales, credit sales, hire purchase and the webstore · numbered per company and branch · open, print, share or upload'}</p>
         </div>
       </header>
-      <div role="tablist" className="flex gap-1 p-1 rounded-full bg-white shadow-card w-fit max-w-full overflow-x-auto">
-        {tabs.map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} onClick={() => { setTab(k); setShown(25); if (k !== 'sheet' && k !== 'upload') setListTab(k); }} className={cx('text-sm px-3.5 py-2 rounded-full whitespace-nowrap', tab === k ? 'bg-black text-white font-semibold' : 'text-sub hover:bg-canvas')}>{l}</button>)}
-      </div>
+      {/* Pill tabs on computers, a dropdown on phones and tablets (components/ui Tabs). */}
+      <Tabs label="Document sections" tabs={tabs.map(([k, l]) => ({ id: k, label: l }))} value={tab} onChange={(k) => { const t = k as typeof tab; setTab(t); setShown(25); if (t !== 'sheet' && t !== 'upload') setListTab(t as typeof listTab); }} />
 
       {!pf && tab !== 'sheet' && <div className="flex justify-end -mt-2"><button onClick={() => { setCur(blank('inv')); setTab('sheet'); }} className="h-11 px-5 rounded-full text-white text-sm font-semibold" style={{ background: '#0b5c5c' }}>+ New invoice</button></div>}
       {tab === 'sheet' && <DocEditor doc={cur} setDoc={setCur} saved={isSaved} onSave={save} onNew={() => setCur(blank(mode))} onConvert={pf ? convert : undefined} flash={setToast} onBack={pf ? undefined : () => setTab(listTab)} converting={convPct} />}

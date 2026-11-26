@@ -14,7 +14,7 @@ import { SectionBody } from '../../components/ProductDesc';
 export function Price({ p, big = false }: { p: SP; big?: boolean }) {
   return p.was && p.was > p.price
     ? <span className={cx('flex items-baseline gap-2 flex-wrap', big ? 'text-2xl' : 'text-[15px]')}><s className="text-muted text-[0.8em]">{money(p.was)}</s><strong className="text-danger">{money(p.price)}</strong></span>
-    : <strong className={big ? 'text-2xl' : 'text-[15px]'}>{money(p.price)}</strong>;
+    : <strong className={big ? 'text-2xl' : 'text-[13.5px] lg:text-[15px]'}>{money(p.price)}</strong>;
 }
 
 function Photo({ p, label = true, className = '' }: { p: SP; label?: boolean; className?: string }) {
@@ -39,20 +39,21 @@ export function ProductCard({ p, brId, compact = false }: { p: SP; brId?: string
   const allMine = oos && mine > 0;
   const B = allMine ? [...badgesOf(p, brId).filter((b) => b.t !== 'Out of stock'), { t: 'In your basket', cls: 'bg-ok text-white' }] : badgesOf(p, brId);
   return (
-    <div className={cx('group rounded-3xl border bg-white flex flex-col overflow-hidden', oos && !allMine ? 'border-black/10 opacity-80' : 'border-black/[0.18]')}>
+    // Compact on phones and tablets (smaller image, padding, text and button) so more cards fit the screen; full size from lg.
+    <div className={cx('group rounded-2xl lg:rounded-3xl border bg-white flex flex-col overflow-hidden', oos && !allMine ? 'border-black/10 opacity-80' : 'border-black/[0.18]')}>
       <div className="relative">
-        <button onClick={() => open(p.id)} aria-label={`View ${p.name}`} className="block w-full"><Photo p={p} className="aspect-square" /></button>
-        {B.length > 0 && <span className="absolute left-2.5 top-2.5 flex flex-col gap-1 items-start pointer-events-none">{B.map((b) => <span key={b.t} className={cx('text-[11px] font-bold px-2 py-0.5 rounded-full', b.cls)}>{b.t}</span>)}</span>}
-        <Heart p={p} className="absolute right-2.5 top-2.5" />
-        <button onClick={() => setQv(p.id)} aria-label={`Quick view ${p.name}`} className="absolute left-1/2 -translate-x-1/2 bottom-2.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white shadow-card opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity whitespace-nowrap">👁 Quick view</button>
+        <button onClick={() => open(p.id)} aria-label={`View ${p.name}`} className="block w-full"><Photo p={p} className="aspect-[5/4] lg:aspect-square" /></button>
+        {B.length > 0 && <span className="absolute left-2 top-2 lg:left-2.5 lg:top-2.5 flex flex-col gap-1 items-start pointer-events-none">{B.slice(0, 2).map((b) => <span key={b.t} className={cx('text-[10px] lg:text-[11px] font-bold px-1.5 lg:px-2 py-0.5 rounded-full', b.cls)}>{b.t}</span>)}</span>}
+        <Heart p={p} className="absolute right-2 top-2 lg:right-2.5 lg:top-2.5 scale-90 lg:scale-100 origin-top-right" />
+        <button onClick={() => setQv(p.id)} aria-label={`Quick view ${p.name}`} className="hidden lg:block absolute left-1/2 -translate-x-1/2 bottom-2.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white shadow-card opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity whitespace-nowrap">👁 Quick view</button>
       </div>
-      <div className="p-3.5 pr-14 flex flex-col gap-1 flex-1 relative">
-        <button onClick={() => open(p.id)} className={cx('text-left text-[14.5px] font-medium leading-snug', oos && !allMine && 'line-through text-[#9a9794]')}>{p.name}</button>
+      <div className="p-2.5 pr-11 lg:p-3.5 lg:pr-14 flex flex-col gap-0.5 lg:gap-1 flex-1 relative">
+        <button onClick={() => open(p.id)} className={cx('text-left text-[13px] lg:text-[14.5px] font-medium leading-snug line-clamp-2 lg:line-clamp-none', oos && !allMine && 'line-through text-[#9a9794]')}>{p.name}</button>
         <span className="flex items-baseline gap-1.5 flex-wrap"><Price p={p} />{!compact && p.ct && <span className="text-xs text-muted">· {p.ct.label.toLowerCase()} {money(p.ct.price)}</span>}</span>
-        <span className={cx('text-xs', allMine ? 'text-ok font-semibold' : oos ? 'text-danger font-bold' : 'text-muted')}>{allMine ? `All ${mine} left are in your basket` : brId ? stockTxt(p.stock[brId]) : stockLine(p)}</span>
+        <span className={cx('text-[11px] lg:text-xs leading-snug', allMine ? 'text-ok font-semibold' : oos ? 'text-danger font-bold' : 'text-muted')}>{allMine ? `All ${mine} left are in your basket` : brId ? stockTxt(p.stock[brId]) : stockLine(p)}</span>
         {allMine ? null : !oos
-          ? <button onClick={() => add(p.id, 's')} aria-label={`Add ${p.name} to basket`} title="Add to basket" className="absolute right-3 bottom-3 w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg></button>
-          : <button onClick={() => setBis(p.id)} className="mt-2 -mr-11 h-9 rounded-full border border-black text-xs font-semibold">🔔 Notify me when back</button>}
+          ? <button onClick={() => add(p.id, 's')} aria-label={`Add ${p.name} to basket`} title="Add to basket" className="absolute right-2 bottom-2 lg:right-3 lg:bottom-3 w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-black text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg></button>
+          : <button onClick={() => setBis(p.id)} className="mt-1.5 -mr-8 lg:mt-2 lg:-mr-11 h-8 lg:h-9 rounded-full border border-black text-[11px] lg:text-xs font-semibold">🔔 Notify me</button>}
       </div>
     </div>
   );
@@ -161,7 +162,7 @@ export function ProductPage() {
       </div>
       <section aria-label="You may also like" className="flex flex-col gap-4">
         <h2 className="m-0 text-xl font-semibold">You may also like</h2>
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">{related.map((x) => <ProductCard key={x.id} p={x} compact />)}</div>
+        <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">{related.map((x) => <ProductCard key={x.id} p={x} compact />)}</div>
       </section>
       {rec.length > 0 && <section aria-labelledby="rv3-h" className="flex flex-col gap-4"><h2 id="rv3-h" className="m-0 text-xl font-semibold">Recently viewed</h2><div className="flex gap-4 overflow-x-auto pb-2">{rec.map((x) => <MiniCard key={x.id} p={x} />)}</div></section>}
     </main>

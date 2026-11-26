@@ -8,6 +8,7 @@ import { cx, ghs } from '../../lib/format';
 import { AgreementDoc, ReceiptDoc, StatementDoc } from './HPDocs';
 import NewAgreement from './NewAgreement';
 import Intro, { HP_INTRO, introSeen } from '../../components/Intro';
+import { Tabs } from '../../components/ui';
 
 type Tab = 'new' | 'list' | 'rules';
 const STATUS_CLS: Record<HPStatus, string> = {
@@ -71,11 +72,7 @@ export default function HirePurchase() {
           </div>
           <p className="m-0 text-sm text-muted">Buy now on credit, pay in instalments · the item belongs to the shop until the last instalment · {scopeLine}</p>
         </div>
-        <div role="tablist" className="flex gap-1 p-1 rounded-full bg-white shadow-card">
-          {([['new', 'New agreement'], ['list', 'Agreements'], ['rules', 'Terms & settings']] as [Tab, string][]).map(([k, l]) => (
-            <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={cx('text-sm px-4 py-2 rounded-full', tab === k ? 'bg-black text-white font-semibold' : 'text-sub hover:bg-canvas')}>{l}</button>
-          ))}
-        </div>
+        <Tabs label="Hire purchase sections" tabs={([['new', 'New agreement'], ['list', 'Agreements'], ['rules', 'Terms & settings']] as [Tab, string][]).map(([k, l]) => ({ id: k, label: l }))} value={tab} onChange={(k) => setTab(k as Tab)} />
       </header>
 
       <section aria-label="Key figures" className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">

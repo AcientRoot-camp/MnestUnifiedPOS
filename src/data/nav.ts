@@ -40,6 +40,11 @@ export function applyAccount(a: Pick<Account, 'username' | 'name' | 'role' | 'le
   PEOPLE[a.role] = { name: a.name, level: a.level, initials: a.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase(), username: a.username };
 }
 
+/** Leave requests waiting for a decision, for the People & HR badge ('' when none). */
+function pendingLeave(): string | undefined {
+  try { const L = JSON.parse(localStorage.getItem('ecompos.leave2') || 'null') as { status: string }[] | null; const n = (L || []).filter((x) => x.status === 'pending').length; return n ? String(n) : undefined; } catch { return undefined; }
+}
+
 export function buildNav(role: Role, username?: string, branch?: string, grants?: Grants): NavGroup[] {
   if (role === 'rider') return [];
   if (role === 'developer')
@@ -233,7 +238,8 @@ export function buildNav(role: Role, username?: string, branch?: string, grants?
       label: 'Grow & team',
       items: [
         ...(mgrUp ? [{ id: 'marketing', label: 'Marketing', path: p('marketing') }] : []),
-        { id: 'staff', label: 'People & HR', path: p('staff'), badge: isAdmin ? '1' : undefined },
+        // Admin only: how many leave requests are waiting for a decision (People & HR → Leave).
+        { id: 'staff', label: 'People & HR', path: p('staff'), badge: isAdmin ? pendingLeave() : undefined },
         { id: 'payroll', label: 'Payroll', path: p('payroll') },
       ],
     },
@@ -262,8 +268,7 @@ export function buildNav(role: Role, username?: string, branch?: string, grants?
             { id: 'messages', label: 'SMS & email', path: p('messages') },
             ...(any('approvals.decide', 'returns.approve', 'issues.receive') ? [{ id: 'approvals', label: 'Approvals & issues', path: p('approvals'), badge: '5' }] : []),
             { id: 'tickets', label: 'Issue tickets', path: p('tickets') },
-            { id: 'documents', label: 'Documents & stamp', path: p('documents') },
-            ...(mgrUp ? [{ id: 'settings', label: 'Settings', path: p('settings') }] : []),
+            // Settings and Documents & stamp are the Admin's only (company-wide set-up).
           ],
     },
   ];

@@ -61,5 +61,6 @@ export const PAGE_PERM: Record<string, [Perm[], string]> = {
   damages: [['stock.view', 'stock.manage', 'returns.start'], 'Damages & suppliers'], contracts: [['contracts.use'], 'Contracts'],
   approvals: [['approvals.decide', 'returns.approve', 'issues.receive'], 'Approvals & issues'], branches: [['branches.view'], 'Branches'],
 };
-export const ADMIN_ONLY = ['users', 'audit', 'backup'];
-export const MANAGER_UP = ['payments', 'tax', 'marketing', 'settings'];
+// Settings and Documents & stamp are company-wide set-up: the Admin's only (also hidden from other roles' menus).
+export const ADMIN_ONLY = ['users', 'audit', 'backup', 'settings', 'documents'];
+export const MANAGER_UP = ['payments', 'tax', 'marketing'];

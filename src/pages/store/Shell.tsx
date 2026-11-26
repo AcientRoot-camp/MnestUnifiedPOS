@@ -110,7 +110,7 @@ function BizMark({ W, light = true }: { W: Web; light?: boolean }) {
       <img src={W.site.logo || companyLogo()} alt="" className={cx('w-11 h-11 sm:w-14 sm:h-14 object-contain flex-none', light && 'bg-white rounded-xl p-1')} />
       {/* Very narrow phones (under 380px): logo only, so the name is never cut off; the home button still announces the name.
           min-w-0 + truncate stay as a safety net for unusually long names. */}
-      <span className={cx('max-[379px]:hidden flex flex-col min-w-0 text-left font-bold text-[11px] sm:text-[13px] leading-[1.1] uppercase tracking-[.06em] sm:tracking-[.08em]', light ? 'text-white' : 'text-black')}>{n.split(/\s+/).filter(Boolean).map((w, i) => <span key={i} className="block whitespace-nowrap truncate">{w}</span>)}</span>
+      <span className={cx('max-sm:hidden flex flex-col min-w-0 text-left font-bold text-[11px] sm:text-[13px] leading-[1.1] uppercase tracking-[.06em] sm:tracking-[.08em]', light ? 'text-white' : 'text-black')}>{n.split(/\s+/).filter(Boolean).map((w, i) => <span key={i} className="block whitespace-nowrap truncate">{w}</span>)}</span>
     </span>
   );
 }
@@ -334,7 +334,7 @@ export function Footer() {
         </div>
       </div>
       {/* Bottom bar: copyright line, accepted payments, platform credit · all text in white. */}
-      {/* Phones: centred and stacked, with extra bottom space so the floating chat and WhatsApp buttons never cover the credit. */}
+      {/* Phones: centred and stacked, with extra bottom space so the floating chat button never covers the credit. */}
       <div className="border-t border-white/10 px-[var(--gut)] py-5 max-sm:pb-24 grid gap-3 md:grid-cols-[auto_1fr_auto] items-center text-[12.5px] text-white max-md:justify-items-center">
         <span className="max-md:order-3">MNEST Systems 2026</span>
         {/* Accepted payment methods: desktop and tablet only (hidden on phones to keep the footer short). */}
@@ -355,14 +355,14 @@ export function Overlays() {
     <>
       {/* "Install the app" pop-up: waits until the cookie choice is made, so the two never overlap. */}
       <StoreInstall name={bizName(W)} ready={!!cookies} onInstalled={() => say(`${bizName(W)} is installed · open it from your home screen or desktop`)} />
-      {W.plugins.whatsapp && W.site.whatsapp && <a href={waHref(W.site.whatsapp, 'Hello, I have a question about an order')} target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp" className="fixed right-4 bottom-[88px] z-30 w-14 h-14 rounded-full shadow-card overflow-hidden"><img src="/assets/social/whatsapp.png" alt="" className="w-full h-full" /></a>}
+      {/* The floating WhatsApp button was removed: the shop assistant (bottom right) offers WhatsApp and calls in its replies. */}
       {!cookies && (
         <div role="dialog" aria-label="Cookies" className="fixed left-4 right-4 bottom-4 sm:left-auto sm:max-w-md z-50 bg-white text-black rounded-3xl shadow-card border border-line p-4 flex flex-col gap-3">
           <span className="text-sm">🍪 We use a few cookies to keep your basket and sign-in working. With your permission we also use analytics cookies to improve the store.</span>
           <div className="flex gap-2 justify-end"><button onClick={() => setCookies('essential')} className="h-10 px-4 rounded-full border border-line text-sm font-semibold">Essential only</button><button onClick={() => setCookies('all')} className="h-10 px-4 rounded-full bg-black text-white text-sm font-semibold">Accept all</button></div>
         </div>
       )}
-      {/* Shop assistant chat (Chat.tsx): bottom right, with the WhatsApp button stacked above it. */}
+      {/* Shop assistant chat (Chat.tsx): bottom right. */}
       <ChatAssistant />
       <NoticeModal msg={toast?.t || ''} onClose={() => setToast(null)} />
       <AddedModal />

@@ -89,8 +89,9 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen bg-canvas flex justify-center overflow-hidden">
-      {/* Background: a faint, small repeating tile of the MNest Systems logo (SVG) only, no text. */}
-      <div aria-hidden className="fixed inset-0 pointer-events-none select-none overflow-hidden">
+      {/* Background: a faint, small repeating tile of the MNest Systems logo (SVG) only, no text. contain:strict keeps
+          the oversized tilted pattern from widening the page on phones (which would make the sign-in page zoom out). */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none select-none overflow-hidden [contain:strict]">
       {/* A square far larger than any screen, centred and tilted, so the pattern fills every corner at any size and while scrolling. */}
       <div className="absolute left-1/2 top-1/2 w-[260vmax] h-[260vmax] -translate-x-1/2 -translate-y-1/2 -rotate-12 opacity-[0.05] grid grid-cols-[repeat(auto-fill,230px)] auto-rows-[230px] justify-center place-items-center overflow-hidden">
         {Array.from({ length: 900 }, (_, i) => (

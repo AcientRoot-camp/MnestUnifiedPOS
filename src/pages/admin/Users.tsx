@@ -13,7 +13,8 @@ type Level = 'Admin' | 'Manager' | 'Supervisor' | 'Sales staff' | 'Rider';
 export type UAcc = { username: string; name: string; level: Level; role: Role; br: string; phone: string; email: string; reportsTo: string; closed?: boolean; last: string };
 const ROLE_OF: Record<Level, Role> = { Admin: 'superuser', Manager: 'manager', Supervisor: 'supervisor', 'Sales staff': 'staff', Rider: 'rider' };
 export const PAY_METHODS: [string, string][] = [['cash', 'Cash'], ['momo', 'Mobile Money'], ['ghpay', 'GhPay'], ['split', 'Split'], ['credit', 'On account (credit)'], ['hp', 'Hire purchase']];
-const seed = (): UAcc[] => {
+/** The account list the first time Users & permissions opens (also used when HR hires someone before that). */
+export const seed = (): UAcc[] => {
   const base = ACCOUNTS.filter((a) => a.role !== 'developer').map((a) => ({ username: a.username, name: a.name, level: a.level as Level, role: a.role, br: a.branch || 'all', phone: '+233 24 ' + a.passcode.slice(0, 3) + ' ' + a.passcode.slice(3), email: `${a.username}@ebenezerunique.com.gh`, reportsTo: a.role === 'superuser' ? '' : a.role === 'manager' ? 'admin' : a.role === 'supervisor' ? 'ama' : a.role === 'rider' ? 'ama' : 'kwame', last: 'Today 08:02' }));
   const extra = EMPS0.filter((e) => !base.some((b) => b.name === e.name) && e.level !== 'Admin').map((e) => ({ username: e.name.split(' ')[0].toLowerCase() + '.' + e.name.split(' ').slice(-1)[0][0].toLowerCase(), name: e.name, level: e.level, role: ROLE_OF[e.level], br: e.br, phone: e.phone, email: `${e.name.split(' ')[0].toLowerCase()}@ebenezerunique.com.gh`, reportsTo: e.level === 'Manager' ? 'admin' : '', last: '2 days ago' }));
   return [...base, ...extra];
