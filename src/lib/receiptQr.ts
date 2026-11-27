@@ -26,10 +26,16 @@ const dec = (x: string) => decodeURIComponent(x.replace(/\+/g, ' '));
 /** Money without needless decimals (4999, 4999.5). */
 const num = (x: number) => String(Math.round(x * 100) / 100);
 
+/** Largest QR version used on receipts and invoices: at the standard printed size (RECEIPT_QR_PX, about 30 mm) a
+ *  version 12 code (65 squares a side) still has squares of about 0.4 mm, which phone cameras read reliably. */
+export const RECEIPT_QR_MAX_VER = 12;
+/** Standard on-paper size of the receipt / invoice QR code, in CSS px (about 30 mm on an 80 mm receipt). */
+export const RECEIPT_QR_PX = 128;
+
 /**
  * The text to put in a sale's QR code. Inputs: the sale, the branch name and the site address (default: this site).
- * Output: the link. Long item names are shortened, and if a very big sale still does not fit in one QR code the
- * last items are left out (the page says how many).
+ * Output: the link. Long item names are shortened, and items that would make the code bigger than the standard
+ * (RECEIPT_QR_MAX_VER) are left out, last first (the page says how many more are on the printed receipt).
  */
 export function receiptQrText(s: TillSale, branch: string, origin = window.location.origin): string {
   const code = s.code || s.no;
@@ -41,7 +47,7 @@ export function receiptQrText(s: TillSale, branch: string, origin = window.locat
   const head = ['2', Math.round(s.ts / 1000).toString(36), enc(branch), enc(s.staff.split(' ')[0]), enc(s.method.split(' · ')[0]),
     num(s.sub), num(s.disc), num(s.credit), num(s.fee), num(s.total), credit ? 'c' : '', credit ? num(s.paidNow || 0) : '', credit ? num(s.balance || 0) : '', credit ? enc(s.due || '') : ''];
   const link = (keep: number) => `${origin}/r?c=${encodeURIComponent(code)}#${[...head, keep < items.length ? String(items.length - keep) : '', items.slice(0, keep).join('*')].join('~')}`;
-  for (let keep = items.length; keep >= 0; keep--) { const txt = link(keep); if (qrMake(txt, 0)) return txt; }
+  for (let keep = items.length; keep >= 0; keep--) { const txt = link(keep); const q = qrMake(txt, 0); if (q && q.ver <= RECEIPT_QR_MAX_VER) return txt; }
   return `${origin}/r?c=${encodeURIComponent(code)}`;
 }
 

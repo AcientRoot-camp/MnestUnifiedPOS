@@ -7,8 +7,7 @@ import { useCompanyLogo } from '../../lib/brand';
 import { ghs } from '../../lib/format';
 import { qrCells, taxOf, type TillSale } from './model';
 import { QrBox } from '../../components/QrBox';
-import { qrMake } from '../../lib/qr';
-import { receiptQrText } from '../../lib/receiptQr';
+import { RECEIPT_QR_PX, receiptQrText } from '../../lib/receiptQr';
 
 export type Biz = { name: string; addr: string; city?: string; phone: string; mobile?: string; email: string; web: string; tin: string };
 export function bizInfo(): Biz {
@@ -72,10 +71,8 @@ export function TillReceipt({ s }: { s: TillSale }) {
   const B = bizInfo(); const logo = useCompanyLogo(); const x = sums(s); const credit = s.kind === 'credit';
   // Thanked by name: the customer's full name, else the business buyer's name; a walk-in with no name gets a general thank-you.
   const thanksTo = (s.cust?.name || s.biz?.name || '').trim();
-  // The QR link (items + totals) and a size that keeps each square at least ~2.3 px on screen / 0.5 mm on paper.
+  // The QR link (items + totals), always at the standard receipt size (about 30 mm).
   const qrText = receiptQrText(s, brName(s.br));
-  const qrMods = (qrMake(qrText)?.size ?? 25) + 8;
-  const qrPx = Math.min(250, Math.max(150, Math.ceil(qrMods * 2.4)));
   return (
     <div className="rounded-2xl p-4 flex justify-center" style={{ background: '#e9ebed' }}>
       <article className="print-doc bg-white flex flex-col gap-1.5 p-4 text-black" style={{ ...mono, width: 302, maxWidth: '100%', fontSize: 11.5, lineHeight: 1.35, boxShadow: 'rgba(0,0,0,0.12) 0 2px 10px' }}>
@@ -113,7 +110,7 @@ export function TillReceipt({ s }: { s: TillSale }) {
           <Row l="Subtotal after discount" v={ghs(x.afterDisc)} b />
           {s.biz && <><Row l="VAT 15%" v={ghs(x.vat)} /><Row l="NHIL 2.5%" v={ghs(x.nhil)} /><Row l="GETFund 2.5%" v={ghs(x.getf)} /></>}
           {s.fee > 0 && <Row l="Delivery fee" v={ghs(s.fee)} />}
-          <span className="text-[10px]">{s.biz ? 'VAT 15%, NHIL 2.5% and GETFund 2.5% added · business sale' : 'No VAT, NHIL or GETFund · sale to an individual'}</span>
+          <span className="text-[10px]">{s.biz ? 'VAT 15%, NHIL 2.5% and GETFund 2.5% added · business sale' : 'VAT, NHIL and GETFund · inclusive' /* individual sale: prices already include them */}</span>
         </div>
         <div className="border-t border-dashed border-black pt-1 flex flex-col">
           {s.method.startsWith('Cash') && !s.parts[1] && <><Row l="Paid by" v="Cash" /><Row l="Cash received" v={ghs(s.cashRecv ?? s.parts[0]?.amt ?? s.total)} /><Row l="Change" v={ghs(s.change)} /></>}
@@ -125,10 +122,9 @@ export function TillReceipt({ s }: { s: TillSale }) {
         {/* What was paid: the full total for a sale; for a credit sale, the amount paid today (the balance owed is above). */}
         <div className="bg-black text-white px-1.5 py-1 flex justify-between font-bold" style={{ fontSize: 12 }}><span>TOTAL PAID</span><span>{ghs(credit ? s.paidNow || 0 : s.total)}</span></div>
         <div className="text-center flex flex-col items-center pt-2">
-          {/* The receipt QR (lib/receiptQr.ts): a phone camera opens the receipt with the items bought; the till's
-              Return / exchange reads the receipt number from it. Big sales make a denser code, so it is drawn bigger
-              to keep every square easy for a camera to read (about 0.5 mm per square when printed). */}
-          <QrBox text={qrText} px={qrPx} label={`Receipt QR code for ${s.code || s.no}. Scan it with a phone to see the items, or at returns to find this sale.`} className="!rounded-none !border-0" />
+          {/* The receipt QR (lib/receiptQr.ts) at the standard size: a phone camera opens the receipt with the items
+              bought; the till's Return / exchange reads the receipt number from it. */}
+          <QrBox text={qrText} px={RECEIPT_QR_PX} label={`Receipt QR code for ${s.code || s.no}. Scan it with a phone to see the items, or at returns to find this sale.`} className="!rounded-none !border-0" />
           {/* These two lines sit together with no gap. */}
           <div className="flex flex-col leading-tight mt-1">
             {/* Smaller, with tighter word spacing (the receipt font is monospaced, so its spaces are wide). */}
@@ -210,10 +206,11 @@ export function SalesInvoice({ s }: { s: TillSale }) {
           <tbody>{s.lines.map((l) => <tr key={l.pid + (l.unit || '')} style={{ borderBottom: '1px solid #e1e4e6' }}><td className="p-2">{l.name}{l.unit ? ` · ${l.unit}` : ''}</td><td className="p-2 text-right">{l.qty}</td><td className="p-2 text-right">{ghs(l.price)}</td><td className="p-2 text-right">{ghs(l.qty * l.price)}</td></tr>)}</tbody>
         </table>
         <div className="flex justify-between gap-6 items-start">
-          <div className="flex gap-2 items-center max-w-[260px]"><QR seed={(s.code || s.no) + 'inv'} size={84} /><span className="text-[11px]">Scan to verify this invoice with GRA E-VAT · SDC 0042-1187-3365</span></div>
+          {/* The same real receipt QR as the till receipt, at the same standard size (lib/receiptQr.ts). */}
+          <div className="flex gap-3 items-center max-w-[300px]"><QrBox text={receiptQrText(s, brName(s.br))} px={RECEIPT_QR_PX} label={`QR code for sale ${s.code || s.no}. Scan it to see this sale and its items.`} className="!rounded-none !border-0 flex-none" /><span className="text-[11px] leading-snug"><b className="block text-[12px]">Scan to see this sale and its items</b>Receipt No. {s.code || s.no} · scan it at returns to find this sale</span></div>
           <div className="flex flex-col gap-0.5 min-w-[240px] relative">
             <Row l="Subtotal" v={ghs(s.sub)} b /><Row l="Discount" v={`− ${ghs(s.disc)}`} />{s.credit > 0 && <Row l="Exchange credit" v={`− ${ghs(s.credit)}`} />}<Row l="Subtotal after discount" v={ghs(x.afterDisc)} b />
-            {s.biz ? <><Row l="VAT 15%" v={ghs(x.vat)} /><Row l="NHIL 2.5%" v={ghs(x.nhil)} /><Row l="GETFund 2.5%" v={ghs(x.getf)} /></> : <span className="text-[11px] text-[#5f5c5a]">No VAT, NHIL or GETFund · individual</span>}
+            {s.biz ? <><Row l="VAT 15%" v={ghs(x.vat)} /><Row l="NHIL 2.5%" v={ghs(x.nhil)} /><Row l="GETFund 2.5%" v={ghs(x.getf)} /></> : <span className="text-[11px] text-[#5f5c5a]">VAT, NHIL and GETFund · inclusive</span>}
             {s.fee > 0 && <Row l="Delivery fee" v={ghs(s.fee)} />}
             <div className="flex justify-between font-bold pt-1 mt-1" style={{ fontSize: 15, borderTop: '2px solid #000' }}><span>Invoice total</span><span>{ghs(s.total)}</span></div>
             <Row l={`Paid · ${s.method.split(' · ')[0]}`} v={ghs(paid)} />
