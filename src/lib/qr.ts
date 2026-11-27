@@ -1,13 +1,16 @@
 // Real, scannable QR codes (ISO/IEC 18004), drawn without any library. Ported from the prototype's qrMake
-// (Staff.dc.html) so the codes match it exactly: byte mode (UTF-8), error correction level M, versions 1–10
+// (Staff.dc.html) so the codes match it exactly: byte mode (UTF-8), error correction level M, versions 1–20
 // (the smallest that fits), Reed–Solomon over GF(256) with polynomial 0x11D, and the best of the 8 masks by the
 // standard penalty score. Used for the HR gate poster, staff badges and the ID card "scan to verify" code.
 
 export type Qr = { size: number; mask: number; ver: number; rows: boolean[][] };
 
-/** ECC codewords per block and number of blocks, level M, versions 1–10 (index 0 unused). */
-const ECW = [0, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26];
-const NBL = [0, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5];
+/** ECC codewords per block and number of blocks, level M, versions 1–20 (index 0 unused), from ISO/IEC 18004
+ *  table 9. Versions 11–20 hold up to about 660 bytes, enough for a receipt with its items (lib/receiptQr.ts). */
+const ECW = [0, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26];
+const NBL = [0, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5, 8, 9, 9, 10, 10, 11, 13, 14, 16];
+/** Largest version this encoder makes. */
+export const QR_MAX_VER = 20;
 
 /** Number of modules available for data + ECC in version v. */
 const rawMods = (v: number) => {
@@ -40,13 +43,13 @@ const MASKS: ((x: number, y: number) => boolean)[] = [
 /**
  * Encode text as a QR code.
  * Inputs: the text (any Unicode, sent as UTF-8 bytes); optional forceMask (0–7) to skip the mask search.
- * Output: { size, mask, ver, rows } with rows[y][x] = true for a dark module, or null if it needs more than version 10.
+ * Output: { size, mask, ver, rows } with rows[y][x] = true for a dark module, or null if it needs more than version 20.
  */
 export function qrMake(text: string, forceMask?: number): Qr | null {
   const bytes = Array.from(new TextEncoder().encode(String(text)));
   let ver = 1;
-  for (; ver <= 10; ver++) if (4 + (ver < 10 ? 8 : 16) + bytes.length * 8 <= dataCw(ver) * 8) break;
-  if (ver > 10) return null;
+  for (; ver <= QR_MAX_VER; ver++) if (4 + (ver < 10 ? 8 : 16) + bytes.length * 8 <= dataCw(ver) * 8) break;
+  if (ver > QR_MAX_VER) return null;
 
   // Bit stream: byte mode indicator, length, data, terminator, padding to whole bytes, then pad bytes 0xEC / 0x11.
   const bits: number[] = [];

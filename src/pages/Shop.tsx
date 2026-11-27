@@ -4,6 +4,7 @@ import { AccountPage, AuthModal, Modals } from './store/Account';
 import { Checkout, Done } from './store/Checkout';
 import { ShopProvider, useShop } from './store/ctx';
 import Home from './store/Home';
+import ReceiptView from './store/ReceiptView';
 import { About, Branches, Careers, Contact, CustomPage, Faqs, JobPage, Reviews, Updates } from './store/Pages';
 import { Basket, Notify, ProductPage, QuickView } from './store/Product';
 import { Footer, Header, Overlays, PromoBar, Skeleton, TopStrip, bizName, pageOn } from './store/Shell';
@@ -46,6 +47,8 @@ function Store() {
         <Route path="p/:id" element={<ProductPage />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="done/:no" element={<Done />} />
+        {/* Opened by scanning the QR code on a till receipt (lib/receiptQr.ts). */}
+        <Route path="r" element={<ReceiptView />} />
         <Route path="account" element={<AccountPage />} />
         <Route path="account/:tab" element={<AccountPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

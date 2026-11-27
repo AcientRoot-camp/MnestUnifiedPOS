@@ -15,6 +15,7 @@ import { bizInfo } from './Docs';
 import BarcodeCamera from '../../components/BarcodeCamera';
 import NoticeModal from '../../components/Notice';
 import { PORTAL_BASE } from '../../lib/site';
+import { readReceiptLink } from '../../lib/receiptQr';
 
 const TEAL = '#0b5c5c';
 const RED = '#c62828';
@@ -116,7 +117,9 @@ export function ReturnPanel({ br, staff, onCredit, onClose }: { br: string; staf
   const [slip, setSlip] = useState<Ret | null>(null);
   /** Find a receipt / sale / invoice / online order. Input: a scanned value, else what is typed in the box. */
   const find = (scanned?: string) => {
-    const raw = (scanned ?? q).trim(); const k = raw.replace(/^#/, '').replace(/^INV-[A-Z]+-/i, ''); setErr(''); setPick({});
+    // A scanned receipt QR is a link (lib/receiptQr.ts): its ?c= part is the receipt number.
+    const typed = (scanned ?? q).trim(); const link = readReceiptLink(typed); const raw = link ? link.code : typed;
+    const k = raw.replace(/^#/, '').replace(/^INV-[A-Z]+-/i, ''); setErr(''); setPick({}); if (link) setQ(link.code);
     const till = readKey<TillSale[]>('ecompos.sales2', []).find((s) => s.no === k || s.code === k || s.inv?.toUpperCase() === raw.toUpperCase() || s.no.endsWith(k) && k.length >= 4);
     if (till) return setFound({ no: till.code || till.no, title: `Receipt ${till.code || till.no}`, sub: `Sale #${till.no} · ${brName(till.br)} · ${till.staff}`, ts: till.ts, method: till.method.split(' · ')[0], cust: till.cust?.name || 'Walk-in customer', lines: till.lines.map((l, i) => ({ pid: l.pid + i, name: l.name + (l.unit && l.unit !== 'single' ? ` (${l.unit})` : ''), qty: l.qty, each: Math.round(l.price * (till.sub ? Math.max(0, till.sub - till.disc) / till.sub : 1) * 100) / 100 })) });
     const old = SALES.find((s) => s.no === k || s.no.endsWith(k) && k.length >= 4);

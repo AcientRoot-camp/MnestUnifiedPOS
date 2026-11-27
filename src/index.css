@@ -4,7 +4,7 @@
 
 html, body, #root { min-height: 100%; }
 body { margin: 0; background: #f2f4f5; color: #000; font-family: Inter, system-ui, sans-serif; letter-spacing: -0.01em; overflow-wrap: break-word; }
-:focus-visible { outline: 3px solid #0b5c5c; outline-offset: 2px; border-radius: 6px; }
+:focus-visible { outline: 3px solid #0b5c5c; outline-offset: 2px; } /* follows each element's own rounded corners */
 @media (max-width: 640px) { input, select, textarea { font-size: 16px !important; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 
@@ -23,6 +23,9 @@ body { margin: 0; background: #f2f4f5; color: #000; font-family: Inter, system-u
 @media print {
   body * { visibility: hidden !important; }
   .print-doc, .print-doc * { visibility: visible !important; }
+  /* Printed documents keep their black bars and coloured marks: browsers otherwise drop backgrounds when printing
+     (unless "Background graphics" is ticked), which would leave the white text on those bars invisible. */
+  .print-doc, .print-doc * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .print-doc { position: absolute !important; left: 0; top: 0; width: 100%; box-shadow: none !important; margin: 0 !important; }
   .no-print { display: none !important; }
   /* HR time clock (pages/team/TimeClock.tsx): only the gate poster / badge card prints. While it prints, body has
@@ -77,15 +80,24 @@ body { margin: 0; background: #f2f4f5; color: #000; font-family: Inter, system-u
 .live-in{animation:livein .5s ease-out}
 .no-scrollbar{scrollbar-width:none}.no-scrollbar::-webkit-scrollbar{display:none}
 
-/* Search bars: no inner focus ring on the input; the outer rounded bar shows the active border instead. */
-:is(input[type="search"], input[placeholder^="Search" i], input[aria-label^="Search" i], input[placeholder^="Filter" i], input[placeholder^="Find" i], input[placeholder^="What are you shopping" i], #global-search, #pos-q, #shop-q, #mod-q):is(:focus, :focus-visible) {
-  outline: none !important;
-  box-shadow: none !important;
-  border-color: #0b5c5c;
+/* Typing fields: one rounded outer border only, never an inner one.
+   A field never draws its own focus outline (that showed as a squarish second border inside rounded boxes such as
+   Discount, and squared the corners). The focus is shown once, on the outermost rounded shape:
+   • a field inside a rounded or bordered box (GHS + amount, +233 + phone, search bars): the box's border turns teal
+     and gets a soft ring that follows its rounded corners; the field itself shows nothing. !important beats colours
+     set inline on the box (e.g. Discount);
+   • a field standing on its own with its own border (.field, rounded inputs, menus): that border turns teal + ring;
+   • a field with no border and no box (rare): the normal teal outline, following its own corners. */
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea):is(:focus, :focus-visible) { outline: none !important; box-shadow: none !important; }
+:is(div, span, label, form):is([class*="border"], [class*="rounded"]):has(> :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea):focus) {
+  border-color: #0b5c5c !important;
+  box-shadow: 0 0 0 3px rgba(11, 92, 92, 0.16);
 }
-:is(div, span, label).rounded-full:has(> :is(input[type="search"], input[placeholder^="Search" i], input[aria-label^="Search" i], input[placeholder^="Filter" i], input[placeholder^="Find" i], input[placeholder^="What are you shopping" i], #pos-q, #shop-q)):focus-within {
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea):is([class*="border"], .field):focus:not(:is(div, span, label, form):is([class*="border"], [class*="rounded"]) > *) {
   border-color: #0b5c5c;
+  box-shadow: 0 0 0 3px rgba(11, 92, 92, 0.16) !important;
 }
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea):not([class*="border"]):not(.field):focus-visible:not(:is(div, span, label, form):is([class*="border"], [class*="rounded"]) > *) { outline: 3px solid #0b5c5c !important; outline-offset: 2px; }
 
 /* Online store top banner marquee (store/Shell.tsx TopStrip): the track holds the message twice and slides left
    by exactly one copy (-50%), so the loop is seamless. Pauses on hover/focus; static when reduced motion is asked. */
@@ -129,3 +141,11 @@ body { margin: 0; background: #f2f4f5; color: #000; font-family: Inter, system-u
   /* Two classes (section.hero-fit) so this outranks the card's own lg:min-h-[40rem] utility. */
   section.hero-fit { min-height: min(40rem, calc(100vh - var(--hero-top, 160px))); min-height: min(40rem, calc(100svh - var(--hero-top, 160px))); }
 }
+
+/* POS Home · Latest orders, every channel (pages/Dashboard.tsx). Chooses its layout from its own width, in rem:
+   cards when narrow, a table from 34rem, the Payment column from 46rem. */
+.lo { container-type: inline-size; }
+.lo .lo-cards { display: flex; }
+.lo .lo-table, .lo .lo-pay { display: none; }
+@container (min-width: 34rem) { .lo .lo-cards { display: none; } .lo .lo-table { display: table; } }
+@container (min-width: 46rem) { .lo .lo-pay { display: table-cell; } .lo .lo-table { font-size: 0.875rem; } }

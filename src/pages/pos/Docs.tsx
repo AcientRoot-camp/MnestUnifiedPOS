@@ -7,6 +7,8 @@ import { useCompanyLogo } from '../../lib/brand';
 import { ghs } from '../../lib/format';
 import { qrCells, taxOf, type TillSale } from './model';
 import { QrBox } from '../../components/QrBox';
+import { qrMake } from '../../lib/qr';
+import { receiptQrText } from '../../lib/receiptQr';
 
 export type Biz = { name: string; addr: string; city?: string; phone: string; mobile?: string; email: string; web: string; tin: string };
 export function bizInfo(): Biz {
@@ -33,6 +35,25 @@ export function nameLines(name: string, maxPx = ITEM_COL_PX): [string, string] {
   return [name, ''];
 }
 
+/** The receipt font size (px) at which a line fits the item column: 10.5 px normally, smaller only if needed (to 8). */
+const fitPx = (t: string, maxPx = ITEM_COL_PX) => { const w = textPx(t); return w <= maxPx ? 10.5 : Math.max(8, Math.floor((10.5 * maxPx / w) * 4) / 4); };
+
+/**
+ * An item name on the receipt in at most two lines, never three. Line 1: the first 4 words, or the first 3 if 4 do
+ * not fit even slightly smaller (a 1–2 word name stays whole). Line 2: the rest of the name plus the unit (e.g.
+ * "(carton of 12)") on one line. Each line keeps the normal size and is shrunk only as much as it needs to fit the item
+ * column; a line that still does not fit at the smallest size is cut with "…" (the full name is on the invoice).
+ * Inputs: the name and the unit text ('' for single items). Output: the two lines and their font sizes.
+ */
+export function itemLines(name: string, unit: string): { l1: string; f1: number; l2: string; f2: number } {
+  const w = name.trim().split(/\s+/);
+  const four = w.slice(0, 4).join(' ');
+  const k = w.length <= 3 || fitPx(four) >= 9 ? Math.min(4, w.length) : 3;
+  const l1 = w.slice(0, k).join(' ');
+  const l2 = [w.slice(k).join(' '), unit].filter(Boolean).join(' ');
+  return { l1, f1: fitPx(l1), l2, f2: l2 ? fitPx(l2) : 10.5 };
+}
+
 export function QR({ seed, size }: { seed: string; size: number }) {
   const cells = qrCells(seed);
   return <svg width={size} height={size} viewBox="0 0 21 21" role="img" aria-label="QR code" shapeRendering="crispEdges">{cells.map((on, i) => (on ? <rect key={i} x={i % 21} y={Math.floor(i / 21)} width="1" height="1" fill="#000" /> : null))}</svg>;
@@ -51,6 +72,10 @@ export function TillReceipt({ s }: { s: TillSale }) {
   const B = bizInfo(); const logo = useCompanyLogo(); const x = sums(s); const credit = s.kind === 'credit';
   // Thanked by name: the customer's full name, else the business buyer's name; a walk-in with no name gets a general thank-you.
   const thanksTo = (s.cust?.name || s.biz?.name || '').trim();
+  // The QR link (items + totals) and a size that keeps each square at least ~2.3 px on screen / 0.5 mm on paper.
+  const qrText = receiptQrText(s, brName(s.br));
+  const qrMods = (qrMake(qrText)?.size ?? 25) + 8;
+  const qrPx = Math.min(250, Math.max(150, Math.ceil(qrMods * 2.4)));
   return (
     <div className="rounded-2xl p-4 flex justify-center" style={{ background: '#e9ebed' }}>
       <article className="print-doc bg-white flex flex-col gap-1.5 p-4 text-black" style={{ ...mono, width: 302, maxWidth: '100%', fontSize: 11.5, lineHeight: 1.35, boxShadow: 'rgba(0,0,0,0.12) 0 2px 10px' }}>
@@ -72,10 +97,16 @@ export function TillReceipt({ s }: { s: TillSale }) {
         <table className="w-full border-collapse" style={{ fontSize: 10.5, tableLayout: 'fixed' }}>
           <colgroup><col /><col style={{ width: '7%' }} /><col style={{ width: '20%' }} /><col style={{ width: '22%' }} /></colgroup>
           <thead><tr className="bg-black text-white font-bold whitespace-nowrap leading-tight"><th className="text-left px-1 py-0.5">Item</th><th className="text-right px-1 py-0.5">Qty</th><th className="text-right px-1 py-0.5">Price</th><th className="text-right px-1 py-0.5">Amount</th></tr></thead>
-          <tbody>{s.lines.map((l, i) => <tr key={l.pid + (l.unit || '')} className="align-top" style={i < s.lines.length - 1 ? { borderBottom: '1.5px dashed #000' } : undefined}><td className="px-1 py-1 font-bold" style={{ letterSpacing: '-0.03em' }}>{(() => { const [a, b] = nameLines(l.name); const unit = l.unit && l.unit !== 'single' ? `(${l.unit})` : ''; return <><span className="block whitespace-nowrap overflow-hidden">{a}</span>{(b || unit) && <span className="block" style={{ overflowWrap: 'anywhere' }}>{b}{b && unit ? ' ' : ''}{unit && <span className="font-normal">{unit}</span>}</span>}{l.serials?.length ? <span className="block font-normal" style={{ overflowWrap: 'anywhere' }}>SN {l.serials.join(', ')}</span> : null}</>; })()}</td><td className="text-right px-1 py-1 whitespace-nowrap">{l.qty}</td><td className="text-right px-1 py-1 whitespace-nowrap">{l.price.toFixed(2)}</td><td className="text-right px-1 py-1 whitespace-nowrap">{(l.qty * l.price).toFixed(2)}</td></tr>)}</tbody>
+          <tbody>{s.lines.map((l, i) => <tr key={l.pid + (l.unit || '')} className="align-top" style={i < s.lines.length - 1 ? { borderBottom: '1px dashed #000' } : undefined}><td className="px-1 py-1 font-bold" style={{ letterSpacing: '-0.03em' }}>{(() => {
+                // At most two lines (itemLines): 3 or 4 words on the first, the rest and the unit on the second.
+                const n = itemLines(l.name, l.unit && l.unit !== 'single' ? `(${l.unit})` : '');
+                return <><span className="block whitespace-nowrap overflow-hidden text-ellipsis" style={{ fontSize: n.f1 }}>{n.l1}</span>{n.l2 && <span className="block whitespace-nowrap overflow-hidden text-ellipsis" style={{ fontSize: n.f2 }}>{n.l2}</span>}{l.serials?.length ? <span className="block font-normal" style={{ overflowWrap: 'anywhere' }}>SN {l.serials.join(', ')}</span> : null}</>;
+              })()}</td><td className="text-right px-1 py-1 whitespace-nowrap">{l.qty}</td><td className="text-right px-1 py-1 whitespace-nowrap">{l.price.toFixed(2)}</td><td className="text-right px-1 py-1 whitespace-nowrap">{(l.qty * l.price).toFixed(2)}</td></tr>)}</tbody>
         </table>
-        {/* A dashed line separates the items from the totals (sales and credit receipts). */}
-        <div className="pt-1 flex flex-col" style={{ borderTop: '1.5px dashed #000' }}>
+        {/* Thin dashed lines between the items. Above the totals: short dashes like the item lines, but solid black and
+            thicker (2 px). Drawn as an SVG line so it always prints (printers can skip borders and backgrounds). */}
+        <svg aria-hidden="true" width="100%" height="2" className="block mt-0.5" preserveAspectRatio="none"><line x1="0" y1="1" x2="100%" y2="1" stroke="#000" strokeWidth="2" strokeDasharray="3 3" /></svg>
+        <div className="pt-1 flex flex-col">
           <Row l="Subtotal" v={ghs(s.sub)} b />
           <Row l="Discount" v={`− ${ghs(s.disc)}`} />
           {s.credit > 0 && <Row l="Exchange credit" v={`− ${ghs(s.credit)}`} />}
@@ -91,16 +122,26 @@ export function TillReceipt({ s }: { s: TillSale }) {
           {s.method.startsWith('GhPay') && <><Row l="Paid by" v="GhPay" /><Row l="Reference" v={s.payRef || '—'} /></>}
           {credit && <><Row l="Paid now" v={ghs(s.paidNow || 0)} />{s.paidBy && <Row l="Paid now by" v={s.paidBy} />}<Row l="Balance owed" v={ghs(s.balance || 0)} b /><Row l="Balance due" v={s.due || '—'} /></>}
         </div>
-        <div className="bg-black text-white px-1.5 py-1 flex justify-between font-bold" style={{ fontSize: 12 }}><span>{s.biz ? 'TOTAL AFTER TAX' : 'TOTAL TO PAY'}</span><span>{ghs(s.total)}</span></div>
-        <div className="text-center flex flex-col items-center gap-1 pt-2">
-          {/* A real QR of the receipt number, large and in black on white so a phone or till camera reads it easily.
-              Return / exchange › scan the receipt QR finds this sale (pos/Panels.tsx ReturnPanel). */}
-          <QrBox text={s.code || s.no} px={150} label={`Receipt number ${s.code || s.no}. Scan it at returns to find this sale.`} className="!rounded-none !border-0" />
-          <strong style={{ fontSize: 13 }}>Scan at returns to find this sale</strong>
-          <span>Receipt No. {s.code || s.no}</span>
-          <strong>{thanksTo ? `THANK YOU, ${thanksTo.toUpperCase()}` : 'THANK YOU FOR SHOPPING WITH US'}</strong>
-          <span>Akwaaba! Money paid is not refundable, but items purchased can be returned and exchanged with this receipt no.: {s.code || s.no}</span>
-          <span>{B.web.replace(/^www\./, '')}</span>
+        {/* What was paid: the full total for a sale; for a credit sale, the amount paid today (the balance owed is above). */}
+        <div className="bg-black text-white px-1.5 py-1 flex justify-between font-bold" style={{ fontSize: 12 }}><span>TOTAL PAID</span><span>{ghs(credit ? s.paidNow || 0 : s.total)}</span></div>
+        <div className="text-center flex flex-col items-center pt-2">
+          {/* The receipt QR (lib/receiptQr.ts): a phone camera opens the receipt with the items bought; the till's
+              Return / exchange reads the receipt number from it. Big sales make a denser code, so it is drawn bigger
+              to keep every square easy for a camera to read (about 0.5 mm per square when printed). */}
+          <QrBox text={qrText} px={qrPx} label={`Receipt QR code for ${s.code || s.no}. Scan it with a phone to see the items, or at returns to find this sale.`} className="!rounded-none !border-0" />
+          {/* These two lines sit together with no gap. */}
+          <div className="flex flex-col leading-tight mt-1">
+            {/* Smaller, with tighter word spacing (the receipt font is monospaced, so its spaces are wide). */}
+            <strong style={{ fontSize: 11, wordSpacing: '-0.25em', letterSpacing: '-0.01em' }}>Scan at returns to find this sale</strong>
+            <span>Receipt No. {s.code || s.no}</span>
+          </div>
+          {/* A tiny space, then the thank-you and the Akwaaba line with a tiny space between them. */}
+          <strong className="mt-1.5">{thanksTo ? `THANK YOU, ${thanksTo.toUpperCase()}` : 'THANK YOU FOR SHOPPING WITH US'}</strong>
+          {/* Exactly two lines on the 80 mm paper: each line is kept whole and sized to fit the receipt width. */}
+          <span className="mt-1 flex flex-col items-center leading-snug" style={{ fontSize: 9.5, letterSpacing: '-0.03em' }}><span className="whitespace-nowrap">Akwaaba! Money paid is not refundable,</span><span className="whitespace-nowrap">but items purchased can be returned and exchanged</span></span>
+          {/* Platform credit at the foot of the receipt (in place of the shop's web address). */}
+          <strong className="mt-1.5 block" style={{ color: '#000', fontWeight: 800 }}>Developed by Mnest Systems</strong>
+          <span>info@mnestsystems.com</span>
           <span aria-hidden>- - - - - - - - - -</span>
         </div>
       </article>

@@ -38,6 +38,24 @@ function Hero() {
     return () => { watch.disconnect(); window.removeEventListener('resize', measure); };
   }, []);
   useEffect(() => { if (i >= slides.length) setI(0); }, [slides.length, i]);
+  // Phones and tablets (below 1280 px): the heading stays on one line. It is measured at its normal size and shrunk
+  // just enough to fit the width (whatever wording the Admin sets in Post to webstore), and measured again when the
+  // screen size changes or the web font arrives. Larger screens keep the big heading over two lines.
+  const h1 = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    const el = h1.current; if (!el) return;
+    const fit = () => {
+      el.style.fontSize = ''; el.style.whiteSpace = '';
+      if (window.innerWidth >= 1280) return;
+      el.style.whiteSpace = 'nowrap';
+      const full = parseFloat(getComputedStyle(el).fontSize);
+      if (el.scrollWidth > el.clientWidth + 1) el.style.fontSize = `${Math.max(10, Math.floor(full * (el.clientWidth / el.scrollWidth) * 2) / 2)}px`;
+    };
+    fit();
+    const watch = new ResizeObserver(fit); watch.observe(el.parentElement || el);
+    document.fonts?.ready.then(fit).catch(() => undefined);
+    return () => watch.disconnect();
+  }, [W.site.heroTitle]);
   useEffect(() => { if (slides.length < 2) return; const t = window.setInterval(() => setI((x) => (x + 1) % slides.length), ms); return () => window.clearInterval(t); }, [slides.length, ms]);
   return (
     // The big picture / video card at the top of the store.
@@ -69,9 +87,9 @@ function Hero() {
           </div>
         )}
       </div>}
-      <div className="hero-copy relative z-10 p-[1.5rem] sm:p-[2.5rem] lg:p-[3rem] max-w-[42rem] flex flex-col gap-2.5 sm:gap-3 xl:gap-4 text-white">
+      <div className="hero-copy relative z-10 p-[1.5rem] sm:p-[2.5rem] lg:p-[3rem] max-w-[42rem] max-lg:max-w-none flex flex-col gap-2.5 sm:gap-3 xl:gap-4 text-white">
         {tag && <span className="w-fit text-xs font-semibold px-3 py-1 rounded-full bg-white/15 backdrop-blur">{tag}</span>}
-        <h1 id="hero-h" className="m-0 text-[22px] sm:text-[28px] lg:text-[36px] xl:text-[52px] leading-[1.1] xl:leading-[1.05] font-semibold tracking-tight">{W.site.heroTitle}</h1>
+        <h1 ref={h1} id="hero-h" className="m-0 text-[22px] sm:text-[28px] lg:text-[36px] xl:text-[52px] leading-[1.1] xl:leading-[1.05] font-semibold tracking-tight">{W.site.heroTitle}</h1>
         <p className="m-0 text-[13px] leading-snug sm:text-[14px] xl:text-lg xl:leading-7 text-white/85">{W.site.heroText}</p>
         <div className="flex gap-2 flex-wrap"><a href="#featured" className="h-12 px-6 rounded-full bg-white text-black font-semibold flex items-center hover:text-black">Shop now</a>{pageOn(W, 'branches') && <button onClick={() => go('branches')} className="h-12 px-6 rounded-full border border-white/60 text-white font-semibold">Find a branch</button>}</div>
       </div>

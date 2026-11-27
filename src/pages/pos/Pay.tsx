@@ -1,7 +1,9 @@
 // Sell Now · Take payment (sell.md §2.6).
 // Rule: the receipt and invoice appear only after payment is made. No method is chosen in advance, choosing one never
-// completes the sale, and money the till cannot count itself (GhPay, both halves of a split, a credit deposit) must be
-// ticked as received first. "On account" takes no money, so it asks for a second, clearly worded confirmation.
+// completes the sale, and the salesperson must tick that they have received the money (cash in hand, the Mobile Money
+// or GhPay confirmation, both halves of a split, a credit deposit) before the sale can be completed. The POS then
+// shows "Payment successful" before the receipt (POS.tsx). "On account" takes no money, so it asks for a second,
+// clearly worded confirmation instead.
 import { useEffect, useState } from 'react';
 import { ACCOUNTS } from '../../data/nav';
 import { usePersist } from '../../lib/persist';
@@ -33,6 +35,10 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
   payAllow: Record<string, boolean> | undefined; creditFirst: boolean; onBack: () => void; onDone: (d: PayDone) => void; onHP: () => void; onIntro: () => void;
 }) {
   // '' = nothing chosen yet. The Credit sale screen starts on Credit sale, because the cashier already chose it.
+  // Processing: after the final button, a spinning circle shows for a moment while the sale is recorded, then the POS
+  // shows "Payment successful" and the receipt. While it runs every button is locked, so a sale cannot complete twice.
+  const [processing, setProcessing] = useState<PayDone | null>(null);
+  const complete = (d: PayDone) => { if (processing) return; setProcessing(d); window.setTimeout(() => onDone(d), 1600); };
   const [m, setM] = useState<PayM | ''>(creditFirst ? 'credit' : '');
   // "Payment received" ticks. Each is keyed by the method and the amounts, so changing either clears the tick.
   const [got, setGot] = useState<Record<string, boolean>>({});
@@ -63,7 +69,7 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
   const spCash = parseFloat(sp.cash) || 0; const spOther = parseFloat(sp.other) || 0; const spLeft = Math.round((total - spCash - spOther) * 100) / 100;
   const base = { allowedBy: m ? once[m] : undefined, offline: !online };
   // Keys for the "received" ticks.
-  const ghKey = `gh:${total}`; const spCashKey = `spc:${sp.cash}`; const spOtherKey = `spo:${sp.kind}:${sp.other}`; const nowKey = `now:${nowBy}:${paidNow}`;
+  const ghKey = `gh:${total}`; const spCashKey = `spc:${sp.cash}`; const spOtherKey = `spo:${sp.kind}:${sp.other}`; const nowKey = `now:${nowBy}:${paidNow}`; const cashKey = `cash:${cash}`; const momoKey = `momo:${total}:${mref.trim()}`;
   // A credit sale may take nothing today; if a deposit is entered, say how it was paid and tick that it is in hand.
   const depositOk = paidNow === 0 || (!!nowBy && !!got[nowKey]);
   /** One "I have received this money" tick box. Inputs: its key and the sentence the cashier agrees to. */
@@ -71,7 +77,7 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
 
   const managerPin = (p: string) => ACCOUNTS.find((a) => (a.role === 'manager' || a.role === 'superuser') && (creds()[a.username]?.passcode || a.passcode) === p);
   const allow = () => { const who = managerPin(askPin); if (!who || !ask) return setAskErr('401 Unauthorized · That is not a Manager or Admin PIN.'); setOnce({ ...once, [ask]: who.name }); setM(ask); secLog('Payment method allowed once', `${who.name} allowed ${PAY_NAME[ask]} for one sale by ${me.name}`, 'low', who.username); setAsk(null); setAskPin(''); setAskErr(''); };
-  const finishCash = () => { if (cash < total) return setErr(`Short by ${ghs(total - cash)}. Take more cash or choose another method.`); onDone({ ...base, method: 'Cash', parts: [{ m: 'Cash', amt: cash }], change: cash - total, cashRecv: cash, kind: 'sale' }); };
+  const finishCash = () => { if (!got[cashKey]) return; if (cash < total) return setErr(`Short by ${ghs(total - cash)}. Take more cash or choose another method.`); complete({ ...base, method: 'Cash', parts: [{ m: 'Cash', amt: cash }], change: cash - total, cashRecv: cash, kind: 'sale' }); };
   const sendPrompt = () => { if (phClean(wallet).length !== 9) return setErr("Enter the customer's wallet number: 9 digits after +233."); setErr(''); setMomoSt('wait'); };
   const sendCredit = () => {
     if (!cust || !cust.name || phClean(cust.phone).length !== 9) return setErr('A credit sale needs the customer’s name and phone number. Add them in the Customer section.');
@@ -81,11 +87,21 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
   const approveHere = () => { const a = ACCOUNTS.find((x) => x.role === 'superuser' && (creds()[x.username]?.passcode || x.passcode) === apPin); if (!a) return setApErr('401 Unauthorized · That is not the Admin PIN.'); setReqs(reqs.map((r) => (r.id === reqId ? { ...r, status: 'approved', note: `Approved at ${till} by ${a.name} with PIN` } : r))); secLog('Approval signed', `${a.name} approved credit sale ${reqId} (${ghs(bal)}) at ${till} · PIN`, 'low', a.username); setApPin(''); setApErr(''); };
   // A cash deposit is recorded as "Paid now" (the cash drawer count includes it); a Mobile Money or GhPay deposit is
   // recorded under its own method, so it is totalled there and never expected in the drawer.
-  const finishCredit = (account = false) => { if (!depositOk) return; onDone({ ...base, method: account ? 'On account' : 'Credit sale', parts: paidNow ? [{ m: nowBy === 'Cash' ? 'Paid now' : nowBy, amt: paidNow }] : [], paidBy: paidNow ? nowBy : undefined, change: 0, kind: 'credit', paidNow, balance: bal, due: dueTxt }); };
+  const finishCredit = (account = false) => { if (!depositOk) return; complete({ ...base, method: account ? 'On account' : 'Credit sale', parts: paidNow ? [{ m: nowBy === 'Cash' ? 'Paid now' : nowBy, amt: paidNow }] : [], paidBy: paidNow ? nowBy : undefined, change: 0, kind: 'credit', paidNow, balance: bal, due: dueTxt }); };
 
   const tiles: [PayM, string][] = [['cash', 'Cash'], ['momo', 'Mobile Money'], ['ghpay', 'GhPay'], ['split', 'Split'], ['credit', 'Credit sale']];
   const cta = (label: string, ready: boolean, fn: () => void, color = TEAL) => <button onClick={fn} disabled={!ready} className="h-[52px] rounded-full text-white text-base font-medium disabled:cursor-not-allowed" style={{ background: ready ? color : '#cfcfcf', boxShadow: ready ? SHADOW : 'none' }}>{label}</button>;
 
+  if (processing) {
+    const paying = processing.kind === 'credit' ? processing.paidNow || 0 : total;
+    return (
+      <div role="status" aria-live="polite" className="flex flex-col items-center text-center gap-4 py-12">
+        <span aria-hidden className="w-16 h-16 rounded-full animate-spin" style={{ border: '5px solid #e3ecec', borderTopColor: TEAL }} />
+        <b className="text-[20px] font-semibold">{processing.kind === 'credit' && !paying ? 'Recording the credit sale…' : 'Processing payment…'}</b>
+        <span className="text-sm text-[#5f5c5a]">{paying ? `${ghs(paying)} · ${processing.method.split(' · ')[0]}` : `${ghs(processing.balance || 0)} owed`} · please wait, do not close this screen</span>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3"><button onClick={onBack} aria-label="Back to the sale" className="w-10 h-10 rounded-full border border-[#d9d9d9] bg-white text-xl flex items-center justify-center">‹</button><h2 className="m-0 text-xl font-medium tracking-[-0.03em] flex-1">Take payment</h2><b className="text-[22px] font-medium">{ghs(total)}</b></div>
@@ -111,7 +127,8 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
         </label>
         {(exact || tender) ? <div className="rounded-2xl px-4 py-3 text-[15px] font-semibold" style={{ background: cash >= total ? '#f2f4f5' : '#fbeaea', color: cash >= total ? '#000' : '#7d1a1a' }}>{cash >= total ? `Change due ${ghs(cash - total)}` : `Short by ${ghs(total - cash)}`}</div>
           : <span className="text-sm" style={{ color: '#b26a00' }}>Tap <b>Exact</b> or type the amount received to complete the sale.</span>}
-        {cta('Complete sale · open drawer', (exact || !!tender) && cash >= total, finishCash)}
+        {(exact || !!tender) && cash >= total && received(cashKey, `I have received ${ghs(cash)} in cash from the customer${cash > total ? ` and will give ${ghs(cash - total)} change` : ''}.`)}
+        {cta('Payment received · complete sale', (exact || !!tender) && cash >= total && !!got[cashKey], finishCash)}
       </div>}
 
       {m === 'momo' && <div className="flex flex-col gap-3">
@@ -120,12 +137,14 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
         {netOf(wallet) && <span className="text-xs font-semibold" style={{ color: '#1f7a2a' }}>✓ {netOf(wallet)} number detected</span>}
         {online ? (momoSt !== 'wait' ? cta(`Send ${net || 'MoMo'} payment prompt`, phClean(wallet).length === 9, sendPrompt) : <div className="rounded-2xl bg-[#e3f0fb] p-4 flex flex-col gap-2 text-sm" role="status">
           <b style={{ color: '#0b4f8a' }}>Prompt sent via Hubtel · waiting for PIN</b>
-          <span>The customer approves {ghs(total)} on their phone. The status is checked with the gateway before the sale completes.</span>
-          <div className="flex gap-2 flex-wrap"><button onClick={() => onDone({ ...base, method: `Mobile Money · ${net || netOf(wallet) || 'MTN'}`, parts: [{ m: 'Mobile Money', amt: total }], change: 0, momoNet: net || netOf(wallet) || 'MTN', payRef: 'HUB-' + Date.now().toString().slice(-8), kind: 'sale' })} className="h-11 px-5 rounded-full bg-black text-white text-sm font-semibold">Customer approved</button><button onClick={() => setMomoSt('timeout')} className="h-11 px-5 rounded-full border border-[#d9d9d9] bg-white text-sm">Timed out · resend</button></div>
+          <span>The customer approves {ghs(total)} on their phone. Wait for the payment confirmation before completing the sale.</span>
+          {received(momoKey, `I have seen the confirmation that ${ghs(total)} was paid by Mobile Money.`)}
+          <div className="flex gap-2 flex-wrap"><button disabled={!got[momoKey]} onClick={() => got[momoKey] && complete({ ...base, method: `Mobile Money · ${net || netOf(wallet) || 'MTN'}`, parts: [{ m: 'Mobile Money', amt: total }], change: 0, momoNet: net || netOf(wallet) || 'MTN', payRef: 'HUB-' + Date.now().toString().slice(-8), kind: 'sale' })} className="h-11 px-5 rounded-full bg-black text-white text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">Payment received · complete sale</button><button onClick={() => setMomoSt('timeout')} className="h-11 px-5 rounded-full border border-[#d9d9d9] bg-white text-sm">Timed out · resend</button></div>
         </div>) : <div className="rounded-2xl p-4 flex flex-col gap-2 text-sm text-white" style={{ background: '#332f2d' }}>
           <b>MoMo to merchant (offline)</b><span>Ask the customer to send {ghs(total)} to the merchant number 0244 000 111, then type the transaction reference from their SMS.</span>
           <input value={mref} onChange={(e) => setMref(e.target.value)} placeholder="MoMo transaction reference" aria-label="MoMo transaction reference" className="h-11 rounded-full px-4 text-black" />
-          <button disabled={mref.trim().length < 4} onClick={() => onDone({ ...base, method: `Mobile Money · ${net || 'MTN'} · to merchant (offline)`, parts: [{ m: 'Mobile Money', amt: total }], change: 0, momoNet: net || 'MTN', payRef: mref.trim(), kind: 'sale' })} className="h-11 rounded-full bg-white text-black text-sm font-semibold disabled:opacity-50">Record and verify when back online</button>
+          {mref.trim().length >= 4 && <label className="flex items-start gap-2.5 text-sm font-medium cursor-pointer"><input type="checkbox" checked={!!got[momoKey]} onChange={(e) => setGot({ ...got, [momoKey]: e.target.checked })} className="mt-0.5 w-5 h-5 flex-none accent-white" /><span>I have seen the customer’s SMS confirming {ghs(total)} was sent to the merchant number.</span></label>}
+          <button disabled={mref.trim().length < 4 || !got[momoKey]} onClick={() => complete({ ...base, method: `Mobile Money · ${net || 'MTN'} · to merchant (offline)`, parts: [{ m: 'Mobile Money', amt: total }], change: 0, momoNet: net || 'MTN', payRef: mref.trim(), kind: 'sale' })} className="h-11 rounded-full bg-white text-black text-sm font-semibold disabled:opacity-50">Record and verify when back online</button>
         </div>}
         {momoSt === 'timeout' && <span className="text-sm" style={{ color: '#b26a00' }}>The prompt timed out. Check the number and send it again.</span>}
       </div>}
@@ -140,7 +159,7 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
         {ghSent && <span role="status" className="text-sm" style={{ color: '#0b4f8a' }}>Request sent to +233 {phClean(ghPhone)} · waiting for the customer to approve</span>}
         {!online && <span className="text-sm text-[#c62828]">GhPay needs the internet. Use cash or MoMo to merchant while offline.</span>}
         {received(ghKey, `I have checked that the GhPay payment of ${ghs(total)} has arrived (bank or GhanaPay alert).`)}
-        {cta('Payment received · complete sale', online && !!got[ghKey], () => onDone({ ...base, method: 'GhPay', parts: [{ m: 'GhPay', amt: total }], change: 0, payRef: ghRef, kind: 'sale' }))}
+        {cta('Payment received · complete sale', online && !!got[ghKey], () => complete({ ...base, method: 'GhPay', parts: [{ m: 'GhPay', amt: total }], change: 0, payRef: ghRef, kind: 'sale' }))}
       </div>}
 
       {m === 'split' && <div className="flex flex-col gap-3">
@@ -154,7 +173,7 @@ export default function Pay({ total, cust, online, me, role, SU, br, till, owes,
           {received(spCashKey, `I have received the cash part, ${ghs(spCash)}.`)}
           {received(spOtherKey, `I have checked that the ${sp.kind === 'momo' ? 'Mobile Money' : 'GhPay'} part, ${ghs(spOther)}, has arrived.`)}
         </>}
-        {cta('Both payments received · complete sale', Math.abs(spLeft) < 0.01 && spCash > 0 && spOther > 0 && !!got[spCashKey] && !!got[spOtherKey], () => onDone({ ...base, method: `Split · Cash + ${sp.kind === 'momo' ? 'MoMo' : 'GhPay'}`, parts: [{ m: 'Cash', amt: spCash }, { m: sp.kind === 'momo' ? 'Mobile Money' : 'GhPay', amt: spOther }], change: 0, payRef: sp.kind === 'ghpay' ? ghRef : 'HUB-' + Date.now().toString().slice(-8), kind: 'sale' }))}
+        {cta('Both payments received · complete sale', Math.abs(spLeft) < 0.01 && spCash > 0 && spOther > 0 && !!got[spCashKey] && !!got[spOtherKey], () => complete({ ...base, method: `Split · Cash + ${sp.kind === 'momo' ? 'MoMo' : 'GhPay'}`, parts: [{ m: 'Cash', amt: spCash }, { m: sp.kind === 'momo' ? 'Mobile Money' : 'GhPay', amt: spOther }], change: 0, payRef: sp.kind === 'ghpay' ? ghRef : 'HUB-' + Date.now().toString().slice(-8), kind: 'sale' }))}
       </div>}
 
       {m === 'credit' && <div className="flex flex-col gap-3">

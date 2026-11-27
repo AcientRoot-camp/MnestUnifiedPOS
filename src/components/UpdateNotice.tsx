@@ -1,6 +1,8 @@
 // POS update pop-ups, for every signed-in user (mounted in App.tsx):
 //   1. "A new update is ready": a newer version was deployed while this screen was open. It offers to reload now, or
-//      later so a sale in progress can be finished first (it asks again after 10 minutes).
+//      later so a sale in progress can be finished first (it asks again after 10 minutes). Once "Update now" is
+//      accepted for a deploy, that same deploy is never offered again on this device, even if the browser shows an
+//      old cached copy; only a newer deploy brings the pop-up back. "Update now" also asks the server for a fresh copy.
 //   2. "What's new": after signing in on the new version, the changes are listed (data/releases.ts). The user has to
 //      scroll to the end and tick that they have read them before the window can be closed. It does not close with
 //      Esc or by tapping outside. Each user sees each release once on each device.
@@ -14,11 +16,22 @@ const LATER_MS = 10 * 60 * 1000;
 
 /** The built app's main script name (it changes with every deploy), read from a page's HTML. '' if not found. */
 const buildOf = (html: string) => html.match(/\/assets\/index-[\w-]+\.js/)?.[0] ?? '';
+/** The deploy the user last accepted with "Update now" on this device (so it is never offered twice). */
+const ACCEPTED = 'ecompos.updateAccepted';
+const accepted = () => { try { return localStorage.getItem(ACCEPTED) || ''; } catch { return ''; } };
+/** Reload for a deploy: remember it was accepted, then load a fresh copy (?updated= skips any cached page). */
+function updateTo(live: string) {
+  try { localStorage.setItem(ACCEPTED, live); } catch { /* storage blocked */ }
+  const u = new URL(window.location.href); u.searchParams.set('updated', String(Date.now()));
+  window.location.replace(u.toString());
+}
 
-/** True once the server is serving a different build from the one running here. Never true on the dev server. */
+/** The newer deploy's id once the server serves a build other than the one running here ('' until then). Never on the dev server. */
 function useNewBuild() {
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState('');
   useEffect(() => {
+    // Tidy the address after an "Update now" reload.
+    try { const u = new URL(window.location.href); if (u.searchParams.has('updated')) { u.searchParams.delete('updated'); window.history.replaceState(window.history.state, '', u.toString()); } } catch { /* ignore */ }
     const mine = buildOf(document.documentElement.innerHTML);
     if (!mine) return;
     let stop = false;
@@ -27,7 +40,8 @@ function useNewBuild() {
         // A fresh copy of the home page, skipping every cache. Offline or an error page: try again later.
         const r = await fetch(`/?v=${Date.now()}`, { cache: 'no-store' });
         const live = r.ok ? buildOf(await r.text()) : '';
-        if (!stop && live && live !== mine) setReady(true);
+        // A newer deploy than this screen is running, and not one already accepted here: offer it.
+        if (!stop && live && live !== mine && live !== accepted()) setReady(live);
       } catch { /* offline */ }
     };
     const t = window.setInterval(check, CHECK_MS);
@@ -105,7 +119,7 @@ export default function UpdateNotice() {
           <span className="text-xs font-semibold text-brand uppercase tracking-wider">System update</span>
           <h2 id="up-h" className="m-0 text-xl font-semibold">A new update is ready</h2>
           <p className="m-0 text-sm text-sub leading-relaxed">The system has been updated. Finish any sale you are making first (park it to keep it), then update. After updating you will see what has changed.</p>
-          <div className="flex gap-2 flex-wrap"><button onClick={() => window.location.reload()} className="btn-primary">Update now</button><button onClick={() => setLater(true)} className="btn-ghost">Later · remind me in 10 minutes</button></div>
+          <div className="flex gap-2 flex-wrap"><button onClick={() => updateTo(fresh)} className="btn-primary">Update now</button><button onClick={() => setLater(true)} className="btn-ghost">Later · remind me in 10 minutes</button></div>
         </Shell>
       )}
     </>

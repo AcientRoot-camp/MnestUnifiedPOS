@@ -102,6 +102,8 @@ export default function POS() {
   const [credit, setCredit] = useState<{ amt: number; ref: string } | null>(null);
   const [step, setStep] = useState<'sell' | 'pay' | 'done'>('sell');
   const [doneSale, setDoneSale] = useState<TillSale | null>(null);
+  // Shows the "Payment successful" message after a sale is paid, before the receipt.
+  const [paidView, setPaidView] = useState(false);
   const [docTab, setDocTab] = useState<'r' | 'i'>('r');
   const [sent, setSent] = useState<Record<string, string>>({});
   const [wa, setWa] = useState(''); const [waErr, setWaErr] = useState('');
@@ -311,7 +313,7 @@ export default function POS() {
   const removeDisc = () => { if (discId && myReq?.status === 'pending') setDiscReq(discReq.map((r) => (r.id === discId ? { ...r, status: 'rejected', note: 'Cancelled by the seller' } : r))); setDisc(''); setDiscApplied(0); setDiscId(''); setDiscOk(0); };
 
   const reset = () => { setCart([]); setCust(custBlank); setPicked(null); setIsNew(false); setSaved(false); setMore(false); setCq(''); setBiz({ on: false, name: '', tin: '' }); setDel({ on: false, when: 'asap', at: '', fee: 20, free: false, note: '', time: '' }); setDisc(''); setDiscApplied(0); setDiscId(''); setDiscOk(0); setCredit(null); setScanMsg(null); setOos(''); };
-  const newSale = () => { reset(); setStep('sell'); setDoneSale(null); setDocTab('r'); setSent({}); setWa(''); setWaErr(''); if (SU) setAdminOk(null); };
+  const newSale = () => { reset(); setStep('sell'); setDoneSale(null); setPaidView(false); setDocTab('r'); setSent({}); setWa(''); setWaErr(''); if (SU) setAdminOk(null); };
 
   // Serial numbers are optional: payment is never held up waiting for them.
   const charge = () => {
@@ -341,7 +343,8 @@ export default function POS() {
     if (del.on && c) { const w: WebOrder = { id: no, ch: 'Till', who: c.name, phone: c.phone, items: cart.map((l) => [l.qty, l.name, l.price]), fee, pay: s.method + ' · paid', type: 'D', brId: br, where: [c.addr, c.landmark].filter(Boolean).join(' · ') || 'Address to confirm', landmark: c.landmark, gps: c.gps, placed: nowTxt(), stage: 1, status: 'Active', track: [{ label: `Till sale · deliver ${del.when === 'asap' ? 'as soon as a rider is free' : del.when === 'pick' ? del.at : del.when === 'today' ? `later today ${del.time}` : `tomorrow ${del.time}`}`, at: nowTxt(), by: me.name }], trackId: no }; writeKey('ecompos.webOrders2', [w, ...readKey<WebOrder[]>('ecompos.webOrders2', WEB_ORDERS)]); }
     if (SU) secLog('Admin sale', `Sale ${no} by the Admin at ${till} · ${ghs(total)} · reason: ${s.adminWhy}`, 'medium', username);
     window.dispatchEvent(new CustomEvent('ecompos:sales'));
-    setDoneSale(s); setStep('done'); setWa(c?.phone ? phClean(c.phone) : '');
+    // Payment success message first; the receipt and invoice open from it (see the done step below).
+    setDoneSale(s); setPaidView(true); setStep('done'); setWa(c?.phone ? phClean(c.phone) : '');
   };
   const parkIt = (name: string, reason: string, note: string) => { setParked([{ id: 'PK-' + Date.now().toString().slice(-5), ts: Date.now(), br, by: me.name, lines: cart, cust: custOut() || (name ? { name, phone: '' } : undefined), note: [reason, note].filter(Boolean).join(' · '), disc: discAmt }, ...parked]); reset(); setPanel(''); setToast('Sale parked · its items stay held until it is resumed or deleted'); };
 
@@ -600,7 +603,18 @@ export default function POS() {
 
           {step === 'pay' && <Pay total={total} cust={custOut() || null} online={online} me={me} role={role} username={username} SU={SU} br={br} till={till} owes={owesOf(picked)} payAllow={payAllow[username]} creditFirst={creditMode} onBack={() => setStep('sell')} onDone={complete} onHP={() => nav('/hirepurchase')} onIntro={() => setIntro(true)} />}
 
-          {step === 'done' && doneSale && <div className="flex flex-col gap-3">
+          {/* Payment successful: shown after every completed payment, before the receipt. */}
+          {step === 'done' && doneSale && paidView && (() => { const s = doneSale; const credit = s.kind === 'credit'; const got = credit ? s.paidNow || 0 : s.total; const method = credit ? (s.paidBy || (got ? 'Cash' : '')) : s.method.split(' · ')[0]; return (
+            <div role="status" aria-live="polite" className="flex flex-col items-center text-center gap-3 py-6">
+              <span aria-hidden className="w-20 h-20 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-[0_10px_30px_rgba(31,122,42,0.35)]" style={{ background: '#1f7a2a' }}>✓</span>
+              <h2 className="m-0 text-[24px] font-semibold">{credit && !got ? 'Credit sale recorded' : 'Payment successful'}</h2>
+              <p className="m-0 text-[15px] text-[#3d3a38]">{got ? <><b>{ghs(got)}</b> received{method ? ` by ${method}` : ''}</> : <>No money taken today</>}{credit ? <> · <b>{ghs(s.balance || 0)}</b> owed, due {s.due}</> : null}</p>
+              {!credit && s.change > 0 && <p className="m-0 rounded-2xl px-4 py-2 text-[15px] font-semibold" style={{ background: '#fff4e5', color: '#8a4b00' }}>Give the customer {ghs(s.change)} change</p>}
+              <span className="text-xs text-[#5f5c5a]">Receipt No. {s.code || s.no} · {s.cust?.name || 'Walk-in customer'}</span>
+              <button autoFocus onClick={() => setPaidView(false)} className="h-12 px-7 rounded-full text-white text-[15px] font-semibold" style={{ background: TEAL }}>View receipt</button>
+            </div>
+          ); })()}
+          {step === 'done' && doneSale && !paidView && <div className="flex flex-col gap-3">
             {xmas && <div aria-hidden className="pointer-events-none fixed inset-0 z-[700] overflow-hidden">{Array.from({ length: 14 }, (_, i) => <span key={i} className="absolute text-3xl" style={{ left: `${(i * 7) % 100}%`, bottom: -40, animation: `balloon ${4 + (i % 4)}s ease-in ${i * 0.2}s forwards` }}>🎈</span>)}<style>{'@keyframes balloon{to{transform:translateY(-120vh)}}'}</style></div>}
             <div className="flex items-center gap-2 flex-wrap"><h2 className="m-0 text-[20px] font-medium flex-1 whitespace-nowrap">Paid · {doneSale.method.split(' · ')[0]}</h2><button onClick={newSale} className="h-10 px-4 rounded-full text-white text-sm font-semibold inline-flex items-center gap-1.5" style={{ background: TEAL }}><span className="text-base">+</span> New sale</button><button onClick={() => setPanel('riders')} className="h-10 px-4 rounded-full bg-white text-sm font-medium inline-flex items-center gap-1.5" style={{ border: '1.5px solid #000' }}><Icon name="bike" size={15} />Deliver with rider</button></div>
             {doneSale.training && <span className="w-fit rounded-full text-white text-[11px] font-bold px-3 py-1" style={{ background: RED }}>TRAINING MODE · practice data only, not for real sales</span>}

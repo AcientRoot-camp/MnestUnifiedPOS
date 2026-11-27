@@ -20,7 +20,8 @@ export const RELEASES: Release[] = [
     title: 'Payments, receipts and update notices',
     changes: [
       ['Choose the payment method', 'No method is selected for you on “Take payment”. Choose how the customer is paying. The receipt and invoice appear only after the payment is made. (The Credit sale screen still starts on Credit sale.)'],
-      ['Confirm money you have received', 'For GhPay, tick that the money has arrived. For a split payment, tick both parts. Only then can you complete the sale.'],
+      ['Confirm money you have received', 'For every payment, tick that you have received the money: the cash in your hand, the Mobile Money or GhPay confirmation, or both parts of a split payment. Only then can you complete the sale. The system then processes the payment (a spinning circle) and shows “Payment successful” before the receipt.'],
+      ['Receipt QR code', 'The customer can scan the QR code on their receipt with a phone camera to see the items they bought and the totals. At Return / exchange, scanning it still finds the sale.'],
       ['Credit sale deposits', 'If the customer pays something now, choose Cash, Mobile Money or GhPay and tick that you received it. Only cash deposits count in your cash drawer.'],
       ['Put on account', 'You are now asked to confirm before a sale is put on a customer’s account.'],
       ['Receipts', 'A dashed line now separates the items from the Subtotal on sales and credit sales receipts. The receipt thanks the customer by name, and the GRA E-VAT code is gone: the large QR code at the bottom is the one to scan at Return / exchange to find the sale.'],
@@ -29,7 +30,7 @@ export const RELEASES: Release[] = [
       ['Signing in and out by QR', 'To scan the gate QR code, open your profile at the top right of the home screen and choose “My sign-in, ID card, payslips & leave”.'],
       ['Your photo', 'Add your picture from your profile at the top right (tap the picture in the menu) or from your profile at the bottom of the side menu. It saves as soon as you choose it.'],
       ['Install the app', 'The sign-in page now shows “Install MNest UnifiedPOS” until you close it. Installing asks for your username and 6-digit passcode.'],
-      ['Update notices', 'When the system is updated, you will see this window. Read the changes, then close it. If an update arrives while you are working, finish your sale and tap “Update now”.'],
+      ['Update notices', 'When the system is updated, you will see this window. Read the changes, then close it. If an update arrives while you are working, finish your sale and tap “Update now”. Each update is shown to you only once.'],
     ],
   },
 ];

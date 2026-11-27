@@ -356,8 +356,39 @@ export default function Dashboard() {
         </section>
       </div>
 
-      <section className="card p-5 flex flex-col gap-2"><div className="flex justify-between"><h2 className="m-0 text-lg font-semibold">Latest orders, every channel</h2><Link to="/orders" className="text-sm font-semibold text-brand">All orders →</Link></div>
-        <div className="overflow-x-auto"><table className="w-full text-sm min-w-[560px]"><thead><tr className="text-left text-xs text-muted border-b border-line">{['Order', 'Channel', 'Customer', 'Payment', 'Total', 'Status'].map((h) => <th key={h} className="py-2 pr-3 font-semibold">{h}</th>)}</tr></thead><tbody>{latest.map((o) => <tr key={o.id} className="border-b border-line"><td className="py-2 pr-3 font-semibold">{o.id}</td><td className="pr-3">{o.ch}</td><td className="pr-3">{o.who}</td><td className="pr-3">{o.pay}</td><td className="pr-3">{ghs(o.items.reduce((a, [q, , p]) => a + q * p, 0) + o.fee)}</td><td>{o.status === 'Active' ? stageTxt(o) : o.status}</td></tr>)}</tbody></table></div>
+      {/* Latest orders, every channel. Sized in rem so it scales with the reader's text size, and never wider than its
+          space. It looks at its own width (CSS container query, index.css .lo), not the screen's, because on tablets it
+          can sit in a narrow column: under 34rem one compact card per order; from 34rem a table that fits the width;
+          from 46rem the Payment column too. */}
+      <section aria-labelledby="lo-h" className="lo card p-[1rem] sm:p-[1.25rem] flex flex-col gap-[0.5rem] min-w-0">
+        <div className="flex justify-between items-baseline gap-[0.5rem] flex-wrap"><h2 id="lo-h" className="m-0 text-[1.0625rem] sm:text-[1.125rem] font-semibold">Latest orders, every channel</h2><Link to="/orders" className="text-[0.875rem] font-semibold text-brand whitespace-nowrap">All orders →</Link></div>
+        <ul className="lo-cards m-0 p-0 list-none flex-col gap-[0.5rem]">
+          {latest.map((o) => (
+            <li key={o.id} className="rounded-[1rem] bg-canvas px-[0.875rem] py-[0.625rem] flex flex-col gap-[0.125rem] min-w-0">
+              <div className="flex justify-between gap-[0.5rem] text-[0.875rem]"><b className="font-semibold truncate">#{o.id}</b><b className="font-semibold whitespace-nowrap">{ghs(o.items.reduce((a, [q, , pr]) => a + q * pr, 0) + o.fee)}</b></div>
+              <span className="text-[0.8125rem] text-muted truncate">{o.who} · {o.ch}</span>
+              <div className="flex justify-between gap-[0.5rem] text-[0.75rem]"><span className="truncate">{o.pay}</span><span className="font-semibold whitespace-nowrap text-brand">{o.status === 'Active' ? stageTxt(o) : o.status}</span></div>
+            </li>
+          ))}
+        </ul>
+        <table className="lo-table w-full table-fixed text-[0.8125rem] border-collapse">
+          <thead><tr className="text-left text-[0.75rem] text-muted border-b border-line">
+            <th className="w-[6.5rem] py-[0.5rem] pr-[0.75rem] font-semibold">Order</th>
+            <th className="w-[5.5rem] py-[0.5rem] pr-[0.75rem] font-semibold">Channel</th>
+            <th className="py-[0.5rem] pr-[0.75rem] font-semibold">Customer</th>
+            <th className="lo-pay w-[8rem] py-[0.5rem] pr-[0.75rem] font-semibold">Payment</th>
+            <th className="w-[6.75rem] py-[0.5rem] pr-[0.75rem] font-semibold text-right">Total</th>
+            <th className="w-[7.5rem] py-[0.5rem] font-semibold">Status</th>
+          </tr></thead>
+          <tbody>{latest.map((o) => <tr key={o.id} className="border-b border-line align-top">
+            <td className="py-[0.5rem] pr-[0.75rem] font-semibold break-words">{o.id}</td>
+            <td className="py-[0.5rem] pr-[0.75rem] break-words">{o.ch}</td>
+            <td className="py-[0.5rem] pr-[0.75rem] break-words">{o.who}</td>
+            <td className="lo-pay py-[0.5rem] pr-[0.75rem] break-words">{o.pay}</td>
+            <td className="py-[0.5rem] pr-[0.75rem] text-right whitespace-nowrap">{ghs(o.items.reduce((a, [q, , pr]) => a + q * pr, 0) + o.fee)}</td>
+            <td className="py-[0.5rem] break-words">{o.status === 'Active' ? stageTxt(o) : o.status}</td>
+          </tr>)}</tbody>
+        </table>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-3">
